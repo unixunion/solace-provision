@@ -23,11 +23,18 @@ use solace_semp_client::models::MsgVpnBridge;
 use std::mem;
 use serde::{Serialize, Deserialize};
 use crate::clientconfig::SolaceApiConfig;
-//use crate::consoleprint;
+use solace_semp_client::models::MsgVpnsResponse;
+use crate::fetch::Fetch;
+use solace_semp_client::models::MsgVpnQueuesResponse;
+use solace_semp_client::models::MsgVpnAclProfilesResponse;
+use solace_semp_client::models::MsgVpnClientProfilesResponse;
+use solace_semp_client::models::MsgVpnClientUsernameResponse;
+use solace_semp_client::models::MsgVpnClientUsernamesResponse;
 
-mod solace;
+mod provision;
 mod clientconfig;
 mod helpers;
+mod fetch;
 
 
 mod test {
@@ -159,39 +166,20 @@ fn main() {
     // Fetch VPN
     if fetch_vpn != "undefined" {
 
-        let mut wherevec: Vec<String> = Vec::new();
-        let whereitem = format!("msgVpnName=={}", fetch_vpn);
-        wherevec.push(String::from(whereitem));
 
-        // SEMP selector
-        let mut selectvec: Vec<String> = Vec::new();
-        selectvec.push(String::from(select));
+        let mvpn = MsgVpnsResponse::fetch("irrelevant",
+                                          "default", 10, cursor, select,
+                                          &mut core, &client);
 
-        println!("{}: {}", "Fetch VPN".white(), fetch_vpn.green());
-        let resp = client
-            .msg_vpn_api()
-            .get_msg_vpns(count, cursor, wherevec, selectvec)
-            .and_then(|vpn| {
-
-                match serde_yaml::to_string(&vpn.data().unwrap()) {
-                    Ok(v) => {
-                        println!("{}", format!("{}", v));
-                    },
-                    Err(_) => {
-                        println!("Error deserializing");
-                    }
-                }
-
-                futures::future::ok(())
-            });
-
-
-        println!("{}", "Making request".green());
-        match core.run(resp) {
-            Ok(response) => {println!("{} {}", ok_emoji, "success".green())},
-            Err(e) => {println!("{} error: {:?}", err_emoji, e)}
+        match mvpn {
+            Ok(vpns) => {
+                println!("{:?}", vpns);
+            },
+            Err(e) => {
+                println!("error {}", e);
+            }
         }
-        println!("{}", "Requests made".yellow());
+
     }
 
     // VPN provision if file is passed
@@ -257,39 +245,18 @@ fn main() {
 
     if fetch_queue != "undefined" {
 
-        let mut wherevec: Vec<String> = Vec::new();
-        let whereitem = format!("queueName=={}", fetch_queue);
-        wherevec.push(String::from(whereitem));
+        let queues = MsgVpnQueuesResponse::fetch(message_vpn, fetch_queue,count,
+                                                 cursor, select, &mut core, &client);
 
-        // SEMP selector
-        let mut selectvec: Vec<String> = Vec::new();
-        selectvec.push(String::from(select));
-
-        println!("{}: {} in vpn: {}", "Fetch QUEUE".white(), fetch_queue.green(), message_vpn.blue());
-        let resp = client
-            .msg_vpn_api()
-            .get_msg_vpn_queues(message_vpn, count, cursor, wherevec, selectvec )
-            .and_then(|item| {
-
-                match serde_yaml::to_string(&item.data().unwrap()) {
-                    Ok(v) => {
-                        println!("{}", format!("{}", v));
-                    },
-                    Err(_) => {
-                        println!("Error deserializing");
-                    }
-                }
-
-                futures::future::ok(())
-            });
-
-
-        println!("{}", "Making request".green());
-        match core.run(resp) {
-            Ok(response) => {println!("👍 {}", "success".green())},
-            Err(e) => {println!("Error: {:?}", e)}
+        match queues {
+            Ok(q) => {
+                println!("{:?}", q)
+            },
+            Err(e) => {
+                println!("error {}", e);
+            }
         }
-        println!("{}", "Requests made".yellow());
+
     }
 
 
@@ -351,39 +318,19 @@ fn main() {
 
     if fetch_acl_profile != "undefined" {
 
-        let mut wherevec: Vec<String> = Vec::new();
-        let whereitem = format!("aclProfileName=={}", fetch_acl_profile);
-        wherevec.push(String::from(whereitem));
+        let acls = MsgVpnAclProfilesResponse::fetch(message_vpn,
+                                                    fetch_acl_profile, count, cursor,
+                                                    select, &mut core, &client);
 
-        // SEMP selector
-        let mut selectvec: Vec<String> = Vec::new();
-        selectvec.push(String::from(select));
-
-        println!("{}: {} in vpn: {}", "Fetch acl".white(), fetch_acl_profile.green(), message_vpn.blue());
-        let resp = client
-            .msg_vpn_api()
-            .get_msg_vpn_acl_profiles(message_vpn, count, cursor, wherevec, selectvec)
-            .and_then(|item| {
-
-                match serde_yaml::to_string(&item.data().unwrap()) {
-                    Ok(v) => {
-                        println!("{}", format!("{}", v));
-                    },
-                    Err(_) => {
-                        println!("Error deserializing");
-                    }
-                }
-
-                futures::future::ok(())
-            });
-
-
-        println!("{}", "Making request".green());
-        match core.run(resp) {
-            Ok(response) => {println!("👍 {}", "success".green())},
-            Err(e) => {println!("Error: {:?}", e)}
+        match acls {
+            Ok(a) => {
+                println!("{:?}", a)
+            },
+            Err(e) => {
+                println!("error {}", e);
+            }
         }
-        println!("{}", "Requests made".yellow());
+
     }
 
 
@@ -445,39 +392,19 @@ fn main() {
 
     if fetch_client_profile != "undefined" {
 
-        let mut wherevec: Vec<String> = Vec::new();
-        let whereitem = format!("clientProfileName=={}", fetch_client_profile);
-        wherevec.push(String::from(whereitem));
+        let profiles = MsgVpnClientProfilesResponse::fetch(message_vpn,
+                                                    fetch_client_profile, count, cursor,
+                                                    select, &mut core, &client);
 
-        // SEMP selector
-        let mut selectvec: Vec<String> = Vec::new();
-        selectvec.push(String::from(select));
-
-        println!("{}: {} in vpn: {}", "Fetch client-profile".white(), fetch_client_profile.green(), message_vpn.blue());
-        let resp = client
-            .msg_vpn_api()
-            .get_msg_vpn_client_profiles(message_vpn, count, cursor, wherevec, selectvec)
-            .and_then(|item| {
-
-                match serde_yaml::to_string(&item.data().unwrap()) {
-                    Ok(v) => {
-                        println!("{}", format!("{}", v));
-                    },
-                    Err(_) => {
-                        println!("Error deserializing");
-                    }
-                }
-
-                futures::future::ok(())
-            });
-
-
-        println!("{}", "Making request".green());
-        match core.run(resp) {
-            Ok(response) => {println!("👍 {}", "success".green())},
-            Err(e) => {println!("Error: {:?}", e)}
+        match profiles {
+            Ok(p) => {
+                println!("{:?}", p)
+            },
+            Err(e) => {
+                println!("error {}", e);
+            }
         }
-        println!("{}", "Requests made".yellow());
+
     }
 
 
@@ -540,39 +467,19 @@ fn main() {
 
     if fetch_client_username != "undefined" {
 
-        let mut wherevec: Vec<String> = Vec::new();
-        let whereitem = format!("clientUsername=={}", fetch_client_username);
-        wherevec.push(String::from(whereitem));
+        let usernames = MsgVpnClientUsernamesResponse::fetch(message_vpn,
+                                                             fetch_client_username, count, cursor,
+                                                           select, &mut core, &client);
 
-        // SEMP selector
-        let mut selectvec: Vec<String> = Vec::new();
-        selectvec.push(String::from(select));
-
-        println!("{}: {} in vpn: {}", "Fetch client-username".white(), fetch_client_profile.green(), message_vpn.blue());
-        let resp = client
-            .msg_vpn_api()
-            .get_msg_vpn_client_usernames(message_vpn, count, cursor, wherevec, selectvec)
-            .and_then(|item| {
-
-                match serde_yaml::to_string(&item.data().unwrap()) {
-                    Ok(v) => {
-                        println!("{}", format!("{}", v));
-                    },
-                    Err(_) => {
-                        println!("Error deserializing");
-                    }
-                }
-
-                futures::future::ok(())
-            });
-
-
-        println!("{}", "Making request".green());
-        match core.run(resp) {
-            Ok(response) => {println!("👍 {}", "success".green())},
-            Err(e) => {println!("Error: {:?}", e)}
+        match usernames {
+            Ok(u) => {
+                println!("{:?}", u)
+            },
+            Err(e) => {
+                println!("error {}", e);
+            }
         }
-        println!("{}", "Requests made".yellow());
+
     }
 
     if client_username_file.to_owned() != "undefined" {

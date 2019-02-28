@@ -19,3 +19,15 @@ pub fn gencred(username: String, password: String) -> BasicAuth {
     let password: Option<String> = Some(password);
     BasicAuth::from((username, password ))
 }
+
+// build a where selector
+pub fn getwhere(key: &str, name: &str, select: &str) -> (Vec<String>,Vec<String>) {
+    let mut wherevec: Vec<String> = Vec::new();
+    let whereitem = format!("{}=={}", key, name);
+    wherevec.push(String::from(whereitem));
+
+    // SEMP selector
+    let mut selectvec: Vec<String> = Vec::new();
+    selectvec.push(String::from(select));
+    (wherevec, selectvec)
+}
