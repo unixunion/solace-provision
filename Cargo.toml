@@ -1,0 +1,25 @@
+[package]
+name = "solace-provision"
+version = "0.1.0"
+authors = ["Kegan Holtzhausen <Kegan.Holtzhausen@kindredgroup.com>"]
+edition = "2018"
+
+[dependencies]
+
+#solace_semp_client = { git = "https://github.com/unixunion/rust_solace_semp_client.git", branch="master" }
+solace_semp_client = { path = "../solace_semp_client/output/rust/"}
+#generics_yaml_deserializer = { git = "https://github.com/unixunion/rust_generics_yaml_deserializer.git", branch="master" }
+#generics_yaml_deserializer = { path = "../generics_yaml_deserializer/" }
+hyper = "0.11.6"
+hyper-tls = "0.1.4"
+native-tls = "0.2"
+colored = "1.7"
+tokio-core = "0.1.6"
+futures = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_derive = "1.0"
+serde_yaml = "0.7.5"
+serde_json = "1.0"
+clap = { version="2.32.0", features=["yaml"] }
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_info"] }
+

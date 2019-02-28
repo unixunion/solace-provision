@@ -1,0 +1,6 @@
+--- 
+username: admin
+password: admin
+host: https://localhost:8080/SEMP/v2/config
+ok_emoji: 👍
+err_emoji: ❌

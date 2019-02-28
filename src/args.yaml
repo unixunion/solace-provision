@@ -1,0 +1,81 @@
+name: solace-provision
+version: "1.0"
+author: Kevin K. <marzubus@gmail.com>
+about: Provision solace
+args:
+  - config:
+      short: c
+      long: config
+      value_name: CONFIG
+      help: Sets the solace config file
+      takes_value: true
+  - update:
+      short: u
+      long: update
+      help: Update existing provisioned object
+  - vpn:
+      short: v
+      long: vpn
+      help: a VPN spec file
+      takes_value: true
+  - queue:
+      short: q
+      long: queue
+      help: a Queue spec file
+      takes_value: true
+  - acl:
+      short: a
+      long: acl
+      help: a Acl spec file
+      takes_value: true
+  - client-profile:
+      short: b
+      long: client-profile
+      help: a client-profile spec file
+      takes_value: true
+  - client-username:
+      short: d
+      long: client-username
+      help: a client-username spec file
+      takes_value: true
+  - fetch-vpn:
+      short: t
+      long: fetch-vpn
+      help: Fetch a existing vpn spec from the appliance
+      takes_value: true
+  - fetch-queue:
+      short: e
+      long: fetch-queue
+      help: Fetch a existing queue spec from the appliance
+      takes_value: true
+  - fetch-acl-profile:
+      short: g
+      long: fetch-acl-profile
+      help: Fetch a existing acl spec from the appliance
+      takes_value: true
+  - fetch-client-profile:
+      short: h
+      long: fetch-client-profile
+      help: Fetch a existing client-profile spec from the appliance
+      takes_value: true
+  - fetch-client-username:
+      short: i
+      long: fetch-client-username
+      help: Fetch a existing client-username spec from the appliance
+      takes_value: true
+  - shutdown:
+      short: s
+      long: shutdown
+      help: Shutdown a existing provisioned object before applying update changes, will re-enable the object after update is complete.
+      takes_value: false
+  - count:
+      short: n
+      long: count
+      help: Number of objects to fetch when using --fetch-*
+      takes_value: true
+  - message-vpn:
+      short: m
+      long: message-vpn
+      help: VPN to apply the change to, overrides msgVpnName in the spec file
+      takes_value: true
+

@@ -1,0 +1,9 @@
+---
+aclProfileName: myacl
+clientProfileName: myclientprofile
+clientUsername: myusername
+enabled: true
+guaranteedEndpointPermissionOverrideEnabled: false
+msgVpnName: myvpn
+password: secretpw
+subscriptionManagerEnabled: false

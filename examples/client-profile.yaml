@@ -1,0 +1,75 @@
+---
+allowBridgeConnectionsEnabled: true
+allowCutThroughForwardingEnabled: true
+allowGuaranteedEndpointCreateEnabled: true
+allowGuaranteedMsgReceiveEnabled: true
+allowGuaranteedMsgSendEnabled: true
+allowTransactedSessionsEnabled: true
+apiQueueManagementCopyFromOnCreateName: ""
+apiTopicEndpointManagementCopyFromOnCreateName: ""
+clientProfileName: myclientprofile
+compressionEnabled: true
+elidingDelay: 0
+elidingEnabled: false
+elidingMaxTopicCount: 256
+eventClientProvisionedEndpointSpoolUsageThreshold:
+  clearPercent: 60
+  setPercent: 80
+eventConnectionCountPerClientUsernameThreshold:
+  clearPercent: 60
+  setPercent: 80
+eventEgressFlowCountThreshold:
+  clearPercent: 60
+  setPercent: 80
+eventEndpointCountPerClientUsernameThreshold:
+  clearPercent: 60
+  setPercent: 80
+eventIngressFlowCountThreshold:
+  clearPercent: 60
+  setPercent: 80
+eventServiceSmfConnectionCountPerClientUsernameThreshold:
+  clearPercent: 60
+  setPercent: 80
+eventServiceWebConnectionCountPerClientUsernameThreshold:
+  clearPercent: 60
+  setPercent: 80
+eventSubscriptionCountThreshold:
+  clearPercent: 60
+  setPercent: 80
+eventTransactedSessionCountThreshold:
+  clearPercent: 60
+  setPercent: 80
+eventTransactionCountThreshold:
+  clearPercent: 60
+  setPercent: 80
+maxConnectionCountPerClientUsername: 100
+maxEgressFlowCount: 1000
+maxEndpointCountPerClientUsername: 1000
+maxIngressFlowCount: 1000
+maxSubscriptionCount: 50000
+maxTransactedSessionCount: 10
+maxTransactionCount: 5000
+msgVpnName: myvpn
+queueControl1MaxDepth: 20000
+queueControl1MinMsgBurst: 4
+queueDirect1MaxDepth: 20000
+queueDirect1MinMsgBurst: 4
+queueDirect2MaxDepth: 20000
+queueDirect2MinMsgBurst: 4
+queueDirect3MaxDepth: 20000
+queueDirect3MinMsgBurst: 4
+queueGuaranteed1MaxDepth: 20000
+queueGuaranteed1MinMsgBurst: 255
+rejectMsgToSenderOnNoSubscriptionMatchEnabled: false
+replicationAllowClientConnectWhenStandbyEnabled: false
+serviceSmfMaxConnectionCountPerClientUsername: 100
+serviceWebInactiveTimeout: 30
+serviceWebMaxConnectionCountPerClientUsername: 100
+serviceWebMaxPayload: 1000000
+tcpCongestionWindowSize: 2
+tcpKeepaliveCount: 5
+tcpKeepaliveIdleTime: 3
+tcpKeepaliveInterval: 1
+tcpMaxSegmentSize: 1460
+tcpMaxWindowSize: 256
+tlsAllowDowngradeToPlainTextEnabled: true
