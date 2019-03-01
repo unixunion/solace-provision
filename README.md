@@ -99,52 +99,63 @@ which is "default" by default. you MUST specify the VPN to perform the provision
 That said, please remember that certain objects need to reference each other, like client-usernames reference an client-profile and acl.
 
 
-### Shutdown VPN
+### VPN
 
-    solace-provision --config examples/config.yaml --message-vpn myvpn --shutdown --update
-
-### Provision VPN
-
-    solace-provision --config examples/config.yaml --vpn examples/vpn.yaml [--update]
-
-### Provision Queue
-
-    solace-provision --config examples/config.yaml --queue examples/queue.yaml [--update]
-    
-### Provision ACL
-
-    solace-provision --config examples/config.yaml --acl examples/acl.yaml [--update]
-    
-### Provision Client Profile
-
-    solace-provision --config examples/config.yaml --client-profile examples/client-profile.yaml [--update]
-    
-### Provision Client Username
-
-    solace-provision --config examples/config.yaml --client-username examples/client-username.yaml [--update]
-
-
-### Fetch VPN
-
-    solace-provision --config examples/config.yaml --fetch-acl-profile "*" -n 10
-
-### Fetch Queue
+#### Fetch VPN
 
     solace-provision --config examples/config.yaml --fetch-vpn "*" -n 10
 
-## Fetch ACL
+#### Provision VPN
 
-    solace-provision --config examples/config.yaml --fetch-queue "*" -n 10   
+    solace-provision --config examples/config.yaml --vpn examples/vpn.yaml [--update]
 
-## Fetch Client Profile
+#### Shutdown VPN
 
-    solace-provision --config examples/config.yaml --fetch-client-profile "*" -n 10   
+    solace-provision --config examples/config.yaml --message-vpn myvpn --shutdown --update
     
-## Fetch Client Username
+### Queue
 
-    solace-provision --config examples/config.yaml --fetch-client-username "*" -n 10   
+#### Fetch Queue
 
+    solace-provision --config examples/config.yaml --fetch-queue "*" --message-vpn myvpn [-n 10]
 
+#### Provision Queue
+
+    solace-provision --config examples/config.yaml --queue examples/queue.yaml [--update]
+
+#### Shutdown Queue
+
+    solace-provision --config examples/config.yaml --message-vpn myvpn --queue-name myqueue --shutdown --update
+    
+### ACL
+
+#### Fetch ACL
+
+    solace-provision --config examples/config.yaml --fetch-acl-profile "*" --message-vpn myvpn
+
+#### Provision ACL
+
+    solace-provision --config examples/config.yaml --acl examples/acl.yaml --message-vpn myvpn [--update]
+    
+### Client Profile
+
+#### Fetch Client-Profile
+
+    solace-provision --config examples/config.yaml --fetch-client-profile "*" --message-vpn myvpn
+
+#### Provision Client-Profile
+
+    solace-provision --config examples/config.yaml --client-profile examples/client-profile.yaml --message-vpn myvpn [--update]
+
+### Client-Username
+    
+#### Fetch Client Username
+
+    solace-provision --config examples/config.yaml --fetch-client-username "*" --message-vpn myvpn -n 10  
+    
+#### Provision Client-Username
+
+    solace-provision --config examples/config.yaml --client-username examples/client-username.yaml --message-vpn myvpn [--update]
 
 ## References
 
