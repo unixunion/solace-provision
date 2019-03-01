@@ -31,3 +31,16 @@ pub fn getwhere(key: &str, name: &str, select: &str) -> (Vec<String>,Vec<String>
     selectvec.push(String::from(select));
     (wherevec, selectvec)
 }
+
+//pub fn deserialize<T>(file_name: File) -> Result<Option<T>, &'static str>  {
+//    let file = std::fs::File::open(file_name).unwrap();
+//    let deserialized = serde_yaml::from_reader(file).unwrap();
+//    match deserialized {
+//        Some(item) => {
+//            item
+//        },
+//        _ => {
+//            unimplemented!()
+//        }
+//    }
+//}

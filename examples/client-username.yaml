@@ -4,6 +4,6 @@ clientProfileName: myclientprofile
 clientUsername: myusername
 enabled: true
 guaranteedEndpointPermissionOverrideEnabled: false
-msgVpnName: myvpn
+msgVpnName: IGNORED
 password: secretpw
 subscriptionManagerEnabled: false

@@ -31,8 +31,6 @@ use futures::{Future};
 use futures::future::AndThen;
 use std::fs::File;
 use serde::Deserialize;
-
-
 use crate::helpers;
 use solace_semp_client::models::MsgVpnsResponse;
 use solace_semp_client::apis::Error;
@@ -45,6 +43,9 @@ use solace_semp_client::models::MsgVpnClientUsernamesResponse;
 // shared base trait for all solace fetch-able objects
 pub trait Fetch<T> {
     fn fetch(in_vpn: &str, name: &str, count: i32,  cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<T, &'static str>;
+    fn to_yaml(item: T) -> String where T: Serialize {
+        serde_yaml::to_string(&item).unwrap()
+    }
 }
 
 
@@ -62,7 +63,7 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
 
         match core.run(request) {
             Ok(response) => {
-                println!("fetch ok");
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                 Ok(response)
             },
             Err(e) => {
@@ -86,7 +87,7 @@ impl Fetch<MsgVpnQueuesResponse> for MsgVpnQueuesResponse {
 
         match core.run(request) {
             Ok(response) => {
-                println!("fetch ok");
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                 Ok(response)
             },
             Err(e) => {
@@ -110,7 +111,7 @@ impl Fetch<MsgVpnAclProfilesResponse> for MsgVpnAclProfilesResponse {
 
         match core.run(request) {
             Ok(response) => {
-                println!("fetch ok");
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                 Ok(response)
             },
             Err(e) => {
@@ -136,7 +137,7 @@ impl Fetch<MsgVpnClientProfilesResponse> for MsgVpnClientProfilesResponse {
 
         match core.run(request) {
             Ok(response) => {
-                println!("fetch ok");
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                 Ok(response)
             },
             Err(e) => {
@@ -161,7 +162,7 @@ impl Fetch<MsgVpnClientUsernamesResponse> for MsgVpnClientUsernamesResponse {
 
         match core.run(request) {
             Ok(response) => {
-                println!("fetch ok");
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                 Ok(response)
             },
             Err(e) => {

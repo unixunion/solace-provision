@@ -25,11 +25,15 @@ use serde::{Serialize, Deserialize};
 use crate::clientconfig::SolaceApiConfig;
 use solace_semp_client::models::MsgVpnsResponse;
 use crate::fetch::Fetch;
+use crate::provision::Provision;
 use solace_semp_client::models::MsgVpnQueuesResponse;
 use solace_semp_client::models::MsgVpnAclProfilesResponse;
 use solace_semp_client::models::MsgVpnClientProfilesResponse;
 use solace_semp_client::models::MsgVpnClientUsernameResponse;
 use solace_semp_client::models::MsgVpnClientUsernamesResponse;
+use solace_semp_client::models::MsgVpnQueueResponse;
+use solace_semp_client::models::MsgVpnAclProfileResponse;
+use solace_semp_client::models::MsgVpnClientProfileResponse;
 
 mod provision;
 mod clientconfig;
@@ -166,19 +170,9 @@ fn main() {
     // Fetch VPN
     if fetch_vpn != "undefined" {
 
-
         let mvpn = MsgVpnsResponse::fetch("irrelevant",
                                           "default", 10, cursor, select,
                                           &mut core, &client);
-
-        match mvpn {
-            Ok(vpns) => {
-                println!("{:?}", vpns);
-            },
-            Err(e) => {
-                println!("error {}", e);
-            }
-        }
 
     }
 
@@ -221,16 +215,12 @@ fn main() {
                         Err(e) => { println!("{} error: {:?}", err_emoji, e) }
                     }
                 } else {
-                    let resp = client
-                        .default_api()
-                        .create_msg_vpn(item, Vec::new())
-                        .and_then(|vpn| {
-                            futures::future::ok(())
-                        });
-                    match core.run(resp) {
-                        Ok(response) => {println!("{} {}", ok_emoji, "success".green())},
-                        Err(e) => {println!("{} error: {:?}", err_emoji, e)}
-                    }
+
+
+                    MsgVpnResponse::provision("irrelevant",  vpn_file,
+                                                 &mut core, &client);
+
+
                 }
 
             },
@@ -245,17 +235,9 @@ fn main() {
 
     if fetch_queue != "undefined" {
 
-        let queues = MsgVpnQueuesResponse::fetch(message_vpn, fetch_queue,count,
-                                                 cursor, select, &mut core, &client);
-
-        match queues {
-            Ok(q) => {
-                println!("{:?}", q)
-            },
-            Err(e) => {
-                println!("error {}", e);
-            }
-        }
+        let queues = MsgVpnQueuesResponse::fetch(message_vpn,
+                                                 fetch_queue,count, cursor, select,
+                                                 &mut core, &client);
 
     }
 
@@ -292,18 +274,9 @@ fn main() {
                         Err(e) => {println!("{} error: {:?}", err_emoji, e)}
                     }
                 } else {
-                    let vpn_name = &item.msg_vpn_name();
+                    MsgVpnQueueResponse::provision(message_vpn,  queue_file,
+                                              &mut core, &client);
 
-                    let resp = client
-                        .default_api()
-                        .create_msg_vpn_queue(&vpn_name.unwrap().to_owned(), item, Vec::new())
-                        .and_then(|item| {
-                            futures::future::ok(())
-                        });
-                    match core.run(resp) {
-                        Ok(response) => {println!("{} {}", ok_emoji, "success".green())},
-                        Err(e) => {println!("{} error: {:?}", err_emoji, e)}
-                    }
                 }
             },
             _ => unimplemented!()
@@ -321,15 +294,6 @@ fn main() {
         let acls = MsgVpnAclProfilesResponse::fetch(message_vpn,
                                                     fetch_acl_profile, count, cursor,
                                                     select, &mut core, &client);
-
-        match acls {
-            Ok(a) => {
-                println!("{:?}", a)
-            },
-            Err(e) => {
-                println!("error {}", e);
-            }
-        }
 
     }
 
@@ -366,18 +330,10 @@ fn main() {
                         Err(e) => {println!("{} error: {:?}", err_emoji, e)}
                     }
                 } else {
-                    let vpn_name = &item.msg_vpn_name();
 
-                    let resp = client
-                        .default_api()
-                        .create_msg_vpn_acl_profile(&vpn_name.unwrap().to_owned(), item, Vec::new())
-                        .and_then(|item| {
-                            futures::future::ok(())
-                        });
-                    match core.run(resp) {
-                        Ok(response) => {println!("{} {}", ok_emoji, "success".green())},
-                        Err(e) => {println!("{} error: {:?}", err_emoji, e)}
-                    }
+                    MsgVpnAclProfileResponse::provision(message_vpn,  acl_profile_file,
+                                                        &mut core, &client);
+
                 }
             },
             _ => unimplemented!()
@@ -392,18 +348,9 @@ fn main() {
 
     if fetch_client_profile != "undefined" {
 
-        let profiles = MsgVpnClientProfilesResponse::fetch(message_vpn,
+        MsgVpnClientProfilesResponse::fetch(message_vpn,
                                                     fetch_client_profile, count, cursor,
                                                     select, &mut core, &client);
-
-        match profiles {
-            Ok(p) => {
-                println!("{:?}", p)
-            },
-            Err(e) => {
-                println!("error {}", e);
-            }
-        }
 
     }
 
@@ -440,18 +387,10 @@ fn main() {
                         Err(e) => {println!("{} error: {:?}", err_emoji, e)}
                     }
                 } else {
-                    let vpn_name = &item.msg_vpn_name();
 
-                    let resp = client
-                        .default_api()
-                        .create_msg_vpn_client_profile(&vpn_name.unwrap().to_owned(), item, Vec::new())
-                        .and_then(|item| {
-                            futures::future::ok(())
-                        });
-                    match core.run(resp) {
-                        Ok(response) => {println!("{} {}", ok_emoji, "success".green())},
-                        Err(e) => {println!("{} error: {:?}", err_emoji, e)}
-                    }
+                    MsgVpnClientProfileResponse::provision(message_vpn, client_profile_file,
+                                                           &mut core, &client);
+
                 }
 
             },
@@ -467,18 +406,10 @@ fn main() {
 
     if fetch_client_username != "undefined" {
 
-        let usernames = MsgVpnClientUsernamesResponse::fetch(message_vpn,
+        MsgVpnClientUsernamesResponse::fetch(message_vpn,
                                                              fetch_client_username, count, cursor,
                                                            select, &mut core, &client);
 
-        match usernames {
-            Ok(u) => {
-                println!("{:?}", u)
-            },
-            Err(e) => {
-                println!("error {}", e);
-            }
-        }
 
     }
 
@@ -520,18 +451,10 @@ fn main() {
                         Err(e) => {println!("{} error: {:?}", err_emoji, e)}
                     }
                 } else {
-                    let vpn_name = &item.msg_vpn_name();
 
-                    let resp = client
-                        .default_api()
-                        .create_msg_vpn_client_username(&vpn_name.unwrap().to_owned(), item, Vec::new())
-                        .and_then(|item| {
-                            futures::future::ok(())
-                        });
-                    match core.run(resp) {
-                        Ok(response) => {println!("{} {}", ok_emoji, "success".green())},
-                        Err(e) => {println!("{} error: {:?}", err_emoji, e)}
-                    }
+                    MsgVpnClientUsernameResponse::provision(message_vpn, client_username_file,
+                                                            &mut core, &client);
+
                 }
 
             },

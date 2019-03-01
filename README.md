@@ -91,43 +91,13 @@ See [vpn.yaml](examples/vpn.yaml)
 The queue.yaml example contains all the possible keys and values settable. 
 See [queue.yaml](examples/queue.yaml)
     
-## Running
+## Provisioning
 
-Currently supported options:
+IMPORTANT: the msgVpnName key within the various yaml files is overridden at provision-time with the --message-vpn arg,
+which is "default" by default. you MUST specify the VPN to perform the provision in for ALL items except VPN.
 
-```bash
-$> ./solace-provision --help
+That said, please remember that certain objects need to reference each other, like client-usernames reference an client-profile and acl.
 
-Solace Provision 1.0
-Kegan Holtzhausen <marzubus@gmail.com>
-Creates solace managed objects
-
-USAGE:
-    solace-provision [FLAGS] [OPTIONS] --message-vpn <message-vpn>
-
-FLAGS:
-        --help        Prints help information
-    -s, --shutdown    Shutdown managed object before updating
-    -u, --update      Update existing object
-    -V, --version     Prints version information
-
-OPTIONS:
-    -a, --acl <acl>                                        a ACL config file
-    -b, --client-profile <client-profile>                  a client-profile config file
-    -d, --client-username <client-username>                a client-username config file
-    -c, --config <CONFIG>                                  Sets a custom config file
-    -n, --count <count>                                    Number of items to fetch when using fetch
-    -g, --fetch-acl-profile <fetch-acl-profile>            Fetch existing acl profile
-    -h, --fetch-client-profile <fetch-client-profile>      Fetch existing client profile
-    -i, --fetch-client-username <fetch-client-username>    Fetch existing client username
-    -e, --fetch-queue <fetch-queue>                        Fetch existing queue
-    -t, --fetch-vpn <fetch-vpn>                            Fetch existing vpn
-    -m, --message-vpn <message-vpn>                        VPN to run fetch in
-    -q, --queue <queue>                                    a Queue config file
-    -v, --vpn <vpn>                                        a VPN config file
-
-
-```
 
 ### Shutdown Mode
 
