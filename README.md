@@ -99,15 +99,9 @@ which is "default" by default. you MUST specify the VPN to perform the provision
 That said, please remember that certain objects need to reference each other, like client-usernames reference an client-profile and acl.
 
 
-### Shutdown Mode
+### Shutdown VPN
 
-If you change a property in one of the spec files which cannot be changed while the object is "enabled", you will get the 
-following error: 
-
-     "description": String("Problem with respectMsgPriorityEnabled: Flows must be shutdown prior to changing the respect for message priority"),
-
-You need to first apply the current config, with the `--shutdown` parameter before updating the the parameter in the spec,
-and then re-applying without the `--shutdown` parameter.
+    solace-provision --config examples/config.yaml --message-vpn myvpn --shutdown --update
 
 ### Provision VPN
 

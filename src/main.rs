@@ -26,6 +26,7 @@ use crate::clientconfig::SolaceApiConfig;
 use solace_semp_client::models::MsgVpnsResponse;
 use crate::fetch::Fetch;
 use crate::provision::Provision;
+use crate::update::Update;
 use solace_semp_client::models::MsgVpnQueuesResponse;
 use solace_semp_client::models::MsgVpnAclProfilesResponse;
 use solace_semp_client::models::MsgVpnClientProfilesResponse;
@@ -38,6 +39,7 @@ use solace_semp_client::models::MsgVpnClientProfileResponse;
 mod provision;
 mod clientconfig;
 mod helpers;
+mod update;
 mod fetch;
 
 
@@ -176,8 +178,12 @@ fn main() {
 
     }
 
+
+
     // VPN provision if file is passed
     if vpn_file.to_owned() != "undefined" {
+
+
 
         // read in the file
         let file = std::fs::File::open(vpn_file).unwrap();
@@ -186,34 +192,37 @@ fn main() {
         match deserialized {
             Some(mut item) => {
 
+
                 if message_vpn != "undefined" {
                     item.set_msg_vpn_name(message_vpn.to_owned());
                 }
 
                 if update_mode {
 
-                    if shutdown {
-                        consoleprint(format!("{}", "disabling".red()));
-                        item.set_enabled(false);
-                    } else {
-                        consoleprint(format!("{}", "enabling".green()));
-                        item.set_enabled(true);
-                    }
+                    MsgVpnResponse::update(shutdown, message_vpn, vpn_file, &mut core, &client);
 
-                    let vpn_name = &item.msg_vpn_name();
-                    let resp = client
-                        .default_api()
-                        .update_msg_vpn(&vpn_name.unwrap().to_owned(),
-                                        item,
-                                        Vec::new())
-                        .and_then(|vpn| {
-                            futures::future::ok(())
-                        });
-
-                    match core.run(resp) {
-                        Ok(response) => { println!("{} {}", ok_emoji, "success".green()) },
-                        Err(e) => { println!("{} error: {:?}", err_emoji, e) }
-                    }
+//                    if shutdown {
+//                        consoleprint(format!("{}", "disabling".red()));
+//                        item.set_enabled(false);
+//                    } else {
+//                        consoleprint(format!("{}", "enabling".green()));
+//                        item.set_enabled(true);
+//                    }
+//
+//                    let vpn_name = &item.msg_vpn_name();
+//                    let resp = client
+//                        .default_api()
+//                        .update_msg_vpn(&vpn_name.unwrap().to_owned(),
+//                                        item,
+//                                        Vec::new())
+//                        .and_then(|vpn| {
+//                            futures::future::ok(())
+//                        });
+//
+//                    match core.run(resp) {
+//                        Ok(response) => { println!("{} {}", ok_emoji, "success".green()) },
+//                        Err(e) => { println!("{} error: {:?}", err_emoji, e) }
+//                    }
                 } else {
 
 
@@ -225,6 +234,11 @@ fn main() {
 
             },
             _ => unimplemented!()
+        }
+    } else {
+        if shutdown && update_mode && queue_file=="undefined" && acl_profile_file=="undefined" && client_profile_file=="undefined" && client_username_file=="undefined" {
+            // update VPN mode with shutdown only
+            MsgVpnResponse::enabled(message_vpn, message_vpn, false,  &mut core, &client);
         }
     }
 
