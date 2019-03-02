@@ -39,6 +39,7 @@ use solace_semp_client::models::MsgVpnClientProfileResponse;
 use solace_semp_client::models::MsgVpnClientProfile;
 use solace_semp_client::models::MsgVpnClientUsernameResponse;
 use solace_semp_client::models::MsgVpnClientUsername;
+use std::process::exit;
 
 
 pub trait Provision<T> {
@@ -49,9 +50,10 @@ impl Provision<MsgVpnResponse> for MsgVpnResponse {
 
     fn provision(in_vpn: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
-        let deserialized = serde_yaml::from_reader(file).unwrap();
+        let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
-            Some(item) => {
+            Some(mut item) => {
+                item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn(item, Vec::new());
@@ -62,6 +64,7 @@ impl Provision<MsgVpnResponse> for MsgVpnResponse {
                     },
                     Err(e) => {
                         println!("provision error: {:?}", e);
+                        exit(126);
                         Err("provision error")
                     }
                 }
@@ -90,6 +93,7 @@ impl Provision<MsgVpnQueueResponse> for MsgVpnQueueResponse {
                     },
                     Err(e) => {
                         println!("provision error: {:?}", e);
+                        exit(126);
                         Err("provision error")
                     }
                 }
@@ -117,6 +121,7 @@ impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
                     },
                     Err(e) => {
                         println!("provision error: {:?}", e);
+                        exit(126);
                         Err("provision error")
                     }
                 }
@@ -144,6 +149,7 @@ impl Provision<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
                     },
                     Err(e) => {
                         println!("provision error: {:?}", e);
+                        exit(126);
                         Err("provision error")
                     }
                 }
@@ -172,6 +178,7 @@ impl Provision<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
                     },
                     Err(e) => {
                         println!("provision error: {:?}", e);
+                        exit(126);
                         Err("provision error")
                     }
                 }

@@ -1,22 +1,18 @@
 # Solace Provision
 
-This solace-provision tool is written in Rust, which can process flat files with all possible SEMP configurables.
+This solace-provision tool is written in Rust, which can process flat files to provision solace managed configuration items.
 
 ![Alt text](screenshot.png?raw=true "Title")
 
 ## Status
 
-Fetch, Provision and Update for:
+Fetch, Provision and Update, Shutdown, Enable, Delete for:
 
 * VPNS
 * Queues
 * ACL Profiles
 * Client Profiles
 * Client Username
-
-Todo:
-* override VPN name allowing portability
-* shutdown apply mode
     
 ## Solace Bug
 

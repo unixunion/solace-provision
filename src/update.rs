@@ -61,7 +61,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
 
         match deserialized {
             Some(mut item) => {
-
+                item.set_msg_vpn_name(vpn_name.to_owned());
                 let request = apiclient
                     .default_api()
                     .update_msg_vpn(vpn_name, item, Vec::new());
@@ -72,6 +72,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
                     },
                     Err(e) => {
                         println!("update error: {:?}", e);
+                        process::exit(126);
                         Err("update error")
                     }
                 }
@@ -116,6 +117,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
             },
             Err(e) => {
                 println!("unable to delete vpn: {:?}", e);
+                process::exit(126);
                 Err("unable to delete vpn")
             }
         }
@@ -141,6 +143,7 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
                     },
                     Err(e) => {
                         println!("update error: {:?}", e);
+                        process::exit(126);
                         Err("update error")
                     }
                 }
@@ -186,6 +189,7 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
             },
             Err(e) => {
                 println!("unable to delete queue: {:?}", e);
+                process::exit(126);
                 Err("unable to delete queue")
             }
         }
@@ -211,6 +215,7 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
                     },
                     Err(e) => {
                         println!("update error: {:?}", e);
+                        process::exit(126);
                         Err("update error")
                     }
                 }
@@ -232,6 +237,7 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
             },
             Err(e) => {
                 println!("unable to delete acl: {:?}", e);
+                process::exit(126);
                 Err("unable to delete acl")
             }
         }
@@ -260,6 +266,7 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
                     },
                     Err(e) => {
                         println!("update error: {:?}", e);
+                        process::exit(126);
                         Err("update error")
                     }
                 }
@@ -281,6 +288,7 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
             },
             Err(e) => {
                 println!("unable to delete client-profile: {:?}", e);
+                process::exit(126);
                 Err("unable to delete client-profile")
             }
         }
@@ -308,6 +316,7 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
                     },
                     Err(e) => {
                         println!("update error: {:?}", e);
+                        process::exit(126);
                         Err("update error")
                     }
                 }
@@ -352,6 +361,7 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
             },
             Err(e) => {
                 println!("unable to delete client-username: {:?}", e);
+                process::exit(126);
                 Err("unable to delete client-username")
             }
         }

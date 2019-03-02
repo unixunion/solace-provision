@@ -19,5 +19,5 @@ cargo run -- --config examples/config.yaml vpn --fetch --message-vpn ${rnd_vpn}
 cargo run -- --config examples/config.yaml vpn --update --message-vpn ${rnd_vpn} --shutdown
 cargo run -- --config examples/config.yaml vpn --update --message-vpn ${rnd_vpn} --shutdown --file examples/vpn.yaml
 cargo run -- --config examples/config.yaml vpn --update --message-vpn ${rnd_vpn} --shutdown --file examples/vpn.yaml --no-shutdown
-
+cargo run -- --config examples/config.yaml vpn --message-vpn ${rnd_vpn} --delete
 
