@@ -2,12 +2,22 @@
 
 set -e
 
-rnd_vpn=`date +%s`
+echo "arg: $1"
+rnd_vpn=$1
 
-cargo run -- --config examples/config.yaml --vpn examples/vpn.yaml --message-vpn ${rnd_vpn}
-cargo run -- --config examples/config.yaml --fetch-vpn ${rnd_vpn}
-cargo run -- --config examples/config.yaml --queue examples/queue.yaml --message-vpn ${rnd_vpn}
-cargo run -- --config examples/config.yaml --acl examples/acl.yaml --message-vpn ${rnd_vpn}
-cargo run -- --config examples/config.yaml --client-profile examples/client-profile.yaml --message-vpn ${rnd_vpn}
-cargo run -- --config examples/config.yaml --client-username examples/client-username.yaml --message-vpn ${rnd_vpn}
+if [ "$1" == "" ]; then
+    echo "please specify a vpn name"
+    exit 1
+fi
+
+
+export RUSTFLAGS=-Awarnings
+
+# VPN commands
+cargo run -- --config examples/config.yaml vpn --file examples/vpn.yaml --message-vpn ${rnd_vpn}
+cargo run -- --config examples/config.yaml vpn --fetch --message-vpn ${rnd_vpn}
+cargo run -- --config examples/config.yaml vpn --update --message-vpn ${rnd_vpn} --shutdown
+cargo run -- --config examples/config.yaml vpn --update --message-vpn ${rnd_vpn} --shutdown --file examples/vpn.yaml
+cargo run -- --config examples/config.yaml vpn --update --message-vpn ${rnd_vpn} --shutdown --file examples/vpn.yaml --no-shutdown
+
 

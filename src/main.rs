@@ -8,7 +8,7 @@ use colored::*;
 use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
-use log::{info};
+use log::{info, warn, error};
 use std::process::exit;
 use solace_semp_client::models::MsgVpn;
 use solace_semp_client::models::MsgVpnQueue;
@@ -42,6 +42,7 @@ mod helpers;
 mod update;
 mod fetch;
 
+extern crate log;
 
 mod test {
     use solace_semp_client::models::MsgVpn;
@@ -53,7 +54,7 @@ mod test {
         let x = serde_yaml::to_string(&mvpn.event_connection_count_threshold());
         match x {
             Ok(svpn) => {
-                println!("{}", svpn);
+                info!("{}", svpn);
                 assert_eq!("---\n~", svpn);
             },
             Err(e) => {}
@@ -71,7 +72,7 @@ fn configprinter(parameter: &str, val: &str) {
 
 
 fn consoleprint(data: String) {
-    println!("{}", &*data.to_string());
+    info!("{}", &*data.to_string());
 }
 
 
@@ -83,25 +84,10 @@ fn main() {
 
     // get the config file name
     let config_file_name = matches.value_of("config").unwrap_or("default.yaml");
-    let vpn_file = matches.value_of("vpn").unwrap_or("undefined");
-    let queue_file = matches.value_of("queue").unwrap_or("undefined");
-    let acl_profile_file = matches.value_of("acl").unwrap_or("undefined");
-    let client_profile_file = matches.value_of("client-profile").unwrap_or("undefined");
-    let client_username_file = matches.value_of("client-username").unwrap_or("undefined");
-
-    let update_mode = matches.is_present("update");
-
-    // fetchers
-    let fetch_vpn = matches.value_of("fetch-vpn").unwrap_or("undefined");
-    let fetch_queue = matches.value_of("fetch-queue").unwrap_or("undefined");
-    let fetch_acl_profile = matches.value_of("fetch-acl-profile").unwrap_or("undefined");
-    let fetch_client_profile = matches.value_of("fetch-client-profile").unwrap_or("undefined");
-    let fetch_client_username = matches.value_of("fetch-client-username").unwrap_or("undefined");
-
-    let shutdown = matches.is_present("shutdown");
     let count_str = matches.value_of("count").unwrap_or("10");
     let count = count_str.parse::<i32>().unwrap();
 
+    // future impl might use this.
     let cursor = "";
     let select = "";
 
@@ -112,23 +98,8 @@ fn main() {
     let mut err_emoji = "❌";
 
     // dump current config / args
-    configprinter("config_file", config_file_name);
-
-    configprinter("vpn_file", vpn_file);
-    configprinter("queue_file", queue_file);
-    configprinter("acl_profile_file", acl_profile_file);
-    configprinter("client_profile_file", client_profile_file);
-    configprinter("client_username_file", client_username_file);
-
-    configprinter("update_mode", &*update_mode.to_string());
-
-    configprinter("fetch_vpn", fetch_vpn);
-    configprinter("fetch_queue", fetch_queue);
-    configprinter("fetch_acl_profile", fetch_acl_profile);
-    configprinter("fetch_client_username", fetch_client_username);
-    configprinter("shutdown", &*shutdown.to_string());
-    configprinter("count", &*count.to_string());
-    configprinter("message_vpn", message_vpn);
+    info!("config_file: {:?}", config_file_name);
+    info!("count: {:?}", &*count.to_string());
 
     // configure the http client
     let mut core = Core::new().unwrap();
@@ -158,7 +129,7 @@ fn main() {
             let auth = helpers::gencred(sc.username, sc.password);
             configuration.basic_auth = Some(auth);
         },
-        Err(e) => println!("error reading config: {}", e)
+        Err(e) => error!("error reading config: {}", e)
     }
 
     // the API Client from swagger spec
@@ -166,134 +137,342 @@ fn main() {
 
 
     //
-    // VPN FETCH / PROVISION / UPDATE
+    // VPN
     //
 
-    // Fetch VPN
-    if fetch_vpn != "undefined" {
+    // check for the vpn subcommand
+    if matches.is_present("vpn") {
 
-        let mvpn = MsgVpnsResponse::fetch("irrelevant",
-                                          "default", 10, cursor, select,
-                                          &mut core, &client);
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("vpn") {
 
-    }
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
 
+            // early shutdown if not provisioning new
+            if shutdown_item && update_item {
+                MsgVpnResponse::enabled(message_vpn, message_vpn,
+                                        false, &mut core, &client);
+            }
 
+            // if file is passed, it means either provision or update.
+            let file_name = matches.value_of("file");
+            match file_name {
+                Some(file_name) => {
+                    info!("using file: {:?}", file_name);
 
-    // VPN provision if file is passed
-    if vpn_file.to_owned() != "undefined" {
+                    // provision / update from file
+                    let file = std::fs::File::open(file_name).unwrap();
+                    let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
+                    match deserialized {
+                        Some(mut item) => {
 
-
-
-        // read in the file
-        let file = std::fs::File::open(vpn_file).unwrap();
-        let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
-
-        match deserialized {
-            Some(mut item) => {
-
-
-                if message_vpn != "undefined" {
-                    item.set_msg_vpn_name(message_vpn.to_owned());
-                }
-
-                if update_mode {
-
-                    MsgVpnResponse::update(shutdown, message_vpn, vpn_file, &mut core, &client);
-
-//                    if shutdown {
-//                        consoleprint(format!("{}", "disabling".red()));
-//                        item.set_enabled(false);
-//                    } else {
-//                        consoleprint(format!("{}", "enabling".green()));
-//                        item.set_enabled(true);
-//                    }
-//
-//                    let vpn_name = &item.msg_vpn_name();
-//                    let resp = client
-//                        .default_api()
-//                        .update_msg_vpn(&vpn_name.unwrap().to_owned(),
-//                                        item,
-//                                        Vec::new())
-//                        .and_then(|vpn| {
-//                            futures::future::ok(())
-//                        });
-//
-//                    match core.run(resp) {
-//                        Ok(response) => { println!("{} {}", ok_emoji, "success".green()) },
-//                        Err(e) => { println!("{} error: {:?}", err_emoji, e) }
-//                    }
-                } else {
-
-
-                    MsgVpnResponse::provision("irrelevant",  vpn_file,
-                                                 &mut core, &client);
-
-
-                }
-
-            },
-            _ => unimplemented!()
-        }
-    } else {
-        if shutdown && update_mode && queue_file=="undefined" && acl_profile_file=="undefined" && client_profile_file=="undefined" && client_username_file=="undefined" {
-            // update VPN mode with shutdown only
-            MsgVpnResponse::enabled(message_vpn, message_vpn, false,  &mut core, &client);
-        }
-    }
-
-
-    //
-    // QUEUE FETCH / PROVISION / UPDATE
-    //
-
-    if fetch_queue != "undefined" {
-
-        let queues = MsgVpnQueuesResponse::fetch(message_vpn,
-                                                 fetch_queue,count, cursor, select,
-                                                 &mut core, &client);
-
-    }
-
-
-    // Provision Queue from file
-    if queue_file.to_owned() != "undefined" {
-        // read in the file
-        let file = std::fs::File::open(queue_file).unwrap();
-
-        let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
-
-        match deserialized {
-            Some(mut item) => {
-
-                if message_vpn != "undefined" {
-                    item.set_msg_vpn_name(message_vpn.to_owned());
-                }
-
-                if update_mode {
-
-                    let vpn_name = &item.msg_vpn_name();
-                    let queue_name = &item.queue_name();
-
-                    let resp = client
-                        .default_api()
-                        .update_msg_vpn_queue(&vpn_name.unwrap().to_owned(),
-                                              &queue_name.unwrap().to_owned(),
-                                              item, Vec::new())
-                        .and_then(|item| {
-                            futures::future::ok(())
-                        });
-                    match core.run(resp) {
-                        Ok(response) => {println!("{} {}", ok_emoji, "success".green())},
-                        Err(e) => {println!("{} error: {:?}", err_emoji, e)}
+                            if update_item {
+                                MsgVpnResponse::update( message_vpn, file_name, &mut core,
+                                                        &client);
+                            } else {
+                                MsgVpnResponse::provision("irrelevant",  file_name,
+                                                          &mut core, &client);
+                            }
+                        },
+                        _ => unimplemented!()
                     }
-                } else {
-                    MsgVpnQueueResponse::provision(message_vpn,  queue_file,
-                                              &mut core, &client);
+                },
+                None => {}
+            }
 
-                }
-            },
-            _ => unimplemented!()
+            // late un-shutdown anything
+            if no_shutdown_item {
+                MsgVpnResponse::enabled(message_vpn, message_vpn,
+                                        true, &mut core, &client);
+            }
+
+            // finally if fetch is specified, we do this last.
+            if fetch {
+                MsgVpnsResponse::fetch(message_vpn, message_vpn, count, cursor, select, &mut core, &client);
+            }
+
+
+            if delete {
+                info!("deleting message vpn");
+                MsgVpnResponse::delete(message_vpn, message_vpn, &mut core, &client);
+            }
+
+        }
+
+    }
+
+
+    //
+    // QUEUE
+    //
+
+
+    if matches.is_present("queue") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("queue") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let queue = matches.value_of("queue").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            // early shutdown if not provisioning new
+            if shutdown_item && update_item && matches.is_present("queue") && matches.is_present("message-vpn") {
+                MsgVpnQueueResponse::enabled(message_vpn, queue,
+                                        false, &mut core, &client);
+            }
+
+            // if file is passed, it means either provision or update.
+            let file_name = matches.value_of("file");
+            match file_name {
+                Some(file_name) => {
+                    info!("using file: {:?}", file_name);
+
+                    // provision / update from file
+                    let file = std::fs::File::open(file_name).unwrap();
+                    let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
+                    match deserialized {
+                        Some(mut item) => {
+
+                            if update_item {
+                                MsgVpnQueueResponse::update( message_vpn, file_name, &mut core,
+                                                        &client);
+                            } else {
+                                MsgVpnQueueResponse::provision(message_vpn,  file_name,
+                                                          &mut core, &client);
+                            }
+                        },
+                        _ => unimplemented!()
+                    }
+                },
+                None => {}
+            }
+
+            // late un-shutdown anything
+            if no_shutdown_item {
+                MsgVpnQueueResponse::enabled(message_vpn, queue,
+                                        true, &mut core, &client);
+            }
+
+            // finally if fetch is specified, we do this last.
+            if fetch {
+                MsgVpnQueuesResponse::fetch(message_vpn, queue, count, cursor,
+                                            select, &mut core, &client);
+            }
+
+            if delete {
+                info!("deleting queue");
+                MsgVpnQueueResponse::delete(message_vpn, queue, &mut core, &client);
+            }
+
+        }
+
+    }
+
+
+
+
+    //
+    // ACL
+    //
+
+    if matches.is_present("acl-profile") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("acl-profile") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let acl = matches.value_of("acl-profile").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            // if file is passed, it means either provision or update.
+            let file_name = matches.value_of("file");
+            match file_name {
+                Some(file_name) => {
+                    info!("using file: {:?}", file_name);
+
+                    // provision / update from file
+                    let file = std::fs::File::open(file_name).unwrap();
+                    let deserialized: Option<MsgVpnAclProfile> = serde_yaml::from_reader(file).unwrap();
+
+                    match deserialized {
+                        Some(mut item) => {
+
+                            if update_item {
+                                MsgVpnAclProfileResponse::update( message_vpn, file_name, &mut core,
+                                                             &client);
+                            } else {
+                                MsgVpnAclProfileResponse::provision(message_vpn,  file_name,
+                                                               &mut core, &client);
+                            }
+                        },
+                        _ => unimplemented!()
+                    }
+                },
+                None => {}
+            }
+
+            // finally if fetch is specified
+            if fetch {
+                info!("fetching acl");
+                MsgVpnAclProfilesResponse::fetch(message_vpn, acl, count, cursor,
+                                            select, &mut core, &client);
+            }
+
+            if delete {
+                info!("deleting acl");
+                MsgVpnAclProfileResponse::delete(message_vpn, acl, &mut core, &client);
+            }
+
+        }
+
+    }
+
+
+    //
+    // CLIENT-PROFILE
+    //
+
+    if matches.is_present("client-profile") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("client-profile") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let client_profile = matches.value_of("client-profile").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            // if file is passed, it means either provision or update.
+            let file_name = matches.value_of("file");
+            match file_name {
+                Some(file_name) => {
+                    info!("using file: {:?}", file_name);
+
+                    // provision / update from file
+                    let file = std::fs::File::open(file_name).unwrap();
+                    let deserialized: Option<MsgVpnClientProfile> = serde_yaml::from_reader(file).unwrap();
+
+                    match deserialized {
+                        Some(mut item) => {
+
+                            if update_item {
+                                MsgVpnClientProfileResponse::update( message_vpn, file_name, &mut core,
+                                                                  &client);
+                            } else {
+                                MsgVpnClientProfileResponse::provision(message_vpn,  file_name,
+                                                                    &mut core, &client);
+                            }
+                        },
+                        _ => unimplemented!()
+                    }
+                },
+                None => {}
+            }
+
+            // finally if fetch is specified
+            if fetch {
+                info!("fetching client-profile");
+                MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile, count, cursor,
+                                                 select, &mut core, &client);
+            }
+
+            if delete {
+                info!("deleting client-profile");
+                MsgVpnClientProfileResponse::delete(message_vpn, client_profile, &mut core, &client);
+            }
+
+        }
+
+    }
+
+
+
+
+    //
+    // CLIENT-USERNAME
+    //
+
+
+    if matches.is_present("client-username") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("client-username") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let client_username = matches.value_of("client-username").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            // early shutdown if not provisioning new
+            if shutdown_item && update_item && matches.is_present("client-username") && matches.is_present("message-vpn") {
+                MsgVpnClientUsernameResponse::enabled(message_vpn, client_username,
+                                             false, &mut core, &client);
+            }
+
+            // if file is passed, it means either provision or update.
+            let file_name = matches.value_of("file");
+            match file_name {
+                Some(file_name) => {
+                    info!("using file: {:?}", file_name);
+
+                    // provision / update from file
+                    let file = std::fs::File::open(file_name).unwrap();
+                    let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
+                    match deserialized {
+                        Some(mut item) => {
+
+                            if update_item {
+                                MsgVpnClientUsernameResponse::update( message_vpn, file_name, &mut core,
+                                                             &client);
+                            } else {
+                                MsgVpnClientUsernameResponse::provision(message_vpn,  file_name,
+                                                               &mut core, &client);
+                            }
+                        },
+                        _ => unimplemented!()
+                    }
+                },
+                None => {}
+            }
+
+            // late un-shutdown anything
+            if no_shutdown_item {
+                MsgVpnClientUsernameResponse::enabled(message_vpn, client_username,
+                                             true, &mut core, &client);
+            }
+
+            // finally if fetch is specified, we do this last.
+            if fetch {
+                MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username, count, cursor,
+                                            select, &mut core, &client);
+            }
+
+            if delete {
+                info!("deleting client-username");
+                MsgVpnClientUsernameResponse::delete(message_vpn, client_username, &mut core, &client);
+            }
+
         }
 
     }
@@ -303,179 +482,179 @@ fn main() {
     // ACL PROFILE FETCH / PROVISION / UPDATE
     //
 
-    if fetch_acl_profile != "undefined" {
-
-        let acls = MsgVpnAclProfilesResponse::fetch(message_vpn,
-                                                    fetch_acl_profile, count, cursor,
-                                                    select, &mut core, &client);
-
-    }
-
-
-    // Provision ACL profile from file
-    if acl_profile_file.to_owned() != "undefined" {
-        // read in the file
-        let file = std::fs::File::open(acl_profile_file).unwrap();
-
-        let deserialized: Option<MsgVpnAclProfile> = serde_yaml::from_reader(file).unwrap();
-
-        match deserialized {
-            Some(mut item) => {
-
-                if message_vpn != "undefined" {
-                    item.set_msg_vpn_name(message_vpn.to_owned());
-                }
-
-                if update_mode {
-
-                    let vpn_name = &item.msg_vpn_name();
-                    let item_name = &item.acl_profile_name();
-
-                    let resp = client
-                        .default_api()
-                        .update_msg_vpn_acl_profile(&vpn_name.unwrap().to_owned(),
-                                                    &item_name.unwrap().to_owned(),
-                                                    item, Vec::new())
-                        .and_then(|item| {
-                            futures::future::ok(())
-                        });
-                    match core.run(resp) {
-                        Ok(response) => {println!("{} {}", ok_emoji, "success".green())},
-                        Err(e) => {println!("{} error: {:?}", err_emoji, e)}
-                    }
-                } else {
-
-                    MsgVpnAclProfileResponse::provision(message_vpn,  acl_profile_file,
-                                                        &mut core, &client);
-
-                }
-            },
-            _ => unimplemented!()
-        }
-
-    }
-
-
-    //
-    // CLIENT PROFILE FETCH / PROVISION / UPDATE
-    //
-
-    if fetch_client_profile != "undefined" {
-
-        MsgVpnClientProfilesResponse::fetch(message_vpn,
-                                                    fetch_client_profile, count, cursor,
-                                                    select, &mut core, &client);
-
-    }
-
-
-    // Provision client profile from file
-    if client_profile_file.to_owned() != "undefined" {
-        // read in the file
-        let file = std::fs::File::open(client_profile_file).unwrap();
-
-        let deserialized: Option<MsgVpnClientProfile> = serde_yaml::from_reader(file).unwrap();
-
-        match deserialized {
-            Some(mut item) => {
-
-                if message_vpn != "undefined" {
-                    item.set_msg_vpn_name(message_vpn.to_owned());
-                }
-
-                if update_mode {
-
-                    let vpn_name = &item.msg_vpn_name();
-                    let item_name = &item.client_profile_name();
-
-                    let resp = client
-                        .default_api()
-                        .update_msg_vpn_client_profile(&vpn_name.unwrap().to_owned(),
-                                                       &item_name.unwrap().to_owned(),
-                                                       item, Vec::new())
-                        .and_then(|item| {
-                            futures::future::ok(())
-                        });
-                    match core.run(resp) {
-                        Ok(response) => {println!("{} {}", ok_emoji, "success".green())},
-                        Err(e) => {println!("{} error: {:?}", err_emoji, e)}
-                    }
-                } else {
-
-                    MsgVpnClientProfileResponse::provision(message_vpn, client_profile_file,
-                                                           &mut core, &client);
-
-                }
-
-            },
-            _ => unimplemented!()
-        }
-
-    }
-
-
-    //
-    // CLIENT USERNAME FETCH / PROVISION / UPDATE
-    //
-
-    if fetch_client_username != "undefined" {
-
-        MsgVpnClientUsernamesResponse::fetch(message_vpn,
-                                                             fetch_client_username, count, cursor,
-                                                           select, &mut core, &client);
-
-
-    }
-
-    if client_username_file.to_owned() != "undefined" {
-        // read in the file
-        let file = std::fs::File::open(client_username_file).unwrap();
-
-        let deserialized: Option<MsgVpnClientUsername> = serde_yaml::from_reader(file).unwrap();
-
-        match deserialized {
-            Some(mut item) => {
-                if message_vpn != "undefined" {
-                    item.set_msg_vpn_name(message_vpn.to_owned());
-                }
-
-                if update_mode {
-
-                    if shutdown {
-                        consoleprint(format!("{}", "disabling".red()));
-                        item.set_enabled(false);
-                    } else {
-                        consoleprint(format!("{}", "enabling".green()));
-                        item.set_enabled(true);
-                    }
-
-                    let vpn_name = &item.msg_vpn_name();
-                    let item_name = &item.client_username();
-
-                    let resp = client
-                        .default_api()
-                        .update_msg_vpn_client_username(&vpn_name.unwrap().to_owned(),
-                                                        &item_name.unwrap().to_owned(),
-                                                        item, Vec::new())
-                        .and_then(|item| {
-                            futures::future::ok(())
-                        });
-                    match core.run(resp) {
-                        Ok(response) => {println!("{} {}", ok_emoji, "success".green())},
-                        Err(e) => {println!("{} error: {:?}", err_emoji, e)}
-                    }
-                } else {
-
-                    MsgVpnClientUsernameResponse::provision(message_vpn, client_username_file,
-                                                            &mut core, &client);
-
-                }
-
-            },
-            _ => unimplemented!()
-        }
-
-    }
+//    if fetch_acl_profile != "undefined" {
+//
+//        let acls = MsgVpnAclProfilesResponse::fetch(message_vpn,
+//                                                    fetch_acl_profile, count, cursor,
+//                                                    select, &mut core, &client);
+//
+//    }
+//
+//
+//    // Provision ACL profile from file
+//    if acl_profile_file.to_owned() != "undefined" {
+//        // read in the file
+//        let file = std::fs::File::open(acl_profile_file).unwrap();
+//
+//        let deserialized: Option<MsgVpnAclProfile> = serde_yaml::from_reader(file).unwrap();
+//
+//        match deserialized {
+//            Some(mut item) => {
+//
+//                if message_vpn != "undefined" {
+//                    item.set_msg_vpn_name(message_vpn.to_owned());
+//                }
+//
+//                if update_mode {
+//
+//                    let vpn_name = &item.msg_vpn_name();
+//                    let item_name = &item.acl_profile_name();
+//
+//                    let resp = client
+//                        .default_api()
+//                        .update_msg_vpn_acl_profile(&vpn_name.unwrap().to_owned(),
+//                                                    &item_name.unwrap().to_owned(),
+//                                                    item, Vec::new())
+//                        .and_then(|item| {
+//                            futures::future::ok(())
+//                        });
+//                    match core.run(resp) {
+//                        Ok(response) => {info!("{} {}", ok_emoji, "success".green())},
+//                        Err(e) => {info!("{} error: {:?}", err_emoji, e)}
+//                    }
+//                } else {
+//
+//                    MsgVpnAclProfileResponse::provision(message_vpn,  acl_profile_file,
+//                                                        &mut core, &client);
+//
+//                }
+//            },
+//            _ => unimplemented!()
+//        }
+//
+//    }
+//
+//
+//    //
+//    // CLIENT PROFILE FETCH / PROVISION / UPDATE
+//    //
+//
+//    if fetch_client_profile != "undefined" {
+//
+//        MsgVpnClientProfilesResponse::fetch(message_vpn,
+//                                                    fetch_client_profile, count, cursor,
+//                                                    select, &mut core, &client);
+//
+//    }
+//
+//
+//    // Provision client profile from file
+//    if client_profile_file.to_owned() != "undefined" {
+//        // read in the file
+//        let file = std::fs::File::open(client_profile_file).unwrap();
+//
+//        let deserialized: Option<MsgVpnClientProfile> = serde_yaml::from_reader(file).unwrap();
+//
+//        match deserialized {
+//            Some(mut item) => {
+//
+//                if message_vpn != "undefined" {
+//                    item.set_msg_vpn_name(message_vpn.to_owned());
+//                }
+//
+//                if update_mode {
+//
+//                    let vpn_name = &item.msg_vpn_name();
+//                    let item_name = &item.client_profile_name();
+//
+//                    let resp = client
+//                        .default_api()
+//                        .update_msg_vpn_client_profile(&vpn_name.unwrap().to_owned(),
+//                                                       &item_name.unwrap().to_owned(),
+//                                                       item, Vec::new())
+//                        .and_then(|item| {
+//                            futures::future::ok(())
+//                        });
+//                    match core.run(resp) {
+//                        Ok(response) => {info!("{} {}", ok_emoji, "success".green())},
+//                        Err(e) => {info!("{} error: {:?}", err_emoji, e)}
+//                    }
+//                } else {
+//
+//                    MsgVpnClientProfileResponse::provision(message_vpn, client_profile_file,
+//                                                           &mut core, &client);
+//
+//                }
+//
+//            },
+//            _ => unimplemented!()
+//        }
+//
+//    }
+//
+//
+//    //
+//    // CLIENT USERNAME FETCH / PROVISION / UPDATE
+//    //
+//
+//    if fetch_client_username != "undefined" {
+//
+//        MsgVpnClientUsernamesResponse::fetch(message_vpn,
+//                                                             fetch_client_username, count, cursor,
+//                                                           select, &mut core, &client);
+//
+//
+//    }
+//
+//    if client_username_file.to_owned() != "undefined" {
+//        // read in the file
+//        let file = std::fs::File::open(client_username_file).unwrap();
+//
+//        let deserialized: Option<MsgVpnClientUsername> = serde_yaml::from_reader(file).unwrap();
+//
+//        match deserialized {
+//            Some(mut item) => {
+//                if message_vpn != "undefined" {
+//                    item.set_msg_vpn_name(message_vpn.to_owned());
+//                }
+//
+//                if update_mode {
+//
+//                    if shutdown {
+//                        consoleprint(format!("{}", "disabling".red()));
+//                        item.set_enabled(false);
+//                    } else {
+//                        consoleprint(format!("{}", "enabling".green()));
+//                        item.set_enabled(true);
+//                    }
+//
+//                    let vpn_name = &item.msg_vpn_name();
+//                    let item_name = &item.client_username();
+//
+//                    let resp = client
+//                        .default_api()
+//                        .update_msg_vpn_client_username(&vpn_name.unwrap().to_owned(),
+//                                                        &item_name.unwrap().to_owned(),
+//                                                        item, Vec::new())
+//                        .and_then(|item| {
+//                            futures::future::ok(())
+//                        });
+//                    match core.run(resp) {
+//                        Ok(response) => {info!("{} {}", ok_emoji, "success".green())},
+//                        Err(e) => {info!("{} error: {:?}", err_emoji, e)}
+//                    }
+//                } else {
+//
+//                    MsgVpnClientUsernameResponse::provision(message_vpn, client_username_file,
+//                                                            &mut core, &client);
+//
+//                }
+//
+//            },
+//            _ => unimplemented!()
+//        }
+//
+//    }
 
 
 }

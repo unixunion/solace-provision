@@ -4,78 +4,212 @@ author: Kevin K. <marzubus@gmail.com>
 about: Provision solace
 args:
   - config:
-      short: c
       long: config
       value_name: CONFIG
       help: Sets the solace config file
       takes_value: true
-  - update:
-      short: u
-      long: update
-      help: Update existing provisioned object
-  - vpn:
-      short: v
-      long: vpn
-      help: a VPN spec file
-      takes_value: true
-  - queue:
-      short: q
-      long: queue
-      help: a Queue spec file
-      takes_value: true
-  - acl:
-      short: a
-      long: acl
-      help: a Acl spec file
-      takes_value: true
-  - client-profile:
-      short: b
-      long: client-profile
-      help: a client-profile spec file
-      takes_value: true
-  - client-username:
-      short: d
-      long: client-username
-      help: a client-username spec file
-      takes_value: true
-  - fetch-vpn:
-      short: t
-      long: fetch-vpn
-      help: Fetch a existing vpn spec from the appliance
-      takes_value: true
-  - fetch-queue:
-      short: e
-      long: fetch-queue
-      help: Fetch a existing queue spec from the appliance
-      takes_value: true
-  - fetch-acl-profile:
-      short: g
-      long: fetch-acl-profile
-      help: Fetch a existing acl spec from the appliance
-      takes_value: true
-  - fetch-client-profile:
-      short: h
-      long: fetch-client-profile
-      help: Fetch a existing client-profile spec from the appliance
-      takes_value: true
-  - fetch-client-username:
-      short: i
-      long: fetch-client-username
-      help: Fetch a existing client-username spec from the appliance
-      takes_value: true
-  - shutdown:
-      short: s
-      long: shutdown
-      help: Shutdown a existing provisioned object before applying update changes, will re-enable the object after update is complete.
-      takes_value: false
-  - count:
-      short: n
-      long: count
-      help: Number of objects to fetch when using --fetch-*
-      takes_value: true
-  - message-vpn:
-      short: m
-      long: message-vpn
-      help: VPN to apply the change to, overrides msgVpnName in the spec file
-      takes_value: true
+      required: true
 
+subcommands:
+  # The name of this subcommand will be 'subcmd' which can be accessed in your
+  # Rust code later
+  - vpn:
+      about: vpn management
+      version: "9.1.0-7"
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      # Subcommand args are exactly like App args
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference, if specified, overrides specified msgVpnName in spec file.
+            takes_value: true
+        - update:
+            long: update
+            requires:
+              - message-vpn
+            help: update an existing vpn, using file if provided, or via other args, required --vpn
+        - shutdown:
+            long: shutdown
+            requires:
+              - message-vpn
+              - update
+            help: shutdown an existing vpn, can be used in consort with --update to shutdown before applying changes, remember to add --no-shutdown to re-enable after applying updates
+        - no-shutdown:
+            long: no-shutdown
+            requires:
+              - message-vpn
+              - update
+            help: enable an existing vpn, if used in consort with --file, --shutdown and --update, enable be performed after applying file changes
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+            help: fetch an existing vpn from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+            help: delete vpn
+  - queue:
+      about: queue management
+      version: "9.1.0-7"
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      # Subcommand args are exactly like App args
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference, if specified overrides specified msgVpnName in spec file.
+            required: true
+            takes_value: true
+        - queue:
+            long: queue
+            help: queue to reference, if specified overrides specified queueName in spec file.
+            takes_value: true
+        - update:
+            long: update
+            requires:
+              - message-vpn
+              - queue
+            help: update an existing queue, using file if provided, or via other args.
+        - shutdown:
+            long: shutdown
+            requires:
+              - message-vpn
+              - queue
+              - update
+            help: shutdown an existing queue, can be used in consort with --update to shutdown before applying changes, remember to add --no-shutdown to re-enable after applying updates
+        - no-shutdown:
+            long: no-shutdown
+            requires:
+              - message-vpn
+              - queue
+              - update
+            help: enable an existing queue, if used in consort with --file, --shutdown and --update, enable be performed after applying file changes
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - queue
+            help: fetch an existing queue from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - queue
+            help: delete queue
+  - acl-profile:
+      about: acl management
+      version: "9.1.0-7"
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference, if specified overrides specified msgVpnName in spec file.
+            required: true
+            takes_value: true
+        - acl-profile:
+            long: acl-profile
+            help: acl-profile to reference, if specified overrides specified aclName in spec file.
+            takes_value: true
+        - update:
+            long: update
+            requires:
+              - message-vpn
+              - acl-profile
+            help: update an existing acl-profile, using file if provided, or via other args.
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - acl-profile
+            help: fetch an existing acl-profile from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - acl-profile
+            help: delete acl
+  - client-profile:
+      about: client-profile management
+      version: "9.1.0-7"
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference, if specified overrides specified msgVpnName in spec file.
+            required: true
+            takes_value: true
+        - client-profile:
+            long: client-profile
+            help: client-profile to reference, if specified overrides specified aclName in spec file.
+            takes_value: true
+        - update:
+            long: update
+            requires:
+              - message-vpn
+              - client-profile
+            help: update an existing client-profile, using file if provided, or via other args.
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - client-profile
+            help: fetch an existing client-profile from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - client-profile
+            help: delete acl
+  - client-username:
+      about: client-username management
+      version: "9.1.0-7"
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference, if specified overrides specified msgVpnName in spec file.
+            required: true
+            takes_value: true
+        - client-username:
+            long: client-username
+            help: client-username to reference, if specified overrides specified aclName in spec file.
+            takes_value: true
+        - update:
+            long: update
+            requires:
+              - message-vpn
+              - client-username
+            help: update an existing client-username, using file if provided, or via other args.
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - client-username
+            help: fetch an existing client-username from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - client-username
+            help: delete acl

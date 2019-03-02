@@ -19,7 +19,7 @@ maxMsgSize: 10000000
 maxMsgSpoolUsage: 64
 maxRedeliveryCount: 0
 maxTtl: 0
-msgVpnName: IGNORED
+msgVpnName: myvpn
 owner: ""
 permission: no-access
 queueName: myqueue

@@ -39,6 +39,7 @@ use solace_semp_client::models::MsgVpnQueuesResponse;
 use solace_semp_client::models::MsgVpnAclProfilesResponse;
 use solace_semp_client::models::MsgVpnClientProfilesResponse;
 use solace_semp_client::models::MsgVpnClientUsernamesResponse;
+use std::process::exit;
 
 // shared base trait for all solace fetch-able objects
 pub trait Fetch<T> {

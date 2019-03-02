@@ -94,20 +94,19 @@ See [queue.yaml](examples/queue.yaml)
 ## Provisioning
 
 IMPORTANT: the msgVpnName key within the various yaml files is overridden at provision-time with the --message-vpn arg,
-which is "default" by default. you MUST specify the VPN to perform the provision in for ALL items except VPN.
+which is a mandatory arg for all operations except when creating a vpn.
 
 That said, please remember that certain objects need to reference each other, like client-usernames reference an client-profile and acl.
-
 
 ### VPN
 
 #### Fetch VPN
 
-    solace-provision --config examples/config.yaml --fetch-vpn "*" -n 10
+    solace-provision --config examples/config.yaml --count 10 vpn --fetch --message-vpn "*"
 
-#### Provision VPN
+#### Provision / Update VPN
 
-    solace-provision --config examples/config.yaml --vpn examples/vpn.yaml [--update]
+    solace-provision --config examples/config.yaml vpn --file examples/vpn.yaml [--update]
 
 #### Shutdown VPN
 

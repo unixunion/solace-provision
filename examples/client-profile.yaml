@@ -49,7 +49,7 @@ maxIngressFlowCount: 1000
 maxSubscriptionCount: 50000
 maxTransactedSessionCount: 10
 maxTransactionCount: 5000
-msgVpnName: IGNORED
+msgVpnName: myvpn
 queueControl1MaxDepth: 20000
 queueControl1MinMsgBurst: 4
 queueDirect1MaxDepth: 20000

@@ -1,6 +1,6 @@
 ---
 aclProfileName: myacl
 clientConnectDefaultAction: allow
-msgVpnName: IGNORED
+msgVpnName: myvpn
 publishTopicDefaultAction: allow
 subscribeTopicDefaultAction: allow
