@@ -146,8 +146,7 @@ fn main() {
         // source subcommand args into matches
         if let Some(matches) = matches.subcommand_matches("vpn") {
 
-            // get all args within the subcommand
-            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let message_vpn = matches.value_of("message-vpn").unwrap();
             let update_item = matches.is_present("update");
             let shutdown_item = matches.is_present("shutdown");
             let no_shutdown_item = matches.is_present("no-shutdown");
@@ -155,7 +154,7 @@ fn main() {
             let delete = matches.is_present("delete");
 
             // early shutdown if not provisioning new
-            if shutdown_item && update_item {
+            if shutdown_item && update_item && matches.is_present("message-vpn"){
                 MsgVpnResponse::enabled(message_vpn, message_vpn,
                                         false, &mut core, &client);
             }
@@ -169,6 +168,8 @@ fn main() {
                     // provision / update from file
                     let file = std::fs::File::open(file_name).unwrap();
                     let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
+
+
                     match deserialized {
                         Some(mut item) => {
 
