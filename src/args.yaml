@@ -1,6 +1,6 @@
 name: solace-provision
-version: "1.0"
-author: Kevin K. <marzubus@gmail.com>
+version: "0.1.0"
+author: Kegan Holtzhausen <marzubus@gmail.com>
 about: Provision solace
 args:
   - config:
