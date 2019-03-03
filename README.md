@@ -15,7 +15,7 @@ Fetch, Provision and Update, Shutdown, Enable, Delete for:
 ## Requirements
 
 * Solace PubSub+ or SolOS-TR Appliance
-* Solace's SEMP service running in TLS mode (otherwise secrets cannot be provisioned)
+* Solace's SEMPv2 service running in TLS mode
 
 ## Local Development
 
