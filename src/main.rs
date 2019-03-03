@@ -477,4 +477,12 @@ fn main() {
 
     }
 
+    match matches.subcommand_name() {
+        None => {
+            println!("Please specify a subcommand, --help for more info");
+            exit(1)
+        },
+        _  => unimplemented!()
+    }
+
 }
