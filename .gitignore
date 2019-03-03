@@ -3,3 +3,4 @@
 .idea
 *.iml
 solace-provision
+.DS_Store
