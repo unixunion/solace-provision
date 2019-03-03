@@ -1,7 +1,7 @@
 name: solace-provision
 version: "0.1.0"
 author: Kegan Holtzhausen <marzubus@gmail.com>
-about: Provision solace
+about: Provision solace, see https://github.com/unixunion/solace-provision for src and examples
 args:
   - config:
       long: config
