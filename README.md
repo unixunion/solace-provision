@@ -13,19 +13,11 @@ Fetch, Provision and Update, Shutdown, Enable, Delete for:
 * ACL Profiles
 * Client Profiles
 * Client Username
-    
-## Solace Bug
-
-Due to a bug in how Solace handles `Threshold` objects, setValue and clearValue cannot be used. Please use *percent*. 
-That is why you will see *value* related thresholds commented out. This project depends on a modified Swagger spec until
-Solace sorts the issue. The root cause is that when we create a instance of MsgVpn using the Swagger Spec, EventThreshold has 
-all 4 thresholds set, but the appliance / vmr exceptions when you submit the Threshold object with all 4 keys present, 
-regardless of the key value.
 
 ## Requirements
 
 * Solace PubSub+ or SolOS-TR Appliance
-* Solace's SEMP service running in TLS mode
+* Solace's SEMP service running in TLS mode (otherwise secrets cannot be provisioned)
 
 ## Local Development
 
@@ -33,17 +25,18 @@ regardless of the key value.
 
     docker-compose up -d
     
-### Manually enabling TLS
+### Manually enable TLS
     
-Once the appliance is up, TLS must be enabled for SEMP. A rootCA and localhost cert is available under [certs/](certs/), 
-or you can follow Solace's documentation for setting it up.
+Once the appliance is up, TLS must be enabled for SEMP. A development rootCA and localhost cert is available under [certs/](certs/), 
+and you can follow Solace's documentation for setting it up with those or your own certs.
 
 * Configure TLS for SEMP: https://docs.solace.com/Configuring-and-Managing/TLS-SSL-Service-Connections.htm#managing_tls_ssl_service_1762742558_317096
 * Generating CA and Certs: https://gist.github.com/fntlnz/cf14feb5a46b2eda428e000157447309
 * You can run the CA+Cert commands in /usr/sw/jail/certs on the router, access it with `docker-compose exec solace bash`
 * Combine the server.crt and server.key into a single pem `cat localhost.crt localhost.key >>localhost.pem`
 * enable TLS for SEMP as described in Solace Docs
-* add rootca cert on client host system which will run this code. e.g: keychain import into System chain on mac.
+* add the non-trusted rootca cert on client system and trust it, on the systems which will run the solace-provision tool. 
+e.g: keychain import into System chain on mac + trust the cert.
 
 
 ```bash
@@ -89,12 +82,14 @@ See [queue.yaml](examples/queue.yaml)
     
 ## Provisioning
 
+solace-provision takes one config arg, and then a subcommand arg. 
+
+See `solace-provision --help` for subcommands, each of which has an associated solace-provision {sub_command} --help
+
 IMPORTANT: the msgVpnName key within the various yaml files is overridden at provision-time with the --message-vpn arg,
-which is a mandatory arg for all operations except when creating a vpn.
+which is a mandatory arg for all operations except when creating a vpn, where it is an optional override.
 
-This is a "safety" feature in order to only allow changes to a hard-argument passed VPN.
-
-That said, please remember that certain objects need to reference each other, like client-usernames reference an client-profile and acl.
+Please remember that certain objects do reference each other, like client-usernames reference an client-profile and acl.
 
 ### VPN
 
