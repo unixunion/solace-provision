@@ -313,8 +313,8 @@ fn main() {
                         Some(mut item) => {
 
                             if update_item {
-                                MsgVpnAclProfileResponse::update( message_vpn, file_name, &mut core,
-                                                             &client);
+                                MsgVpnAclProfileResponse::update( message_vpn, file_name,
+                                                                  &mut core, &client);
                             } else {
                                 MsgVpnAclProfileResponse::provision(message_vpn,  file_name,
                                                                &mut core, &client);

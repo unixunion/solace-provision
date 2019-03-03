@@ -334,6 +334,7 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
             println!("changing enabled state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
             x.set_enabled(state);
+            x.reset_password();
             let r = core.run(apiclient.default_api().update_msg_vpn_client_username(msg_vpn, item_name, x, Vec::new()));
             match r {
                 Ok(t) => println!("state successfully changed to {:?}", state),

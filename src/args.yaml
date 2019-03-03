@@ -201,6 +201,21 @@ subcommands:
               - message-vpn
               - client-username
             help: update an existing client-username, using file if provided, or via other args.
+        - shutdown:
+            long: shutdown
+            requires:
+              - message-vpn
+              - client-username
+              - update
+            help: shutdown an existing client-username, can be used in consort with --update to shutdown before applying changes, remember to add --no-shutdown to re-enable after applying updates
+        - no-shutdown:
+            long: no-shutdown
+            requires:
+              - message-vpn
+              - client-username
+              - update
+            help: enable an existing client-username, if used in consort with --file, --shutdown and --update, enable be performed after applying file changes
+
         - fetch:
             long: fetch
             requires:
