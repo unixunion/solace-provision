@@ -108,6 +108,14 @@ That said, please remember that certain objects need to reference each other, li
 
     solace-provision --config examples/config.yaml --message-vpn myvpn --shutdown --update
     
+#### Enable VPN
+
+    solace-provision --config examples/config.yaml --message-vpn myvpn --no-shutdown --update
+
+#### Delete VPN
+
+    solace-provision --config examples/config.yaml --message-vpn myvpn --delete
+
 ### Queue
 
 #### Fetch Queue
@@ -122,6 +130,10 @@ That said, please remember that certain objects need to reference each other, li
 
     solace-provision --config examples/config.yaml --message-vpn myvpn --queue-name myqueue --shutdown --update
     
+#### Enable Queue
+
+    solace-provision --config examples/config.yaml --message-vpn myvpn --queue-name myqueue --no-shutdown --update
+
 ### ACL
 
 #### Fetch ACL

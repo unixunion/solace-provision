@@ -37,13 +37,13 @@ subcommands:
             requires:
               - message-vpn
               - update
-            help: shutdown an existing vpn, can be used in consort with --update to shutdown before applying changes, remember to add --no-shutdown to re-enable after applying updates
+            help: shutdown an existing vpn, can be used in concert with --update to shutdown before applying changes, remember to add --no-shutdown to re-enable after applying updates
         - no-shutdown:
             long: no-shutdown
             requires:
               - message-vpn
               - update
-            help: enable an existing vpn, if used in consort with --file, --shutdown and --update, enable be performed after applying file changes
+            help: enable an existing vpn, if used in concert with --file, --shutdown and --update, enable be performed after applying file changes
         - fetch:
             long: fetch
             requires:
@@ -85,14 +85,14 @@ subcommands:
               - message-vpn
               - queue
               - update
-            help: shutdown an existing queue, can be used in consort with --update to shutdown before applying changes, remember to add --no-shutdown to re-enable after applying updates
+            help: shutdown an existing queue, can be used in concert with --update to shutdown before applying changes, remember to add --no-shutdown to re-enable after applying updates
         - no-shutdown:
             long: no-shutdown
             requires:
               - message-vpn
               - queue
               - update
-            help: enable an existing queue, if used in consort with --file, --shutdown and --update, enable be performed after applying file changes
+            help: enable an existing queue, if used in concert with --file, --shutdown and --update, enable be performed after applying file changes
         - fetch:
             long: fetch
             requires:
@@ -207,14 +207,14 @@ subcommands:
               - message-vpn
               - client-username
               - update
-            help: shutdown an existing client-username, can be used in consort with --update to shutdown before applying changes, remember to add --no-shutdown to re-enable after applying updates
+            help: shutdown an existing client-username, can be used in concert with --update to shutdown before applying changes, remember to add --no-shutdown to re-enable after applying updates
         - no-shutdown:
             long: no-shutdown
             requires:
               - message-vpn
               - client-username
               - update
-            help: enable an existing client-username, if used in consort with --file, --shutdown and --update, enable be performed after applying file changes
+            help: enable an existing client-username, if used in concert with --file, --shutdown and --update, enable be performed after applying file changes
 
         - fetch:
             long: fetch
