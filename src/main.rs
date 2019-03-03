@@ -482,7 +482,7 @@ fn main() {
             println!("Please specify a subcommand, --help for more info");
             exit(1)
         },
-        _  => unimplemented!()
+        _  => {}
     }
 
 }

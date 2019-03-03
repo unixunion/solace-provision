@@ -56,6 +56,17 @@ Testing TLS:
 
 # Compiling
 
+NOTE, this tool needs built against a modified swagger-spec which you can find release branches for at https://github.com/unixunion/rust_solace_semp_client.git
+The only change is that skip_deserialize for None types has been added to some structures that need it until swagger catches up.
+
+If you want to link against a specific version of SEMPv2 API, you have some options:
+
+    * use a release branch from https://github.com/unixunion/rust_solace_semp_client.git
+    * request a backport release for your desired version from me.
+    * use https://github.com/unixunion/rust_solace_semp_client.git to generate your own
+
+Once you have decided on either of the above, you can edit Cargo.toml and modify the dep url/path for the rust_solace_semp_client.
+
     cargo build --release
 
 # Provision / Update VPN

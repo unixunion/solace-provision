@@ -3,6 +3,7 @@ services:
   solace:
     container_name: solace_rust
     image: solace/solace-pubsub-standard:9.0.1.7
+#    image: solace/solace-pubsub-standard:8.13.0.30
     shm_size: 2g
     ulimits:
       core: 1
@@ -23,4 +24,26 @@ services:
       interval: 2m00s
       timeout: 10s
       retries: 3
-
+  solace-legacy:
+    container_name: solace_legacy
+    image: solace/solace-pubsub-standard:8.11.0.1029
+    shm_size: 2g
+    ulimits:
+      core: 1
+      nofile:
+        soft: 418332
+        hard: 418332
+    ports:
+      #SEMP / PubSub+ Manager
+      - '8081:8080'
+      #SMF
+      - '55556:55555'
+    environment:
+      - username_admin_globalaccesslevel=admin
+      - username_admin_password=admin
+      - system_scaling_maxconnectioncount=100
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 2m00s
+      timeout: 10s
+      retries: 3
