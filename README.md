@@ -2,8 +2,6 @@
 
 This solace-provision tool is written in Rust, which can process flat files to provision solace managed configuration items.
 
-![Alt text](screenshot.png?raw=true "Title")
-
 ## Status
 
 Fetch, Provision and Update, Shutdown, Enable, Delete for:
@@ -51,7 +49,6 @@ e.g: keychain import into System chain on mac + trust the cert.
 77528f005592(configure)# service semp no shutdown ssl
 
 ```
-
 
 Testing TLS:
 
