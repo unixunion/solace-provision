@@ -92,6 +92,8 @@ See [queue.yaml](examples/queue.yaml)
 IMPORTANT: the msgVpnName key within the various yaml files is overridden at provision-time with the --message-vpn arg,
 which is a mandatory arg for all operations except when creating a vpn.
 
+This is a "safety" feature in order to only allow changes to a hard-argument passed VPN.
+
 That said, please remember that certain objects need to reference each other, like client-usernames reference an client-profile and acl.
 
 ### VPN
