@@ -8,7 +8,7 @@ use colored::*;
 use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
-use log::{info, warn, error};
+use log::{info, warn, error, debug};
 use std::process::exit;
 use solace_semp_client::models::MsgVpn;
 use solace_semp_client::models::MsgVpnQueue;
@@ -89,7 +89,7 @@ fn main() {
 
     // future impl might use this.
     let cursor = "";
-    let select = "";
+    let select = "*";
 
     let message_vpn = matches.value_of("message-vpn").unwrap_or("default");
 
@@ -134,6 +134,27 @@ fn main() {
 
     // the API Client from swagger spec
     let client = APIClient::new(configuration);
+
+
+    //
+    //  PRE CHECKS
+    //
+
+//    let request = client.
+//        .and_then(|info| {
+//            futures::future::ok(info)
+//        });
+//    match core.run(request) {
+//        Ok(response) => {
+//            println!("{}", response.data().un)
+//        },
+//        Err(e) => {
+//            println!("error getting system information: {:?}", e);
+//            exit(126);
+//        }
+//    }
+
+
 
 
     //

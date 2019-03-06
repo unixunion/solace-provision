@@ -40,6 +40,7 @@ use solace_semp_client::models::MsgVpnAclProfilesResponse;
 use solace_semp_client::models::MsgVpnClientProfilesResponse;
 use solace_semp_client::models::MsgVpnClientUsernamesResponse;
 use std::process::exit;
+use log::{info, warn, error, debug};
 
 // shared base trait for all solace fetch-able objects
 pub trait Fetch<T> {
@@ -59,6 +60,7 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
             .msg_vpn_api()
             .get_msg_vpns(count, cursor, wherev, selectv)
             .and_then(|vpn| {
+                debug!("{:?}", vpn);
                 futures::future::ok(vpn)
             });
 
@@ -68,6 +70,7 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
                 Ok(response)
             },
             Err(e) => {
+                error!("error fetching: {:?}", e);
                 Err("fetch error")
             }
         }
@@ -92,6 +95,7 @@ impl Fetch<MsgVpnQueuesResponse> for MsgVpnQueuesResponse {
                 Ok(response)
             },
             Err(e) => {
+                error!("error fetching: {:?}", e);
                 Err("fetch error")
             }
         }
@@ -116,6 +120,7 @@ impl Fetch<MsgVpnAclProfilesResponse> for MsgVpnAclProfilesResponse {
                 Ok(response)
             },
             Err(e) => {
+                error!("error fetching: {:?}", e);
                 Err("fetch error")
             }
         }
@@ -142,6 +147,7 @@ impl Fetch<MsgVpnClientProfilesResponse> for MsgVpnClientProfilesResponse {
                 Ok(response)
             },
             Err(e) => {
+                error!("error fetching: {:?}", e);
                 Err("fetch error")
             }
         }
@@ -167,6 +173,7 @@ impl Fetch<MsgVpnClientUsernamesResponse> for MsgVpnClientUsernamesResponse {
                 Ok(response)
             },
             Err(e) => {
+                error!("error fetching: {:?}", e);
                 Err("fetch error")
             }
         }
