@@ -6,8 +6,11 @@ edition = "2018"
 
 [dependencies]
 
-solace_semp_client = { git = "https://github.com/unixunion/rust_solace_semp_client.git", branch="master" }
+#solace_semp_client = { git = "https://github.com/unixunion/rust_solace_semp_client.git", branch="release-8.13.0.30-branch" }
+#solace_semp_client = { git = "https://github.com/unixunion/rust_solace_semp_client.git", branch="release-9.0.0.17-branch" }
+solace_semp_client = { git = "https://github.com/unixunion/rust_solace_semp_client.git", branch="release-9.0.1.7-branch" }
 #solace_semp_client = { path = "../rust_solace_semp_client/"}
+#solace_semp_client = { path = "../swagger-codegen/samples/client/solace_semp_client/rust" }
 #generics_yaml_deserializer = { git = "https://github.com/unixunion/rust_generics_yaml_deserializer.git", branch="master" }
 #generics_yaml_deserializer = { path = "../generics_yaml_deserializer/" }
 hyper = "0.11.6"

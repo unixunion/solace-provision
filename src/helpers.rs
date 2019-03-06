@@ -26,10 +26,16 @@ pub fn getwhere(key: &str, name: &str, select: &str) -> (Vec<String>,Vec<String>
     let whereitem = format!("{}=={}", key, name);
     wherevec.push(String::from(whereitem));
 
+    let selectvec = getselect(select);
+
+    (wherevec, selectvec)
+}
+
+pub fn getselect(select: &str) -> Vec<String> {
     // SEMP selector
     let mut selectvec: Vec<String> = Vec::new();
     selectvec.push(String::from(select));
-    (wherevec, selectvec)
+    selectvec
 }
 
 //pub fn deserialize<T>(file_name: File) -> Result<Option<T>, &'static str>  {

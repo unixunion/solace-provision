@@ -42,6 +42,7 @@ use solace_semp_client::models::MsgVpnClientProfilesResponse;
 use solace_semp_client::models::MsgVpnClientUsernameResponse;
 use solace_semp_client::models::MsgVpnClientUsername;
 use solace_semp_client::models::MsgVpnClientUsernamesResponse;
+use crate::helpers::getselect;
 
 // shared base trait for all solace update-able objects
 pub trait Update<T> {
@@ -64,7 +65,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
                 item.set_msg_vpn_name(vpn_name.to_owned());
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn(vpn_name, item, Vec::new());
+                    .update_msg_vpn(vpn_name, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
@@ -90,7 +91,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
             println!("changing enabled state to: {}", state.to_string());
             let mut x = tvpn.pop().unwrap();
             x.set_enabled(state);
-            let r = core.run(apiclient.default_api().update_msg_vpn(msg_vpn, x, Vec::new()));
+            let r = core.run(apiclient.default_api().update_msg_vpn(msg_vpn, x, getselect("*")));
             match r {
                 Ok(t) => println!("state successfully changed to {:?}", state),
                 Err(e) => {
@@ -132,10 +133,11 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
 
         match deserialized {
             Some(mut item) => {
+                item.set_msg_vpn_name(vpn_name.to_owned());
                 let item_name = item.queue_name().cloned();
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn_queue(vpn_name, &*item_name.unwrap(), item, Vec::new());
+                    .update_msg_vpn_queue(vpn_name, &*item_name.unwrap(), item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
@@ -152,17 +154,17 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
         }
     }
 
-    fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn enabled(vpn_name: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         println!("retrieving current queue from appliance");
-        let mut item = MsgVpnQueuesResponse::fetch(msg_vpn, item_name, 10, "", "", core, apiclient)?;
-
+        let mut item = MsgVpnQueuesResponse::fetch(vpn_name, item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
+
         if titem.len() == 1 {
             println!("changing enabled state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
             x.set_ingress_enabled(state);
             x.set_egress_enabled(state);
-            let r = core.run(apiclient.default_api().update_msg_vpn_queue(msg_vpn, item_name, x, Vec::new()));
+            let r = core.run(apiclient.default_api().update_msg_vpn_queue(vpn_name, item_name, x, getselect("*")));
             match r {
                 Ok(t) => println!("state successfully changed to {:?}", state),
                 Err(e) => {
@@ -180,8 +182,8 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
 
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn_queue(msg_vpn, item_name);
+    fn delete(vpn_name: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        let t = apiclient.default_api().delete_msg_vpn_queue(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
                 println!("queue deleted");
@@ -204,10 +206,11 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
 
         match deserialized {
             Some(mut item) => {
+                item.set_msg_vpn_name(vpn_name.to_owned());
                 let item_name = item.acl_profile_name().cloned();
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn_acl_profile(vpn_name, &*item_name.unwrap(), item, Vec::new());
+                    .update_msg_vpn_acl_profile(vpn_name, &*item_name.unwrap(), item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
@@ -228,8 +231,8 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
         unimplemented!()
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn_acl_profile(msg_vpn, item_name);
+    fn delete(vpn_name: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        let t = apiclient.default_api().delete_msg_vpn_acl_profile(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
                 println!("acl deleted");
@@ -255,10 +258,11 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
 
         match deserialized {
             Some(mut item) => {
+                item.set_msg_vpn_name(vpn_name.to_owned());
                 let item_name = item.client_profile_name().cloned();
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn_client_profile(vpn_name, &*item_name.unwrap(), item, Vec::new());
+                    .update_msg_vpn_client_profile(vpn_name, &*item_name.unwrap(), item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
@@ -279,8 +283,8 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
         unimplemented!()
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn_client_profile(msg_vpn, item_name);
+    fn delete(vpn_name: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        let t = apiclient.default_api().delete_msg_vpn_client_profile(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
                 println!("client-profile deleted");
@@ -305,10 +309,11 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
         match deserialized {
             Some(mut item) => {
+                item.set_msg_vpn_name(vpn_name.to_owned());
                 let item_name = item.client_username().cloned();
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn_client_username(vpn_name, &*item_name.unwrap(), item, Vec::new());
+                    .update_msg_vpn_client_username(vpn_name, &*item_name.unwrap(), item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
@@ -325,17 +330,17 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
         }
     }
 
-    fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn enabled(vpn_name: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         println!("retrieving current client-username from appliance");
-        let mut item = MsgVpnClientUsernamesResponse::fetch(msg_vpn, item_name, 10, "", "", core, apiclient)?;
-
+        let mut item = MsgVpnClientUsernamesResponse::fetch(vpn_name, item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
+
         if titem.len() == 1 {
             println!("changing enabled state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
             x.set_enabled(state);
             x.reset_password();
-            let r = core.run(apiclient.default_api().update_msg_vpn_client_username(msg_vpn, item_name, x, Vec::new()));
+            let r = core.run(apiclient.default_api().update_msg_vpn_client_username(vpn_name, item_name, x, getselect("*")));
             match r {
                 Ok(t) => println!("state successfully changed to {:?}", state),
                 Err(e) => {
@@ -353,8 +358,8 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn_client_username(msg_vpn, item_name);
+    fn delete(vpn_name: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        let t = apiclient.default_api().delete_msg_vpn_client_username(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
                 println!("client-username deleted");

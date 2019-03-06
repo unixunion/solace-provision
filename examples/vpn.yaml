@@ -112,7 +112,7 @@ maxSubscriptionCount: 100
 maxTransactedSessionCount: 10
 maxTransactionCount: 10
 msgVpnName: myvpn
-preferIpVersion: 6
+#preferIpVersion: 6
 replicationAckPropagationIntervalMsgCount: 20
 replicationBridgeAuthenticationBasicClientUsername: ""
 replicationBridgeAuthenticationBasicPassword: ""

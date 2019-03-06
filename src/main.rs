@@ -8,7 +8,7 @@ use colored::*;
 use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
-use log::{info, warn, error};
+use log::{info, warn, error, debug};
 use std::process::exit;
 use solace_semp_client::models::MsgVpn;
 use solace_semp_client::models::MsgVpnQueue;
@@ -89,7 +89,7 @@ fn main() {
 
     // future impl might use this.
     let cursor = "";
-    let select = "";
+    let select = "*";
 
     let message_vpn = matches.value_of("message-vpn").unwrap_or("default");
 
@@ -137,6 +137,27 @@ fn main() {
 
 
     //
+    //  PRE CHECKS
+    //
+
+//    let request = client.
+//        .and_then(|info| {
+//            futures::future::ok(info)
+//        });
+//    match core.run(request) {
+//        Ok(response) => {
+//            println!("{}", response.data().un)
+//        },
+//        Err(e) => {
+//            println!("error getting system information: {:?}", e);
+//            exit(126);
+//        }
+//    }
+
+
+
+
+    //
     // VPN
     //
 
@@ -146,8 +167,7 @@ fn main() {
         // source subcommand args into matches
         if let Some(matches) = matches.subcommand_matches("vpn") {
 
-            // get all args within the subcommand
-            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let message_vpn = matches.value_of("message-vpn").unwrap();
             let update_item = matches.is_present("update");
             let shutdown_item = matches.is_present("shutdown");
             let no_shutdown_item = matches.is_present("no-shutdown");
@@ -155,7 +175,7 @@ fn main() {
             let delete = matches.is_present("delete");
 
             // early shutdown if not provisioning new
-            if shutdown_item && update_item {
+            if shutdown_item && update_item && matches.is_present("message-vpn"){
                 MsgVpnResponse::enabled(message_vpn, message_vpn,
                                         false, &mut core, &client);
             }
@@ -169,6 +189,8 @@ fn main() {
                     // provision / update from file
                     let file = std::fs::File::open(file_name).unwrap();
                     let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
+
+
                     match deserialized {
                         Some(mut item) => {
 
@@ -482,7 +504,7 @@ fn main() {
             println!("Please specify a subcommand, --help for more info");
             exit(1)
         },
-        _  => unimplemented!()
+        _  => {}
     }
 
 }
