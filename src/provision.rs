@@ -40,6 +40,7 @@ use solace_semp_client::models::MsgVpnClientProfile;
 use solace_semp_client::models::MsgVpnClientUsernameResponse;
 use solace_semp_client::models::MsgVpnClientUsername;
 use std::process::exit;
+use crate::helpers::getselect;
 
 
 pub trait Provision<T> {
@@ -56,7 +57,7 @@ impl Provision<MsgVpnResponse> for MsgVpnResponse {
                 item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn(item, Vec::new());
+                    .create_msg_vpn(item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
@@ -85,7 +86,7 @@ impl Provision<MsgVpnQueueResponse> for MsgVpnQueueResponse {
                 item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_queue(in_vpn, item, Vec::new());
+                    .create_msg_vpn_queue(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
@@ -113,7 +114,7 @@ impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
                 item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_acl_profile(in_vpn, item, Vec::new());
+                    .create_msg_vpn_acl_profile(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
@@ -141,7 +142,7 @@ impl Provision<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
                 item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_client_profile(in_vpn, item, Vec::new());
+                    .create_msg_vpn_client_profile(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
@@ -170,7 +171,7 @@ impl Provision<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
                 item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_client_username(in_vpn, item, Vec::new());
+                    .create_msg_vpn_client_username(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
