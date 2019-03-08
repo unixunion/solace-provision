@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate log;
+extern crate env_logger;
 
 use solace_semp_client::apis::client::APIClient;
 use solace_semp_client::apis::configuration::Configuration;
@@ -8,7 +11,6 @@ use colored::*;
 use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
-use log::{info, warn, error, debug};
 use std::process::exit;
 use solace_semp_client::models::MsgVpn;
 use solace_semp_client::models::MsgVpnQueue;
@@ -25,6 +27,7 @@ use serde::{Serialize, Deserialize};
 use crate::clientconfig::SolaceApiConfig;
 use solace_semp_client::models::MsgVpnsResponse;
 use crate::fetch::Fetch;
+use crate::save::Save;
 use crate::provision::Provision;
 use crate::update::Update;
 use solace_semp_client::models::MsgVpnQueuesResponse;
@@ -35,14 +38,18 @@ use solace_semp_client::models::MsgVpnClientUsernamesResponse;
 use solace_semp_client::models::MsgVpnQueueResponse;
 use solace_semp_client::models::MsgVpnAclProfileResponse;
 use solace_semp_client::models::MsgVpnClientProfileResponse;
+use std::path::Path;
+use std::fs;
+use std::fs::File;
+use std::io::Write;
 
 mod provision;
 mod clientconfig;
 mod helpers;
 mod update;
 mod fetch;
+mod save;
 
-extern crate log;
 
 mod test {
     use solace_semp_client::models::MsgVpn;
@@ -76,7 +83,42 @@ fn consoleprint(data: String) {
 }
 
 
+
+
+fn maybe_write_to_file<T: Serialize>(output_dir: &str, vpn_name: &str, item_name: &str, data: T) -> Result<(), Box<dyn std::error::Error + 'static>> where T: Serialize {
+
+    if !Path::new(&format!("{}/{}", output_dir, vpn_name)).exists() {
+        match fs::create_dir_all(format!("{}/{}", output_dir, vpn_name)) {
+            Ok(gt) => info!("Created dir"),
+            Err(e) => error!("error")
+        }
+
+    }
+
+    let data = serde_yaml::to_string(&data);
+    match data {
+        Ok(_data) => {
+            info!("saving");
+            let mut f = File::create(format!("{}/{}/{}.yaml", output_dir, vpn_name, item_name));
+            match f {
+                Ok(mut _f) => {
+                    _f.write(_data.as_ref());
+                },
+                Err(e) => error!("{}", format!("error saving {}/{}/{}.yaml, error={}", output_dir, vpn_name, item_name, e))
+            }
+            info!("saved: {}", format!("{}/{}/{}.yaml", output_dir, vpn_name, item_name));
+        },
+        Err(e) => error!("error: {}", e)
+    }
+
+    Ok(())
+}
+
+
 fn main() {
+
+    // initialize the logger
+    env_logger::init();
 
     // load args.yaml
     let yaml = load_yaml!("args.yaml");
@@ -84,8 +126,20 @@ fn main() {
 
     // get the config file name
     let config_file_name = matches.value_of("config").unwrap_or("default.yaml");
-    let count_str = matches.value_of("count").unwrap_or("10");
-    let count = count_str.parse::<i32>().unwrap();
+    info!("config_file: {:?}", config_file_name);
+
+    let count = matches.value_of("count").unwrap_or("10");
+    let count = count.parse::<i32>().unwrap();
+    debug!("count: {:?}", count);
+
+    let mut output_dir = "output";
+    let mut write_fetch_files = false;
+    if matches.is_present("output") {
+        output_dir = matches.value_of("output").unwrap();
+        write_fetch_files = true;
+        debug!("output_dir: {}", output_dir);
+    }
+
 
     // future impl might use this.
     let cursor = "";
@@ -98,8 +152,7 @@ fn main() {
     let mut err_emoji = "❌";
 
     // dump current config / args
-    info!("config_file: {:?}", config_file_name);
-    info!("count: {:?}", &*count.to_string());
+
 
     // configure the http client
     let mut core = Core::new().unwrap();
@@ -190,7 +243,6 @@ fn main() {
                     let file = std::fs::File::open(file_name).unwrap();
                     let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
 
-
                     match deserialized {
                         Some(mut item) => {
 
@@ -216,7 +268,18 @@ fn main() {
 
             // finally if fetch is specified, we do this last.
             if fetch {
-                MsgVpnsResponse::fetch(message_vpn, message_vpn, count, cursor, select, &mut core, &client);
+                let data = MsgVpnsResponse::fetch(message_vpn, message_vpn, count, cursor, select, &mut core, &client);
+                if write_fetch_files {
+                    info!("saving: {}", message_vpn);
+                    match data {
+                        Ok(item) => {
+                            MsgVpnsResponse::save(output_dir, &item);
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+                }
             }
 
 
@@ -289,8 +352,19 @@ fn main() {
 
             // finally if fetch is specified, we do this last.
             if fetch {
-                MsgVpnQueuesResponse::fetch(message_vpn, queue, count, cursor,
+                let data = MsgVpnQueuesResponse::fetch(message_vpn, queue, count, cursor,
                                             select, &mut core, &client);
+                if write_fetch_files {
+                    info!("saving: {}", message_vpn);
+                    match data {
+                        Ok(item) => {
+                            MsgVpnQueuesResponse::save(output_dir, &item);
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+                }
             }
 
             if delete {
@@ -351,8 +425,20 @@ fn main() {
             // finally if fetch is specified
             if fetch {
                 info!("fetching acl");
-                MsgVpnAclProfilesResponse::fetch(message_vpn, acl, count, cursor,
+                let data = MsgVpnAclProfilesResponse::fetch(message_vpn, acl, count, cursor,
                                             select, &mut core, &client);
+                if write_fetch_files {
+                    info!("saving: {}", message_vpn);
+                    match data {
+                        Ok(item) => {
+//                            maybe_write_to_file(output_dir,message_vpn, acl, item);
+                            MsgVpnAclProfilesResponse::save(output_dir,&item);
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+                }
             }
 
             if delete {
@@ -411,8 +497,20 @@ fn main() {
             // finally if fetch is specified
             if fetch {
                 info!("fetching client-profile");
-                MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile, count, cursor,
+                let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile, count, cursor,
                                                  select, &mut core, &client);
+                if write_fetch_files {
+                    info!("saving: {}", message_vpn);
+                    match data {
+                        Ok(item) => {
+//                            maybe_write_to_file(output_dir,message_vpn, client_profile, item);
+                            MsgVpnClientProfilesResponse::save(output_dir,&item);
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+                }
             }
 
             if delete {
@@ -486,8 +584,20 @@ fn main() {
 
             // finally if fetch is specified, we do this last.
             if fetch {
-                MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username, count, cursor,
+                let data = MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username, count, cursor,
                                             select, &mut core, &client);
+                if write_fetch_files {
+                    info!("saving: {}", message_vpn);
+                    match data {
+                        Ok(item) => {
+//                            maybe_write_to_file(output_dir,message_vpn, client_username, item);
+                            MsgVpnClientUsernamesResponse::save(output_dir,&item);
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+                }
             }
 
             if delete {

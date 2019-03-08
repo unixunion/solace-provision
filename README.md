@@ -62,7 +62,7 @@ OpenAPI generated api. see: [rust_solace_semp_client](https://github.com/unixuni
 Examples:
 
 * [vpn.yaml](examples/vpn.yaml) 
-* [queue.yaml](examples/queue.yaml)
+* [queue.yaml](examples/queue1.yaml)
 * [acl.yaml](examples/acl.yaml)
 * [client-profile.yaml](/examples/client-profile.yaml)
 * [client-username.yaml](/examples/client-username.yaml)
@@ -85,6 +85,12 @@ solace-provision --config config.yaml subcommand [--file item.yaml] ... \
 ```
 
 ### VPN
+
+### Logging
+In order to get logging output, please set RUST_LOG. Examples:
+
+    RUST_LOG=solace_provision ...
+    RUST_LOG=solace_provision=error solace-provision ...
 
 #### Fetch VPN
 
@@ -153,6 +159,8 @@ solace-provision --config config.yaml subcommand [--file item.yaml] ... \
 #### Provision Client-Username
 
     solace-provision --config examples/config.yaml --client-username examples/client-username.yaml --message-vpn myvpn [--update]
+
+
 
 ## Compiling From Source
 

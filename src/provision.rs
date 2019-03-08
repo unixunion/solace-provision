@@ -60,11 +60,11 @@ impl Provision<MsgVpnResponse> for MsgVpnResponse {
                     .create_msg_vpn(item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
-                        println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                         Ok(response)
                     },
                     Err(e) => {
-                        println!("provision error: {:?}", e);
+                        error!("provision error: {:?}", e);
                         exit(126);
                         Err("provision error")
                     }
@@ -89,11 +89,11 @@ impl Provision<MsgVpnQueueResponse> for MsgVpnQueueResponse {
                     .create_msg_vpn_queue(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
-                        println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                         Ok(response)
                     },
                     Err(e) => {
-                        println!("provision error: {:?}", e);
+                        error!("provision error: {:?}", e);
                         exit(126);
                         Err("provision error")
                     }
@@ -117,11 +117,11 @@ impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
                     .create_msg_vpn_acl_profile(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
-                        println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                         Ok(response)
                     },
                     Err(e) => {
-                        println!("provision error: {:?}", e);
+                        error!("provision error: {:?}", e);
                         exit(126);
                         Err("provision error")
                     }
@@ -145,11 +145,11 @@ impl Provision<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
                     .create_msg_vpn_client_profile(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
-                        println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                         Ok(response)
                     },
                     Err(e) => {
-                        println!("provision error: {:?}", e);
+                        error!("provision error: {:?}", e);
                         exit(126);
                         Err("provision error")
                     }
@@ -174,11 +174,11 @@ impl Provision<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
                     .create_msg_vpn_client_username(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
-                        println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                         Ok(response)
                     },
                     Err(e) => {
-                        println!("provision error: {:?}", e);
+                        error!("provision error: {:?}", e);
                         exit(126);
                         Err("provision error")
                     }
