@@ -1,22 +1,21 @@
 # Solace Provision
 
-solace-provision is a tool written in Rust, which can process flat files to provision solace appliances and software brokers.
+solace-provision is a tool which reads flat files to provision solace hardware appliances and software brokers.
 
 ## Project Status
 
-Currently in *alpha*
+Currently in *beta*
 
+Capabilities:
 
-Capabilities and Limitations
-
-    * Fetch
+    * Fetch + Save to disk
     * Provision
     * Update
     * Shutdown
     * Enable
     * Delete
 
-Supported Objects / Features:
+Objects that can be Provisioned, Updated and Downloaded
 
     * VPN
     * Queue
@@ -24,11 +23,16 @@ Supported Objects / Features:
     * Client Profile
     * Client Username
     
-This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2)
+This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 
 ## Requirements
 
-Solace 9.0.1.7 and <b>TLS</b> enabled SEMP service. 
+Solace PubSub 9.X or SolOS-TR Appliance 8.x with <b>TLS</b> enabled for the SEMP service. Without SEMP, some configurations
+will throw a exception due to plain-text transmission of "sensitive" information.
+
+## Compiling Requirements
+
+rust or docker
 
 # Usage
 
@@ -41,9 +45,8 @@ Example:
 
 ## Configuring and Spec files
 
+
 ### Configuring API Client
-
-
 
 Example Config:
 ```yaml
@@ -57,30 +60,30 @@ See [examples/config.yaml](examples/config.yaml)
 ### Spec Files
 
 solace-provison uses YAML files to configure Solace managed objects, all keys and possible values can be found within the 
-OpenAPI generated api. see: [rust_solace_semp_client](https://github.com/unixunion/rust_solace_semp_client.git)
+OpenAPI generated api. I provide a build-tool for generating the API, see: [rust_solace_semp_client](https://github.com/unixunion/rust_solace_semp_client.git)
 
-Examples:
+Examples Provision Files:
 
 * [vpn.yaml](examples/vpn.yaml) 
-* [queue.yaml](examples/queue1.yaml)
+* [queue1.yaml](examples/queue1.yaml)
 * [acl.yaml](examples/acl.yaml)
 * [client-profile.yaml](/examples/client-profile.yaml)
 * [client-username.yaml](/examples/client-username.yaml)
 
 ## Provisioning
 
-When provisioning, consider the order of dependencies when provisioning items e.g: 
+When provisioning, consider the order of dependencies between items e.g: 
 
 `VPN -> ACL -> CLIENT-PROFILE -> CLIENT-USERNAME -> QUEUE`
 
 IMPORTANT: the <i>msgVpnName</i> key within the various yaml files is overridden at provision-time with the `--message-vpn` arg,
-which is a mandatory arg for all operations.
+which is a mandatory arg for *all* operations.
 
-Commandline args quick overview:
+Executable quick overview:
 
 ```bash
 solace-provision --config {CLIENT_CONFIG} \
-                [--output {OUTDIR}] \
+                [--output {FETCH_OUTDIR}] \
                 vpn|queue|acl-profile|client-profile|client-username \
                 --message-vpn {VPN_NAME} \
                 [--file {ITEM_YAML}] \
@@ -93,25 +96,37 @@ solace-provision --config {CLIENT_CONFIG} \
 
 ### Order of Operation
 
+solace-provision performs all operations the order depicted below, any operation that fails will result in the process terminating.
+
 ![schematic](schematic.png)
 
+### Error Prevention
+
+Due to limitations in the SEMPv2 spec, many attributes are passed as string directly to the appliance, this means you could pass 
+invalid / out-of-spec values, resulting in the provision aborting. Therefore you should ensure your strategy involves applying changes
+to test vpns / appliances before attempting production changes. As the diagram above shows, if you attempt to update a vpn
+while shutting it down, if the update fails you will be left with a vpn in shutdown mode as no further operations will be performed.
+
+Tip, the `--message-vpn` arg will override the VPN a object is being made / updated in, so use it to apply your change to a sandbox 
+VPN before targeting the change at a in-use one.
+
 ### Logging
-Logging is configured with the RUST_LOG env var, set to warn|error|info|debug. Example:
+
+Logging is configured with the `RUST_LOG` environment variable, set to `[warn|error|info|debug]`. Example:
 
     RUST_LOG=solace_provision ...
     RUST_LOG=solace_provision=error solace-provision ...
 
 ### Running
 
-solace-provision takes args both within the subcommand scope and outside of it. Outside args are:
+solace-provision takes args both within the subcommand scope and outside of it. Outside subcojmand args are:
 
-    * Mandatory: config file
-    * Optional: output directory for "fetch"
-    * Optional: count items per "fetch" 
+    * --config file MANDATORY
+    * --output OPTIONAL: directory for "fetch" operations 
+    * --count n OPTIONAL: items per "fetch", default=10
 
 
-
-### VPN
+### VPN Subcommand
 
 
 #### Fetch VPN
@@ -128,64 +143,63 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
 #### Shutdown VPN
 
-    solace-provision --config examples/config.yaml --message-vpn myvpn --shutdown --update
+    solace-provision --config examples/config.yaml vpn --message-vpn myvpn --shutdown --update
     
 #### Enable VPN
 
-    solace-provision --config examples/config.yaml --message-vpn myvpn --no-shutdown --update
+    solace-provision --config examples/config.yaml vpn --message-vpn myvpn --no-shutdown --update
 
 #### Delete VPN
 
-    solace-provision --config examples/config.yaml --message-vpn myvpn --delete
+    solace-provision --config examples/config.yaml vpn --message-vpn myvpn --delete
 
-### Queue
+### Queue Subcommand
 
 #### Fetch Queue
 
-    solace-provision --config examples/config.yaml --fetch-queue "*" --message-vpn myvpn [-n 10]
+    solace-provision --config examples/config.yaml queue --fetch-queue "*" --message-vpn myvpn
 
 #### Provision Queue
 
-    solace-provision --config examples/config.yaml --queue examples/queue.yaml [--update]
+    solace-provision --config examples/config.yaml queue --queue examples/queue.yaml [--update]
 
 #### Shutdown Queue
 
-    solace-provision --config examples/config.yaml --message-vpn myvpn --queue-name myqueue --shutdown --update
+    solace-provision --config examples/config.yaml queue --message-vpn myvpn --queue-name myqueue --shutdown --update
     
 #### Enable Queue
 
-    solace-provision --config examples/config.yaml --message-vpn myvpn --queue-name myqueue --no-shutdown --update
+    solace-provision --config examples/config.yaml queue --message-vpn myvpn --queue-name myqueue --no-shutdown --update
 
-### ACL
+### ACL Subcommand
 
 #### Fetch ACL
 
-    solace-provision --config examples/config.yaml --fetch-acl-profile "*" --message-vpn myvpn
+    solace-provision --config examples/config.yaml [--output tmp] acl-profile --fetch --acl-profile "*" --message-vpn myvpn
 
 #### Provision ACL
 
-    solace-provision --config examples/config.yaml --acl examples/acl.yaml --message-vpn myvpn [--update]
+    solace-provision --config examples/config.yaml acl-profile --file examples/acl.yaml --message-vpn myvpn [--update]
     
 ### Client Profile
 
 #### Fetch Client-Profile
 
-    solace-provision --config examples/config.yaml --fetch-client-profile "*" --message-vpn myvpn
+    solace-provision --config examples/config.yaml [--output tmp] client-profile --fetch --client-profile "*" --message-vpn myvpn
 
 #### Provision Client-Profile
 
-    solace-provision --config examples/config.yaml --client-profile examples/client-profile.yaml --message-vpn myvpn [--update]
+    solace-provision --config examples/config.yaml client-profile --file examples/client-profile.yaml --message-vpn myvpn [--update]
 
 ### Client-Username
     
 #### Fetch Client Username
 
-    solace-provision --config examples/config.yaml --fetch-client-username "*" --message-vpn myvpn -n 10  
+    solace-provision --config examples/config.yaml client-username --client-username "*" --message-vpn myvpn -n 10  
     
 #### Provision Client-Username
 
-    solace-provision --config examples/config.yaml --client-username examples/client-username.yaml --message-vpn myvpn [--update]
-
+    solace-provision --config examples/config.yaml client-username --file examples/client-username.yaml --message-vpn myvpn [--update]
 
 
 ## Compiling From Source
