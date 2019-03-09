@@ -91,6 +91,10 @@ solace-provision --config {CLIENT_CONFIG} \
                 [--fetch]
 ```
 
+### Order of Operation
+
+![schematic](schematic.png)
+
 ### Logging
 Logging is configured with the RUST_LOG env var, set to warn|error|info|debug. Example:
 
