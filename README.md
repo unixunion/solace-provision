@@ -135,7 +135,7 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
 #### Fetch VPN and Write to output dir:
 
-    solace-provision --config examples/config.yaml --output ./out_dir [--count 10] vpn --fetch --message-vpn "*"    
+    solace-provision --config examples/config.yaml [--output ./out_dir] [--count 10] vpn --fetch --message-vpn "*"    
 
 #### Provision / Update VPN
 
@@ -157,7 +157,7 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
 #### Fetch Queue
 
-    solace-provision --config examples/config.yaml queue --fetch-queue "*" --message-vpn myvpn
+    solace-provision --config examples/config.yaml [--output ./out_dir] [--count 10] queue --fetch-queue "*" --message-vpn myvpn
 
 #### Provision Queue
 
@@ -175,7 +175,7 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
 #### Fetch ACL
 
-    solace-provision --config examples/config.yaml [--output tmp] acl-profile --fetch --acl-profile "*" --message-vpn myvpn
+    solace-provision --config examples/config.yaml [--output tmp] [--count 10] acl-profile --fetch --acl-profile "*" --message-vpn myvpn
 
 #### Provision ACL
 
@@ -185,7 +185,7 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
 #### Fetch Client-Profile
 
-    solace-provision --config examples/config.yaml [--output tmp] client-profile --fetch --client-profile "*" --message-vpn myvpn
+    solace-provision --config examples/config.yaml [--output tmp] [--count 10] client-profile --fetch --client-profile "*" --message-vpn myvpn
 
 #### Provision Client-Profile
 
@@ -195,7 +195,7 @@ solace-provision takes args both within the subcommand scope and outside of it. 
     
 #### Fetch Client Username
 
-    solace-provision --config examples/config.yaml client-username --client-username "*" --message-vpn myvpn -n 10  
+    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  client-username --client-username "*" --message-vpn myvpn 
     
 #### Provision Client-Username
 
@@ -208,8 +208,7 @@ Consider what version of appliance you run before compiling, as you should compi
 appliance version you have in your cluster. see: [cargo.toml](/cargo.toml)
 
 If you dont find a supported version in the [rust_solace_semp_client](https://github.com/unixunion/rust_solace_semp_client.git)
-repo, you can make a request for one, or you can make your own using [solace_semp_client](https://github.com/unixunion/solace_semp_client.git), 
-and applying the patches in that repo too.
+repo, you can make a request for one, or you can make your own using [solace_semp_client](https://github.com/unixunion/solace_semp_client.git).
 
 Then simply point the dependency in cargo.toml to the filepath or git repo + branch where you have your generated OpenAPI 
 classes.
@@ -265,9 +264,6 @@ Testing TLS:
 
 # Compiling
 
-NOTE, this tool needs built against a modified swagger-spec which you can find release branches for at https://github.com/unixunion/rust_solace_semp_client.git
-The only change is that skip_deserialize for None types has been added to some structures that need it until swagger catches up.
-
 If you want to link against a specific version of SEMPv2 API, you have some options:
 
     * use a release branch from https://github.com/unixunion/rust_solace_semp_client.git
@@ -275,8 +271,6 @@ If you want to link against a specific version of SEMPv2 API, you have some opti
     * use https://github.com/unixunion/rust_solace_semp_client.git to generate your own
 
 Once you have decided on either of the above, you can edit Cargo.toml and modify the dep url/path for the rust_solace_semp_client.
-
-    cargo build --release
 
 ## References
 
