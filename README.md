@@ -196,8 +196,16 @@ and applying the patches in that repo too.
 Then simply point the dependency in cargo.toml to the filepath or git repo + branch where you have your generated OpenAPI 
 classes.
 
+Using cargo ( produces arch binary)
+
 ```bash
 cargo build --release
+```
+
+Using Docker ( produces Linux binary )
+
+```bash
+docker run -v `pwd`:/src rust:1.33 /src/mkrelease.sh
 ```
 
 ## Local Development
