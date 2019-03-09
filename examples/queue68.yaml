@@ -22,7 +22,7 @@ maxTtl: 0
 msgVpnName: myvpn
 owner: ""
 permission: no-access
-queueName: myqueue
+queueName: queue68
 rejectLowPriorityMsgEnabled: false
 rejectLowPriorityMsgLimit: 0
 rejectMsgToSenderOnDiscardBehavior: when-queue-enabled

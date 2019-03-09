@@ -14,6 +14,11 @@ args:
       help: number of items to return for fetch queries
       takes_value: true
       required: false
+  - output:
+      long: output
+      help: output directory to dump fetched objects in.
+      takes_value: true
+      required: false
 
 subcommands:
   # The name of this subcommand will be 'subcmd' which can be accessed in your

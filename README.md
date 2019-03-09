@@ -62,33 +62,61 @@ OpenAPI generated api. see: [rust_solace_semp_client](https://github.com/unixuni
 Examples:
 
 * [vpn.yaml](examples/vpn.yaml) 
-* [queue.yaml](examples/queue.yaml)
+* [queue.yaml](examples/queue1.yaml)
 * [acl.yaml](examples/acl.yaml)
 * [client-profile.yaml](/examples/client-profile.yaml)
 * [client-username.yaml](/examples/client-username.yaml)
 
 ## Provisioning
 
-When provisioning, consider the order of dependencies e.g: 
+When provisioning, consider the order of dependencies when provisioning items e.g: 
 
 `VPN -> ACL -> CLIENT-PROFILE -> CLIENT-USERNAME -> QUEUE`
 
 IMPORTANT: the <i>msgVpnName</i> key within the various yaml files is overridden at provision-time with the `--message-vpn` arg,
 which is a mandatory arg for all operations.
 
-Commands typically have the pattern
+Commandline args quick overview:
 
 ```bash
-solace-provision --config config.yaml subcommand [--file item.yaml] ... \
-                        [--update] [--shutdown] [--no-shutdown] [--fetch]
-
+solace-provision --config {CLIENT_CONFIG} \
+                [--output {OUTDIR}] \
+                vpn|queue|acl-profile|client-profile|client-username \
+                --message-vpn {VPN_NAME} \
+                [--file {ITEM_YAML}] \
+                [--queue|--acl-profile|--client-profile|--client-username] {ITEM_NAME}  \
+                [--update] \
+                [--shutdown] \
+                [--no-shutdown] \
+                [--fetch]
 ```
 
+### Logging
+Logging is configured with the RUST_LOG env var, set to warn|error|info|debug. Example:
+
+    RUST_LOG=solace_provision ...
+    RUST_LOG=solace_provision=error solace-provision ...
+
+### Running
+
+solace-provision takes args both within the subcommand scope and outside of it. Outside args are:
+
+    * Mandatory: config file
+    * Optional: output directory for "fetch"
+    * Optional: count items per "fetch" 
+
+
+
 ### VPN
+
 
 #### Fetch VPN
 
     solace-provision --config examples/config.yaml [--count 10] vpn --fetch --message-vpn "*"
+
+#### Fetch VPN and Write to output dir:
+
+    solace-provision --config examples/config.yaml --output ./out_dir [--count 10] vpn --fetch --message-vpn "*"    
 
 #### Provision / Update VPN
 
@@ -153,6 +181,8 @@ solace-provision --config config.yaml subcommand [--file item.yaml] ... \
 #### Provision Client-Username
 
     solace-provision --config examples/config.yaml --client-username examples/client-username.yaml --message-vpn myvpn [--update]
+
+
 
 ## Compiling From Source
 

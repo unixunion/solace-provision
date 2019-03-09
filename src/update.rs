@@ -24,6 +24,7 @@ use colored::Colorize;
 use futures::future::Future;
 use futures::future::AndThen;
 use std::fs::File;
+use log::{info, warn, error, debug};
 use serde::Deserialize;
 use std::io::Error;
 use solace_semp_client::models::MsgVpnResponse;
@@ -57,6 +58,7 @@ pub trait Update<T> {
 impl Update<MsgVpnResponse> for MsgVpnResponse {
 
     fn update(vpn_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        info!("updating message-vpn: {} from file", vpn_name);
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
 
@@ -68,11 +70,11 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
                     .update_msg_vpn(vpn_name, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
-                        println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                         Ok(())
                     },
                     Err(e) => {
-                        println!("update error: {:?}", e);
+                        error!("update error: {:?}", e);
                         process::exit(126);
                         Err("update error")
                     }
@@ -83,24 +85,24 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
     }
 
     fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        println!("retrieving current vpn from appliance");
+        info!("changing enabled state to: {:?} for message-vpn: {}", state, msg_vpn);
         let mut vpn = MsgVpnsResponse::fetch(item_name, item_name, 10, "", "", core, apiclient)?;
 
         let mut tvpn = vpn.data().unwrap().clone();
         if tvpn.len() == 1 {
-            println!("changing enabled state to: {}", state.to_string());
+            info!("changing enabled state to: {}", state.to_string());
             let mut x = tvpn.pop().unwrap();
             x.set_enabled(state);
             let r = core.run(apiclient.default_api().update_msg_vpn(msg_vpn, x, getselect("*")));
             match r {
-                Ok(t) => println!("state successfully changed to {:?}", state),
+                Ok(t) => info!("state successfully changed to {:?}", state),
                 Err(e) => {
-                    println!("error changing enabled state for vpn: {}, {:?}", item_name, e);
+                    error!("error changing enabled state for vpn: {}, {:?}", item_name, e);
                     exit(126);
                 }
             }
         } else {
-            println!("error, did not find exactly one item matching query");
+            error!("error, did not find exactly one item matching query");
             exit(126);
         }
 
@@ -113,11 +115,11 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
         let t = apiclient.default_api().delete_msg_vpn(item_name);
         match core.run(t) {
             Ok(vpn) => {
-                println!("vpn deleted");
+                info!("vpn deleted");
                 Ok(())
             },
             Err(e) => {
-                println!("unable to delete vpn: {:?}", e);
+                error!("unable to delete vpn: {:?}", e);
                 process::exit(126);
                 Err("unable to delete vpn")
             }
@@ -140,11 +142,11 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
                     .update_msg_vpn_queue(vpn_name, &*item_name.unwrap(), item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
-                        println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                         Ok(())
                     },
                     Err(e) => {
-                        println!("update error: {:?}", e);
+                        error!("update error: {:?}", e);
                         process::exit(126);
                         Err("update error")
                     }
@@ -155,26 +157,26 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
     }
 
     fn enabled(vpn_name: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        println!("retrieving current queue from appliance");
+        info!("retrieving current queue from appliance");
         let mut item = MsgVpnQueuesResponse::fetch(vpn_name, item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         if titem.len() == 1 {
-            println!("changing enabled state to: {}", state.to_string());
+            info!("changing enabled state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
             x.set_ingress_enabled(state);
             x.set_egress_enabled(state);
             let r = core.run(apiclient.default_api().update_msg_vpn_queue(vpn_name, item_name, x, getselect("*")));
             match r {
-                Ok(t) => println!("state successfully changed to {:?}", state),
+                Ok(t) => info!("state successfully changed to {:?}", state),
                 Err(e) => {
-                    println!("error changing enabled state for vpn: {}, {:?}", item_name, e);
+                    error!("error changing enabled state for vpn: {}, {:?}", item_name, e);
                     exit(126);
                 }
             }
 
         } else {
-            println!("error, did not find exactly one item matching query");
+            error!("error, did not find exactly one item matching query");
             process::exit(126);
         }
 
@@ -186,11 +188,11 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
         let t = apiclient.default_api().delete_msg_vpn_queue(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
-                println!("queue deleted");
+                info!("queue deleted");
                 Ok(())
             },
             Err(e) => {
-                println!("unable to delete queue: {:?}", e);
+                error!("unable to delete queue: {:?}", e);
                 process::exit(126);
                 Err("unable to delete queue")
             }
@@ -213,11 +215,11 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
                     .update_msg_vpn_acl_profile(vpn_name, &*item_name.unwrap(), item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
-                        println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                         Ok(())
                     },
                     Err(e) => {
-                        println!("update error: {:?}", e);
+                        error!("update error: {:?}", e);
                         process::exit(126);
                         Err("update error")
                     }
@@ -235,11 +237,11 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
         let t = apiclient.default_api().delete_msg_vpn_acl_profile(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
-                println!("acl deleted");
+                info!("acl deleted");
                 Ok(())
             },
             Err(e) => {
-                println!("unable to delete acl: {:?}", e);
+                error!("unable to delete acl: {:?}", e);
                 process::exit(126);
                 Err("unable to delete acl")
             }
@@ -265,11 +267,11 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
                     .update_msg_vpn_client_profile(vpn_name, &*item_name.unwrap(), item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
-                        println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                         Ok(())
                     },
                     Err(e) => {
-                        println!("update error: {:?}", e);
+                        error!("update error: {:?}", e);
                         process::exit(126);
                         Err("update error")
                     }
@@ -287,11 +289,11 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
         let t = apiclient.default_api().delete_msg_vpn_client_profile(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
-                println!("client-profile deleted");
+                info!("client-profile deleted");
                 Ok(())
             },
             Err(e) => {
-                println!("unable to delete client-profile: {:?}", e);
+                error!("unable to delete client-profile: {:?}", e);
                 process::exit(126);
                 Err("unable to delete client-profile")
             }
@@ -316,11 +318,11 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
                     .update_msg_vpn_client_username(vpn_name, &*item_name.unwrap(), item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
-                        println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
                         Ok(())
                     },
                     Err(e) => {
-                        println!("update error: {:?}", e);
+                        error!("update error: {:?}", e);
                         process::exit(126);
                         Err("update error")
                     }
@@ -342,15 +344,15 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
             x.reset_password();
             let r = core.run(apiclient.default_api().update_msg_vpn_client_username(vpn_name, item_name, x, getselect("*")));
             match r {
-                Ok(t) => println!("state successfully changed to {:?}", state),
+                Ok(t) => info!("state successfully changed to {:?}", state),
                 Err(e) => {
-                    println!("error changing enabled state for client-username: {}, {:?}", item_name, e);
+                    error!("error changing enabled state for client-username: {}, {:?}", item_name, e);
                     exit(126);
                 }
             }
 
         } else {
-            println!("error, did not find exactly one item matching query");
+            error!("error, did not find exactly one item matching query");
             process::exit(126);
         }
 
@@ -362,11 +364,11 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
         let t = apiclient.default_api().delete_msg_vpn_client_username(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
-                println!("client-username deleted");
+                info!("client-username deleted");
                 Ok(())
             },
             Err(e) => {
-                println!("unable to delete client-username: {:?}", e);
+                error!("unable to delete client-username: {:?}", e);
                 process::exit(126);
                 Err("unable to delete client-username")
             }

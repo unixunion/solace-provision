@@ -4,3 +4,6 @@
 *.iml
 solace-provision
 .DS_Store
+tmp
+output
+examples/config-hw.yaml

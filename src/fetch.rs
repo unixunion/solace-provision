@@ -15,8 +15,6 @@ mod tests {
     }
 }
 
-
-
 use solace_semp_client::apis::client::APIClient;
 use solace_semp_client::models::MsgVpn;
 use tokio_core::reactor::Core;
@@ -41,13 +39,15 @@ use solace_semp_client::models::MsgVpnClientProfilesResponse;
 use solace_semp_client::models::MsgVpnClientUsernamesResponse;
 use std::process::exit;
 use log::{info, warn, error, debug};
+use std::path::Path;
+use std::fs;
+use std::io::Write;
 
 // shared base trait for all solace fetch-able objects
 pub trait Fetch<T> {
+
     fn fetch(in_vpn: &str, name: &str, count: i32,  cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<T, &'static str>;
-    fn to_yaml(item: T) -> String where T: Serialize {
-        serde_yaml::to_string(&item).unwrap()
-    }
+
 }
 
 
@@ -66,7 +66,8 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
 
         match core.run(request) {
             Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                let t = format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap());
+                println!("{}", &t);
                 Ok(response)
             },
             Err(e) => {
@@ -76,6 +77,7 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
         }
 
     }
+
 }
 
 impl Fetch<MsgVpnQueuesResponse> for MsgVpnQueuesResponse {
