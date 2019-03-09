@@ -69,32 +69,54 @@ Examples:
 
 ## Provisioning
 
-When provisioning, consider the order of dependencies e.g: 
+When provisioning, consider the order of dependencies when provisioning items e.g: 
 
 `VPN -> ACL -> CLIENT-PROFILE -> CLIENT-USERNAME -> QUEUE`
 
 IMPORTANT: the <i>msgVpnName</i> key within the various yaml files is overridden at provision-time with the `--message-vpn` arg,
 which is a mandatory arg for all operations.
 
-Commands typically have the pattern
+Commandline args quick overview:
 
 ```bash
-solace-provision --config config.yaml subcommand [--file item.yaml] ... \
-                        [--update] [--shutdown] [--no-shutdown] [--fetch]
-
+solace-provision --config {CLIENT_CONFIG} \
+                [--output {OUTDIR}] \
+                vpn|queue|acl-profile|client-profile|client-username \
+                --message-vpn {VPN_NAME} \
+                [--file {ITEM_YAML}] \
+                [--queue|--acl-profile|--client-profile|--client-username] {ITEM_NAME}  \
+                [--update] \
+                [--shutdown] \
+                [--no-shutdown] \
+                [--fetch]
 ```
 
-### VPN
-
 ### Logging
-In order to get logging output, please set RUST_LOG. Examples:
+Logging is configured with the RUST_LOG env var, set to warn|error|info|debug. Example:
 
     RUST_LOG=solace_provision ...
     RUST_LOG=solace_provision=error solace-provision ...
 
+### Running
+
+solace-provision takes args both within the subcommand scope and outside of it. Outside args are:
+
+    * Mandatory: config file
+    * Optional: output directory for "fetch"
+    * Optional: count items per "fetch" 
+
+
+
+### VPN
+
+
 #### Fetch VPN
 
     solace-provision --config examples/config.yaml [--count 10] vpn --fetch --message-vpn "*"
+
+#### Fetch VPN and Write to output dir:
+
+    solace-provision --config examples/config.yaml --output ./out_dir [--count 10] vpn --fetch --message-vpn "*"    
 
 #### Provision / Update VPN
 

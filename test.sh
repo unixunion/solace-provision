@@ -79,7 +79,7 @@ cargo run -- --config ${config_file} client-username --file examples/client-user
 cargo run -- --config ${config_file} --output ./tmp client-username --message-vpn ${rnd_vpn} --fetch --client-username myusername
 test -f ./tmp/${rnd_vpn}/client-username/myusername.yaml
 
-#exit 0
+exit 0
 
 # delete client-username
 cargo run -- --config ${config_file} client-username --delete --message-vpn ${rnd_vpn} --update --client-username myusername

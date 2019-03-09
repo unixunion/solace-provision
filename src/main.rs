@@ -197,65 +197,70 @@ fn main() {
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
 
-            // early shutdown if not provisioning new
-            if shutdown_item && update_item && matches.is_present("message-vpn"){
-                MsgVpnResponse::enabled(message_vpn, message_vpn,
-                                        false, &mut core, &client);
-            }
+            if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
 
-            // if file is passed, it means either provision or update.
-            let file_name = matches.value_of("file");
-            match file_name {
-                Some(file_name) => {
-                    info!("using file: {:?}", file_name);
 
-                    // provision / update from file
-                    let file = std::fs::File::open(file_name).unwrap();
-                    let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
+                // early shutdown if not provisioning new
+                if shutdown_item && update_item && matches.is_present("message-vpn") {
+                    MsgVpnResponse::enabled(message_vpn, message_vpn,
+                                            false, &mut core, &client);
+                }
 
-                    match deserialized {
-                        Some(mut item) => {
+                // if file is passed, it means either provision or update.
+                let file_name = matches.value_of("file");
+                match file_name {
+                    Some(file_name) => {
+                        info!("using file: {:?}", file_name);
 
-                            if update_item {
-                                MsgVpnResponse::update( message_vpn, file_name, &mut core,
-                                                        &client);
-                            } else {
-                                MsgVpnResponse::provision(message_vpn,  file_name,
-                                                          &mut core, &client);
+                        // provision / update from file
+                        let file = std::fs::File::open(file_name).unwrap();
+                        let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
+
+                        match deserialized {
+                            Some(mut item) => {
+                                if update_item {
+                                    MsgVpnResponse::update(message_vpn, file_name, &mut core,
+                                                           &client);
+                                } else {
+                                    MsgVpnResponse::provision(message_vpn, file_name,
+                                                              &mut core, &client);
+                                }
+                            },
+                            _ => unimplemented!()
+                        }
+                    },
+                    None => {}
+                }
+
+                // late un-shutdown anything
+                if no_shutdown_item {
+                    MsgVpnResponse::enabled(message_vpn, message_vpn,
+                                            true, &mut core, &client);
+                }
+
+                // finally if fetch is specified, we do this last.
+                if fetch {
+                    let data = MsgVpnsResponse::fetch(message_vpn, message_vpn, count, &*cursor.to_string(), select, &mut core, &client);
+                    if write_fetch_files {
+                        info!("saving: {}", message_vpn);
+                        match data {
+                            Ok(item) => {
+                                MsgVpnsResponse::save(output_dir, &item);
+                            },
+                            Err(e) => {
+                                error!("error: {}", e)
                             }
-                        },
-                        _ => unimplemented!()
-                    }
-                },
-                None => {}
-            }
-
-            // late un-shutdown anything
-            if no_shutdown_item {
-                MsgVpnResponse::enabled(message_vpn, message_vpn,
-                                        true, &mut core, &client);
-            }
-
-            // finally if fetch is specified, we do this last.
-            if fetch {
-                let data = MsgVpnsResponse::fetch(message_vpn, message_vpn, count, &*cursor.to_string(), select, &mut core, &client);
-                if write_fetch_files {
-                    info!("saving: {}", message_vpn);
-                    match data {
-                        Ok(item) => {
-                            MsgVpnsResponse::save(output_dir, &item);
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
                         }
                     }
                 }
-            }
 
 
-            if delete {
-                info!("deleting message vpn");
-                MsgVpnResponse::delete(message_vpn, message_vpn, &mut core, &client);
+                if delete {
+                    info!("deleting message vpn");
+                    MsgVpnResponse::delete(message_vpn, message_vpn, &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
             }
 
         }
@@ -282,79 +287,82 @@ fn main() {
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
 
-            // early shutdown if not provisioning new
-            if shutdown_item && update_item && matches.is_present("queue") && matches.is_present("message-vpn") {
-                MsgVpnQueueResponse::enabled(message_vpn, queue,
-                                        false, &mut core, &client);
-            }
+            if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
 
-            // if file is passed, it means either provision or update.
-            let file_name = matches.value_of("file");
-            match file_name {
-                Some(file_name) => {
-                    info!("using file: {:?}", file_name);
-
-                    // provision / update from file
-                    let file = std::fs::File::open(file_name).unwrap();
-                    let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
-                    match deserialized {
-                        Some(mut item) => {
-
-                            if update_item {
-                                MsgVpnQueueResponse::update( message_vpn, file_name, &mut core,
-                                                        &client);
-                            } else {
-                                MsgVpnQueueResponse::provision(message_vpn,  file_name,
-                                                          &mut core, &client);
-                            }
-                        },
-                        _ => unimplemented!()
-                    }
-                },
-                None => {}
-            }
-
-            // late un-shutdown anything
-            if no_shutdown_item {
-                MsgVpnQueueResponse::enabled(message_vpn, queue,
-                                        true, &mut core, &client);
-            }
-
-            // finally if fetch is specified, we do this last.
-            while fetch {
-                let data = MsgVpnQueuesResponse::fetch(message_vpn,
-                                                       queue, count, &*cursor.to_string(), select,
-                                                       &mut core, &client);
-                if write_fetch_files {
-                    info!("saving: {}", message_vpn);
-                    match data {
-                        Ok(item) => {
-                            MsgVpnQueuesResponse::save(output_dir, &item);
-
-                            let cq = item.meta().paging();
-                            match cq {
-                                Some(paging) => {
-                                    info!("cq: {:?}", paging.cursor_query());
-                                    cursor = Cow::Owned(paging.cursor_query().clone());
-                                },
-                                _ => {
-                                    break
-                                }
-                            }
-
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
-                } else {
-                    break
+                // early shutdown if not provisioning new
+                if shutdown_item && update_item && matches.is_present("queue") && matches.is_present("message-vpn") {
+                    MsgVpnQueueResponse::enabled(message_vpn, queue,
+                                                 false, &mut core, &client);
                 }
-            }
 
-            if delete {
-                info!("deleting queue");
-                MsgVpnQueueResponse::delete(message_vpn, queue, &mut core, &client);
+                // if file is passed, it means either provision or update.
+                let file_name = matches.value_of("file");
+                match file_name {
+                    Some(file_name) => {
+                        info!("using file: {:?}", file_name);
+
+                        // provision / update from file
+                        let file = std::fs::File::open(file_name).unwrap();
+                        let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
+                        match deserialized {
+                            Some(mut item) => {
+                                if update_item {
+                                    MsgVpnQueueResponse::update(message_vpn, file_name, &mut core,
+                                                                &client);
+                                } else {
+                                    MsgVpnQueueResponse::provision(message_vpn, file_name,
+                                                                   &mut core, &client);
+                                }
+                            },
+                            _ => unimplemented!()
+                        }
+                    },
+                    None => {}
+                }
+
+                // late un-shutdown anything
+                if no_shutdown_item {
+                    MsgVpnQueueResponse::enabled(message_vpn, queue,
+                                                 true, &mut core, &client);
+                }
+
+                // finally if fetch is specified, we do this last.
+                while fetch {
+                    let data = MsgVpnQueuesResponse::fetch(message_vpn,
+                                                           queue, count, &*cursor.to_string(), select,
+                                                           &mut core, &client);
+                    if write_fetch_files {
+                        info!("saving: {}", message_vpn);
+                        match data {
+                            Ok(item) => {
+                                MsgVpnQueuesResponse::save(output_dir, &item);
+
+                                let cq = item.meta().paging();
+                                match cq {
+                                    Some(paging) => {
+                                        info!("cq: {:?}", paging.cursor_query());
+                                        cursor = Cow::Owned(paging.cursor_query().clone());
+                                    },
+                                    _ => {
+                                        break
+                                    }
+                                }
+                            },
+                            Err(e) => {
+                                error!("error: {}", e)
+                            }
+                        }
+                    } else {
+                        break
+                    }
+                }
+
+                if delete {
+                    info!("deleting queue");
+                    MsgVpnQueueResponse::delete(message_vpn, queue, &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
             }
 
         }
@@ -380,67 +388,71 @@ fn main() {
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
 
-            // if file is passed, it means either provision or update.
-            let file_name = matches.value_of("file");
-            match file_name {
-                Some(file_name) => {
-                    info!("using file: {:?}", file_name);
+            if update_item || fetch || delete || matches.is_present("file") {
 
-                    // provision / update from file
-                    let file = std::fs::File::open(file_name).unwrap();
-                    let deserialized: Option<MsgVpnAclProfile> = serde_yaml::from_reader(file).unwrap();
+                // if file is passed, it means either provision or update.
+                let file_name = matches.value_of("file");
+                match file_name {
+                    Some(file_name) => {
+                        info!("using file: {:?}", file_name);
 
-                    match deserialized {
-                        Some(mut item) => {
+                        // provision / update from file
+                        let file = std::fs::File::open(file_name).unwrap();
+                        let deserialized: Option<MsgVpnAclProfile> = serde_yaml::from_reader(file).unwrap();
 
-                            if update_item {
-                                MsgVpnAclProfileResponse::update( message_vpn, file_name,
-                                                                  &mut core, &client);
-                            } else {
-                                MsgVpnAclProfileResponse::provision(message_vpn,  file_name,
-                                                               &mut core, &client);
-                            }
-                        },
-                        _ => unimplemented!()
-                    }
-                },
-                None => {}
-            }
-
-            // finally if fetch is specified
-            while fetch {
-                info!("fetching acl");
-                let data = MsgVpnAclProfilesResponse::fetch(message_vpn, acl, count, &*cursor.to_string(),
-                                            select, &mut core, &client);
-                if write_fetch_files {
-                    info!("saving: {}", message_vpn);
-                    match data {
-                        Ok(item) => {
-//                            maybe_write_to_file(output_dir,message_vpn, acl, item);
-                            MsgVpnAclProfilesResponse::save(output_dir,&item);
-                            let cq = item.meta().paging();
-                            match cq {
-                                Some(paging) => {
-                                    info!("cq: {:?}", paging.cursor_query());
-                                    cursor = Cow::Owned(paging.cursor_query().clone());
-                                },
-                                _ => {
-                                    break
+                        match deserialized {
+                            Some(mut item) => {
+                                if update_item {
+                                    MsgVpnAclProfileResponse::update(message_vpn, file_name,
+                                                                     &mut core, &client);
+                                } else {
+                                    MsgVpnAclProfileResponse::provision(message_vpn, file_name,
+                                                                        &mut core, &client);
                                 }
-                            }
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
+                            },
+                            _ => unimplemented!()
                         }
-                    }
-                } else {
-                    break
+                    },
+                    None => {}
                 }
-            }
 
-            if delete {
-                info!("deleting acl");
-                MsgVpnAclProfileResponse::delete(message_vpn, acl, &mut core, &client);
+                // finally if fetch is specified
+                while fetch {
+                    info!("fetching acl");
+                    let data = MsgVpnAclProfilesResponse::fetch(message_vpn, acl, count, &*cursor.to_string(),
+                                                                select, &mut core, &client);
+                    if write_fetch_files {
+                        info!("saving: {}", message_vpn);
+                        match data {
+                            Ok(item) => {
+//                            maybe_write_to_file(output_dir,message_vpn, acl, item);
+                                MsgVpnAclProfilesResponse::save(output_dir, &item);
+                                let cq = item.meta().paging();
+                                match cq {
+                                    Some(paging) => {
+                                        info!("cq: {:?}", paging.cursor_query());
+                                        cursor = Cow::Owned(paging.cursor_query().clone());
+                                    },
+                                    _ => {
+                                        break
+                                    }
+                                }
+                            },
+                            Err(e) => {
+                                error!("error: {}", e)
+                            }
+                        }
+                    } else {
+                        break
+                    }
+                }
+
+                if delete {
+                    info!("deleting acl");
+                    MsgVpnAclProfileResponse::delete(message_vpn, acl, &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
             }
 
         }
@@ -464,67 +476,71 @@ fn main() {
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
 
-            // if file is passed, it means either provision or update.
-            let file_name = matches.value_of("file");
-            match file_name {
-                Some(file_name) => {
-                    info!("using file: {:?}", file_name);
+            if update_item || fetch || delete || matches.is_present("file") {
 
-                    // provision / update from file
-                    let file = std::fs::File::open(file_name).unwrap();
-                    let deserialized: Option<MsgVpnClientProfile> = serde_yaml::from_reader(file).unwrap();
+                // if file is passed, it means either provision or update.
+                let file_name = matches.value_of("file");
+                match file_name {
+                    Some(file_name) => {
+                        info!("using file: {:?}", file_name);
 
-                    match deserialized {
-                        Some(mut item) => {
+                        // provision / update from file
+                        let file = std::fs::File::open(file_name).unwrap();
+                        let deserialized: Option<MsgVpnClientProfile> = serde_yaml::from_reader(file).unwrap();
 
-                            if update_item {
-                                MsgVpnClientProfileResponse::update( message_vpn, file_name, &mut core,
-                                                                  &client);
-                            } else {
-                                MsgVpnClientProfileResponse::provision(message_vpn,  file_name,
-                                                                    &mut core, &client);
-                            }
-                        },
-                        _ => unimplemented!()
-                    }
-                },
-                None => {}
-            }
-
-            // finally if fetch is specified
-            while fetch {
-                info!("fetching client-profile");
-                let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile, count, &*cursor.to_string(),
-                                                 select, &mut core, &client);
-                if write_fetch_files {
-                    info!("saving: {}", message_vpn);
-                    match data {
-                        Ok(item) => {
-//                            maybe_write_to_file(output_dir,message_vpn, client_profile, item);
-                            MsgVpnClientProfilesResponse::save(output_dir,&item);
-                            let cq = item.meta().paging();
-                            match cq {
-                                Some(paging) => {
-                                    info!("cq: {:?}", paging.cursor_query());
-                                    cursor = Cow::Owned(paging.cursor_query().clone());
-                                },
-                                _ => {
-                                    break
+                        match deserialized {
+                            Some(mut item) => {
+                                if update_item {
+                                    MsgVpnClientProfileResponse::update(message_vpn, file_name, &mut core,
+                                                                        &client);
+                                } else {
+                                    MsgVpnClientProfileResponse::provision(message_vpn, file_name,
+                                                                           &mut core, &client);
                                 }
-                            }
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
+                            },
+                            _ => unimplemented!()
                         }
-                    }
-                } else {
-                    break
+                    },
+                    None => {}
                 }
-            }
 
-            if delete {
-                info!("deleting client-profile");
-                MsgVpnClientProfileResponse::delete(message_vpn, client_profile, &mut core, &client);
+                // finally if fetch is specified
+                while fetch {
+                    info!("fetching client-profile");
+                    let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile, count, &*cursor.to_string(),
+                                                                   select, &mut core, &client);
+                    if write_fetch_files {
+                        info!("saving: {}", message_vpn);
+                        match data {
+                            Ok(item) => {
+//                            maybe_write_to_file(output_dir,message_vpn, client_profile, item);
+                                MsgVpnClientProfilesResponse::save(output_dir, &item);
+                                let cq = item.meta().paging();
+                                match cq {
+                                    Some(paging) => {
+                                        info!("cq: {:?}", paging.cursor_query());
+                                        cursor = Cow::Owned(paging.cursor_query().clone());
+                                    },
+                                    _ => {
+                                        break
+                                    }
+                                }
+                            },
+                            Err(e) => {
+                                error!("error: {}", e)
+                            }
+                        }
+                    } else {
+                        break
+                    }
+                }
+
+                if delete {
+                    info!("deleting client-profile");
+                    MsgVpnClientProfileResponse::delete(message_vpn, client_profile, &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
             }
 
         }
@@ -553,76 +569,80 @@ fn main() {
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
 
-            // early shutdown if not provisioning new
-            if shutdown_item && update_item && matches.is_present("client-username") && matches.is_present("message-vpn") {
-                MsgVpnClientUsernameResponse::enabled(message_vpn, client_username,
-                                             false, &mut core, &client);
-            }
+            if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
 
-            // if file is passed, it means either provision or update.
-            let file_name = matches.value_of("file");
-            match file_name {
-                Some(file_name) => {
-                    info!("using file: {:?}", file_name);
-
-                    // provision / update from file
-                    let file = std::fs::File::open(file_name).unwrap();
-                    let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
-                    match deserialized {
-                        Some(mut item) => {
-
-                            if update_item {
-                                MsgVpnClientUsernameResponse::update( message_vpn, file_name, &mut core,
-                                                             &client);
-                            } else {
-                                MsgVpnClientUsernameResponse::provision(message_vpn,  file_name,
-                                                               &mut core, &client);
-                            }
-                        },
-                        _ => unimplemented!()
-                    }
-                },
-                None => {}
-            }
-
-            // late un-shutdown anything
-            if no_shutdown_item {
-                MsgVpnClientUsernameResponse::enabled(message_vpn, client_username,
-                                             true, &mut core, &client);
-            }
-
-            // finally if fetch is specified, we do this last.
-            while fetch {
-                let data = MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username, count, &*cursor.to_string(),
-                                            select, &mut core, &client);
-                if write_fetch_files {
-                    info!("saving: {}", message_vpn);
-                    match data {
-                        Ok(item) => {
-                            MsgVpnClientUsernamesResponse::save(output_dir,&item);
-                            let cq = item.meta().paging();
-                            match cq {
-                                Some(paging) => {
-                                    info!("cq: {:?}", paging.cursor_query());
-                                    cursor = Cow::Owned(paging.cursor_query().clone());
-                                },
-                                _ => {
-                                    break
-                                }
-                            }
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
-                } else {
-                    break
+                // early shutdown if not provisioning new
+                if shutdown_item && update_item && matches.is_present("client-username") && matches.is_present("message-vpn") {
+                    MsgVpnClientUsernameResponse::enabled(message_vpn, client_username,
+                                                          false, &mut core, &client);
                 }
-            }
 
-            if delete {
-                info!("deleting client-username");
-                MsgVpnClientUsernameResponse::delete(message_vpn, client_username, &mut core, &client);
+                // if file is passed, it means either provision or update.
+                let file_name = matches.value_of("file");
+                match file_name {
+                    Some(file_name) => {
+                        info!("using file: {:?}", file_name);
+
+                        // provision / update from file
+                        let file = std::fs::File::open(file_name).unwrap();
+                        let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
+                        match deserialized {
+                            Some(mut item) => {
+                                if update_item {
+                                    MsgVpnClientUsernameResponse::update(message_vpn, file_name, &mut core,
+                                                                         &client);
+                                } else {
+                                    MsgVpnClientUsernameResponse::provision(message_vpn, file_name,
+                                                                            &mut core, &client);
+                                }
+                            },
+                            _ => unimplemented!()
+                        }
+                    },
+                    None => {}
+                }
+
+                // late un-shutdown anything
+                if no_shutdown_item {
+                    MsgVpnClientUsernameResponse::enabled(message_vpn, client_username,
+                                                          true, &mut core, &client);
+                }
+
+                // finally if fetch is specified, we do this last.
+                while fetch {
+                    let data = MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username, count, &*cursor.to_string(),
+                                                                    select, &mut core, &client);
+                    if write_fetch_files {
+                        info!("saving: {}", message_vpn);
+                        match data {
+                            Ok(item) => {
+                                MsgVpnClientUsernamesResponse::save(output_dir, &item);
+                                let cq = item.meta().paging();
+                                match cq {
+                                    Some(paging) => {
+                                        info!("cq: {:?}", paging.cursor_query());
+                                        cursor = Cow::Owned(paging.cursor_query().clone());
+                                    },
+                                    _ => {
+                                        break
+                                    }
+                                }
+                            },
+                            Err(e) => {
+                                error!("error: {}", e)
+                            }
+                        }
+                    } else {
+                        break
+                    }
+                }
+
+                if delete {
+                    info!("deleting client-username");
+                    MsgVpnClientUsernameResponse::delete(message_vpn, client_username, &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
             }
 
         }
