@@ -116,16 +116,16 @@ VPN before targeting the change at a in-use one.
 
 Logging is configured with the `RUST_LOG` environment variable, set to `[warn|error|info|debug]`. Example:
 
-    RUST_LOG=solace_provision ...
+    RUST_LOG=solace_provision solace-provision ...
     RUST_LOG=solace_provision=error solace-provision ...
 
 ### Running
 
-solace-provision takes args both within the subcommand scope and outside of it. Outside subcojmand args are:
+solace-provision takes args both within the subcommand scope and outside of it. Outside subcommand args are:
 
-    * --config file MANDATORY
-    * --output OPTIONAL: directory for "fetch" operations 
-    * --count n OPTIONAL: items per "fetch", default=10
+    --config file MANDATORY
+    --output OPTIONAL: save path for "fetch" operations 
+    --count n OPTIONAL: items per "fetch", default=10
 
 ### VPN Subcommand
 
@@ -211,19 +211,19 @@ Consider what version of appliance you run before compiling, as you should compi
 appliance version you have in your cluster. see: [cargo.toml](/cargo.toml)
 
 If you dont find a supported version in the [rust_solace_semp_client](https://github.com/unixunion/rust_solace_semp_client.git)
-repo, you can make a request for one, or you can make your own using [solace_semp_client](https://github.com/unixunion/solace_semp_client.git).
+repo, you can try just use the latest, and leave out keys which are not supported by your version of appliance from your YAML files. 
+You can also make a request to me to add the appropriate version. 
 
-Then simply point the dependency in cargo.toml to the filepath or git repo + branch where you have your generated OpenAPI 
-classes.
+Alternatively, you can make your own using [solace_semp_client](https://github.com/unixunion/solace_semp_client.git).
+Then simply point the dependency, in this projects cargo.toml, to the filepath or git repo + branch where you have your 
+generated OpenAPI classes.
 
-Using cargo ( produces arch binary)
-
+Building with cargo
 ```bash
 cargo build --release
 ```
 
 Using Docker ( produces Linux binary )
-
 ```bash
 docker run -v `pwd`:/src rust:1.33 /src/mkrelease.sh
 ```
