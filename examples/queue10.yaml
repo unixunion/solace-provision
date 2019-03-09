@@ -1,0 +1,30 @@
+---
+accessType: exclusive
+consumerAckPropagationEnabled: true
+deadMsgQueue: "#DEAD_MSG_QUEUE"
+egressEnabled: true
+eventBindCountThreshold:
+  clearPercent: 40
+  setPercent: 60
+eventMsgSpoolUsageThreshold:
+  clearPercent: 40
+  setPercent: 60
+eventRejectLowPriorityMsgLimitThreshold:
+  clearPercent: 40
+  setPercent: 60
+ingressEnabled: true
+maxBindCount: 1000
+maxDeliveredUnackedMsgsPerFlow: 1000
+maxMsgSize: 10000000
+maxMsgSpoolUsage: 64
+maxRedeliveryCount: 0
+maxTtl: 0
+msgVpnName: myvpn
+owner: ""
+permission: no-access
+queueName: queue10
+rejectLowPriorityMsgEnabled: false
+rejectLowPriorityMsgLimit: 0
+rejectMsgToSenderOnDiscardBehavior: when-queue-enabled
+respectMsgPriorityEnabled: false
+respectTtlEnabled: false

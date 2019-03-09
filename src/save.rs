@@ -20,7 +20,7 @@ pub trait Save<T> {
 
     fn save(dir: &str, data: &T) -> Result<(), &'static str> where T: Serialize;
 
-    fn maybe_write_to_file(&self, dir: &str, subdir: &str, vpn_name: &Option<&String>, item_name: &Option<&String>) -> Result<(), &'static str> where Self: Serialize {
+    fn save_in_dir(&self, dir: &str, subdir: &str, vpn_name: &Option<&String>, item_name: &Option<&String>) -> Result<(), &'static str> where Self: Serialize {
 
         let output_dir = dir;
         let mut t_vpn_name = "";
@@ -83,7 +83,7 @@ impl Save<MsgVpn> for MsgVpn {
         let vpn_name = data.msg_vpn_name();
         let item_name = data.msg_vpn_name();
         info!("save vpn: {:?}, {:?}", vpn_name, item_name);
-        data.maybe_write_to_file(dir, "vpn", &vpn_name, &item_name);
+        data.save_in_dir(dir, "vpn", &vpn_name, &item_name);
         Ok(())
     }
 }
@@ -93,7 +93,7 @@ impl Save<MsgVpnQueue> for MsgVpnQueue {
         let vpn_name = data.msg_vpn_name();
         let item_name = data.queue_name();
         info!("save queue: {:?}, {:?}", vpn_name, item_name);
-        data.maybe_write_to_file(dir, "queue", &vpn_name, &item_name);
+        data.save_in_dir(dir, "queue", &vpn_name, &item_name);
         Ok(())
     }
 }
@@ -103,7 +103,7 @@ impl Save<MsgVpnAclProfile> for MsgVpnAclProfile {
         let vpn_name = data.msg_vpn_name();
         let item_name = data.acl_profile_name();
         info!("save acl: {:?}, {:?}", vpn_name, item_name);
-        data.maybe_write_to_file(dir,"acl", &vpn_name, &item_name);
+        data.save_in_dir(dir, "acl", &vpn_name, &item_name);
         Ok(())
     }
 }
@@ -113,7 +113,7 @@ impl Save<MsgVpnClientProfile> for MsgVpnClientProfile {
         let vpn_name = data.msg_vpn_name();
         let item_name = data.client_profile_name();
         info!("save client-profile: {:?}, {:?}", vpn_name, item_name);
-        data.maybe_write_to_file(dir, "client-profile", &vpn_name, &item_name);
+        data.save_in_dir(dir, "client-profile", &vpn_name, &item_name);
         Ok(())
     }
 }
@@ -123,7 +123,7 @@ impl Save<MsgVpnClientUsername> for MsgVpnClientUsername {
         let vpn_name = data.msg_vpn_name();
         let item_name = data.client_username();
         info!("save client-username: {:?}, {:?}", vpn_name, item_name);
-        data.maybe_write_to_file(dir, "client-username", &vpn_name, &item_name);
+        data.save_in_dir(dir, "client-username", &vpn_name, &item_name);
         Ok(())
     }
 }

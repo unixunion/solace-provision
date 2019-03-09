@@ -12,6 +12,7 @@ use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
 use std::process::exit;
+use std::borrow::Cow;
 use solace_semp_client::models::MsgVpn;
 use solace_semp_client::models::MsgVpnQueue;
 use solace_semp_client::models::MsgVpnResponse;
@@ -84,37 +85,6 @@ fn consoleprint(data: String) {
 
 
 
-
-fn maybe_write_to_file<T: Serialize>(output_dir: &str, vpn_name: &str, item_name: &str, data: T) -> Result<(), Box<dyn std::error::Error + 'static>> where T: Serialize {
-
-    if !Path::new(&format!("{}/{}", output_dir, vpn_name)).exists() {
-        match fs::create_dir_all(format!("{}/{}", output_dir, vpn_name)) {
-            Ok(gt) => info!("Created dir"),
-            Err(e) => error!("error")
-        }
-
-    }
-
-    let data = serde_yaml::to_string(&data);
-    match data {
-        Ok(_data) => {
-            info!("saving");
-            let mut f = File::create(format!("{}/{}/{}.yaml", output_dir, vpn_name, item_name));
-            match f {
-                Ok(mut _f) => {
-                    _f.write(_data.as_ref());
-                },
-                Err(e) => error!("{}", format!("error saving {}/{}/{}.yaml, error={}", output_dir, vpn_name, item_name, e))
-            }
-            info!("saved: {}", format!("{}/{}/{}.yaml", output_dir, vpn_name, item_name));
-        },
-        Err(e) => error!("error: {}", e)
-    }
-
-    Ok(())
-}
-
-
 fn main() {
 
     // initialize the logger
@@ -142,8 +112,8 @@ fn main() {
 
 
     // future impl might use this.
-    let cursor = "";
-    let select = "*";
+    let mut cursor = Cow::Borrowed("");
+    let mut select = "*";
 
     let message_vpn = matches.value_of("message-vpn").unwrap_or("default");
 
@@ -268,7 +238,7 @@ fn main() {
 
             // finally if fetch is specified, we do this last.
             if fetch {
-                let data = MsgVpnsResponse::fetch(message_vpn, message_vpn, count, cursor, select, &mut core, &client);
+                let data = MsgVpnsResponse::fetch(message_vpn, message_vpn, count, &*cursor.to_string(), select, &mut core, &client);
                 if write_fetch_files {
                     info!("saving: {}", message_vpn);
                     match data {
@@ -351,19 +321,34 @@ fn main() {
             }
 
             // finally if fetch is specified, we do this last.
-            if fetch {
-                let data = MsgVpnQueuesResponse::fetch(message_vpn, queue, count, cursor,
-                                            select, &mut core, &client);
+            while fetch {
+                let data = MsgVpnQueuesResponse::fetch(message_vpn,
+                                                       queue, count, &*cursor.to_string(), select,
+                                                       &mut core, &client);
                 if write_fetch_files {
                     info!("saving: {}", message_vpn);
                     match data {
                         Ok(item) => {
                             MsgVpnQueuesResponse::save(output_dir, &item);
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+
                         },
                         Err(e) => {
                             error!("error: {}", e)
                         }
                     }
+                } else {
+                    break
                 }
             }
 
@@ -423,9 +408,9 @@ fn main() {
             }
 
             // finally if fetch is specified
-            if fetch {
+            while fetch {
                 info!("fetching acl");
-                let data = MsgVpnAclProfilesResponse::fetch(message_vpn, acl, count, cursor,
+                let data = MsgVpnAclProfilesResponse::fetch(message_vpn, acl, count, &*cursor.to_string(),
                                             select, &mut core, &client);
                 if write_fetch_files {
                     info!("saving: {}", message_vpn);
@@ -433,11 +418,23 @@ fn main() {
                         Ok(item) => {
 //                            maybe_write_to_file(output_dir,message_vpn, acl, item);
                             MsgVpnAclProfilesResponse::save(output_dir,&item);
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
                         },
                         Err(e) => {
                             error!("error: {}", e)
                         }
                     }
+                } else {
+                    break
                 }
             }
 
@@ -495,9 +492,9 @@ fn main() {
             }
 
             // finally if fetch is specified
-            if fetch {
+            while fetch {
                 info!("fetching client-profile");
-                let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile, count, cursor,
+                let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile, count, &*cursor.to_string(),
                                                  select, &mut core, &client);
                 if write_fetch_files {
                     info!("saving: {}", message_vpn);
@@ -505,11 +502,23 @@ fn main() {
                         Ok(item) => {
 //                            maybe_write_to_file(output_dir,message_vpn, client_profile, item);
                             MsgVpnClientProfilesResponse::save(output_dir,&item);
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
                         },
                         Err(e) => {
                             error!("error: {}", e)
                         }
                     }
+                } else {
+                    break
                 }
             }
 
@@ -583,20 +592,31 @@ fn main() {
             }
 
             // finally if fetch is specified, we do this last.
-            if fetch {
-                let data = MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username, count, cursor,
+            while fetch {
+                let data = MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username, count, &*cursor.to_string(),
                                             select, &mut core, &client);
                 if write_fetch_files {
                     info!("saving: {}", message_vpn);
                     match data {
                         Ok(item) => {
-//                            maybe_write_to_file(output_dir,message_vpn, client_username, item);
                             MsgVpnClientUsernamesResponse::save(output_dir,&item);
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
                         },
                         Err(e) => {
                             error!("error: {}", e)
                         }
                     }
+                } else {
+                    break
                 }
             }
 

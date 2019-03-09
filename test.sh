@@ -47,6 +47,13 @@ cargo run -- --config ${config_file} queue --file examples/queue1.yaml  --update
 cargo run -- --config ${config_file} queue --file examples/queue1.yaml  --update --no-shutdown --queue queue1 --message-vpn ${rnd_vpn}
 cargo run -- --config ${config_file} queue --update --queue queue1 --message-vpn ${rnd_vpn}
 
+# create 6-99 queues
+i=6
+while [ $i -lt 100 ]; do
+    cargo run -- --config ${config_file} queue --file examples/queue${i}.yaml --message-vpn ${rnd_vpn} --queue queue${i}
+    ((i=$i+1))
+done
+
 # acl
 cargo run -- --config ${config_file} acl-profile --file examples/acl.yaml --message-vpn ${rnd_vpn}
 cargo run -- --config ${config_file} acl-profile --fetch --acl-profile myacl --message-vpn ${rnd_vpn}
@@ -86,6 +93,12 @@ cargo run -- --config ${config_file} queue --queue queue4 --message-vpn ${rnd_vp
 cargo run -- --config ${config_file} queue --queue queue3 --message-vpn ${rnd_vpn} --delete
 cargo run -- --config ${config_file} queue --queue queue2 --message-vpn ${rnd_vpn} --delete
 cargo run -- --config ${config_file} queue --queue queue1 --message-vpn ${rnd_vpn} --delete
+
+i=6
+while [ $i -lt 100 ]; do
+    cargo run -- --config ${config_file} queue --message-vpn ${rnd_vpn} --queue queue${i} --delete
+    ((i=$i+1))
+done
 
 # delete vpn
 cargo run -- --config ${config_file} vpn --message-vpn ${rnd_vpn} --delete
