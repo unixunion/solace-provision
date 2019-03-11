@@ -205,6 +205,17 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
     solace-provision --config examples/config.yaml client-username --message-vpn myvpn --no-shutdown
 
+### Downloading Entire VPN's
+
+```bash
+  RUST_LOG=solace_provision solace-provision --output output --config examples/config-hw.yaml vpn --fetch --message-vpn "*"
+  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml queue --fetch --message-vpn ci1_accounting --queue "*"
+  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml acl --fetch --message-vpn ci1_accounting --acl-profile "*"
+  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml acl-profile --fetch --message-vpn ci1_accounting --acl-profile "*"
+  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml client-profile --fetch --message-vpn ci1_accounting --client-profile "*"
+  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml client-username --fetch --message-vpn ci1_accounting --client-username "*"
+```
+
 ## Compiling From Source
 
 Consider what version of appliance you run before compiling, as you should compile `solace-provision` with the lowest common

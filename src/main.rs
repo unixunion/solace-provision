@@ -50,6 +50,7 @@ mod helpers;
 mod update;
 mod fetch;
 mod save;
+mod args;
 
 
 mod test {
@@ -70,19 +71,6 @@ mod test {
 
     }
 }
-
-
-fn configprinter(parameter: &str, val: &str) {
-    if val != "undefined" {
-        consoleprint(format!("{}: {}", parameter.to_owned().white(), val.to_owned().green()));
-    }
-}
-
-
-fn consoleprint(data: String) {
-    info!("{}", &*data.to_string());
-}
-
 
 
 fn main() {
@@ -110,19 +98,13 @@ fn main() {
         debug!("output_dir: {}", output_dir);
     }
 
-
     // future impl might use this.
     let mut cursor = Cow::Borrowed("");
     let mut select = "*";
 
-    let message_vpn = matches.value_of("message-vpn").unwrap_or("default");
-
     // default emoji for OK / Error logging
     let mut ok_emoji = "👍";
     let mut err_emoji = "❌";
-
-    // dump current config / args
-
 
     // configure the http client
     let mut core = Core::new().unwrap();
@@ -132,6 +114,8 @@ fn main() {
             .unwrap()
         )
         .build(&handle);
+
+    // auth
     let auth = helpers::gencred("admin".to_owned(), "admin".to_owned());
 
     // the configuration for the APIClient
@@ -178,8 +162,6 @@ fn main() {
 //    }
 
 
-
-
     //
     // VPN
     //
@@ -196,6 +178,15 @@ fn main() {
             let no_shutdown_item = matches.is_present("no-shutdown");
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
+
+//            match args::at_least_one_of(vec!["update", "shutdown", "no-shutdown", "fetch", "delete"], matches) {
+//                Ok(x) => {
+//
+//                },
+//                Err(e) => {
+//
+//                }
+//            }
 
             if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
 

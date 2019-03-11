@@ -72,6 +72,7 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
             },
             Err(e) => {
                 error!("error fetching: {:?}", e);
+                panic!("fetch error");
                 Err("fetch error")
             }
         }
@@ -98,6 +99,7 @@ impl Fetch<MsgVpnQueuesResponse> for MsgVpnQueuesResponse {
             },
             Err(e) => {
                 error!("error fetching: {:?}", e);
+                panic!("fetch error");
                 Err("fetch error")
             }
         }
@@ -123,6 +125,7 @@ impl Fetch<MsgVpnAclProfilesResponse> for MsgVpnAclProfilesResponse {
             },
             Err(e) => {
                 error!("error fetching: {:?}", e);
+                panic!("fetch error");
                 Err("fetch error")
             }
         }
@@ -150,6 +153,7 @@ impl Fetch<MsgVpnClientProfilesResponse> for MsgVpnClientProfilesResponse {
             },
             Err(e) => {
                 error!("error fetching: {:?}", e);
+                panic!("fetch error");
                 Err("fetch error")
             }
         }
@@ -176,6 +180,7 @@ impl Fetch<MsgVpnClientUsernamesResponse> for MsgVpnClientUsernamesResponse {
             },
             Err(e) => {
                 error!("error fetching: {:?}", e);
+                panic!("fetch error");
                 Err("fetch error")
             }
         }
