@@ -25,6 +25,10 @@ Objects that can be Provisioned, Updated and Downloaded
     
 This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 
+## Current Issues
+
+fetching paginated responses from certain appliance versions can result in a error about unparsable cursorQuery. 
+
 ## Requirements and Assumptions
 
 * A Recent version of Solace PubSub 9.x+ or HW Appliance 8.x+.
