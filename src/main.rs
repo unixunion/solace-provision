@@ -230,19 +230,31 @@ fn main() {
                 }
 
                 // finally if fetch is specified, we do this last.
-                if fetch {
+                while fetch {
                     let data = MsgVpnsResponse::fetch(message_vpn, message_vpn, count, &*cursor.to_string(), select, &mut core, &client);
-                    if write_fetch_files {
-                        info!("saving: {}", message_vpn);
-                        match data {
-                            Ok(item) => {
+
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
                                 MsgVpnsResponse::save(output_dir, &item);
-                            },
-                            Err(e) => {
-                                error!("error: {}", e)
                             }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
                         }
                     }
+
                 }
 
 
@@ -322,30 +334,31 @@ fn main() {
                     let data = MsgVpnQueuesResponse::fetch(message_vpn,
                                                            queue, count, &*cursor.to_string(), select,
                                                            &mut core, &client);
-                    if write_fetch_files {
-                        info!("saving: {}", message_vpn);
-                        match data {
-                            Ok(item) => {
-                                MsgVpnQueuesResponse::save(output_dir, &item);
 
-                                let cq = item.meta().paging();
-                                match cq {
-                                    Some(paging) => {
-                                        info!("cq: {:?}", paging.cursor_query());
-                                        cursor = Cow::Owned(paging.cursor_query().clone());
-                                    },
-                                    _ => {
-                                        break
-                                    }
-                                }
-                            },
-                            Err(e) => {
-                                error!("error: {}", e)
+
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
+                                MsgVpnQueuesResponse::save(output_dir, &item);
                             }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
                         }
-                    } else {
-                        break
                     }
+
+
                 }
 
                 if delete {
@@ -412,29 +425,26 @@ fn main() {
                     info!("fetching acl");
                     let data = MsgVpnAclProfilesResponse::fetch(message_vpn, acl, count, &*cursor.to_string(),
                                                                 select, &mut core, &client);
-                    if write_fetch_files {
-                        info!("saving: {}", message_vpn);
-                        match data {
-                            Ok(item) => {
-//                            maybe_write_to_file(output_dir,message_vpn, acl, item);
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
                                 MsgVpnAclProfilesResponse::save(output_dir, &item);
-                                let cq = item.meta().paging();
-                                match cq {
-                                    Some(paging) => {
-                                        info!("cq: {:?}", paging.cursor_query());
-                                        cursor = Cow::Owned(paging.cursor_query().clone());
-                                    },
-                                    _ => {
-                                        break
-                                    }
-                                }
-                            },
-                            Err(e) => {
-                                error!("error: {}", e)
                             }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
                         }
-                    } else {
-                        break
                     }
                 }
 
@@ -500,29 +510,26 @@ fn main() {
                     info!("fetching client-profile");
                     let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile, count, &*cursor.to_string(),
                                                                    select, &mut core, &client);
-                    if write_fetch_files {
-                        info!("saving: {}", message_vpn);
-                        match data {
-                            Ok(item) => {
-//                            maybe_write_to_file(output_dir,message_vpn, client_profile, item);
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
                                 MsgVpnClientProfilesResponse::save(output_dir, &item);
-                                let cq = item.meta().paging();
-                                match cq {
-                                    Some(paging) => {
-                                        info!("cq: {:?}", paging.cursor_query());
-                                        cursor = Cow::Owned(paging.cursor_query().clone());
-                                    },
-                                    _ => {
-                                        break
-                                    }
-                                }
-                            },
-                            Err(e) => {
-                                error!("error: {}", e)
                             }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
                         }
-                    } else {
-                        break
                     }
                 }
 
@@ -603,29 +610,29 @@ fn main() {
                 while fetch {
                     let data = MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username, count, &*cursor.to_string(),
                                                                     select, &mut core, &client);
-                    if write_fetch_files {
-                        info!("saving: {}", message_vpn);
-                        match data {
-                            Ok(item) => {
+
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
                                 MsgVpnClientUsernamesResponse::save(output_dir, &item);
-                                let cq = item.meta().paging();
-                                match cq {
-                                    Some(paging) => {
-                                        info!("cq: {:?}", paging.cursor_query());
-                                        cursor = Cow::Owned(paging.cursor_query().clone());
-                                    },
-                                    _ => {
-                                        break
-                                    }
-                                }
-                            },
-                            Err(e) => {
-                                error!("error: {}", e)
                             }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
                         }
-                    } else {
-                        break
                     }
+
                 }
 
                 if delete {
