@@ -1,6 +1,6 @@
 [package]
 name = "solace-provision"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Kegan Holtzhausen <Kegan.Holtzhausen@kindredgroup.com>"]
 edition = "2018"
 
@@ -8,7 +8,7 @@ edition = "2018"
 
 #solace_semp_client = { git = "https://github.com/unixunion/rust_solace_semp_client.git", branch="release-8.13.0.30-branch" }
 #solace_semp_client = { git = "https://github.com/unixunion/rust_solace_semp_client.git", branch="release-9.0.0.17-branch" }
-solace_semp_client = { git = "https://github.com/unixunion/rust_solace_semp_client.git", branch="release-9.0.1.7-branch" }
+solace_semp_client = { git = "https://github.com/unixunion/rust_solace_semp_client.git", branch="release-9.0.1.18-branch" }
 #solace_semp_client = { path = "../rust_solace_semp_client/"}
 #solace_semp_client = { path = "../swagger-codegen/samples/client/solace_semp_client/rust" }
 #generics_yaml_deserializer = { git = "https://github.com/unixunion/rust_generics_yaml_deserializer.git", branch="master" }
