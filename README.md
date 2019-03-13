@@ -99,7 +99,8 @@ Executable quick overview:
 solace-provision --config {CLIENT_CONFIG} \
                 [--output {FETCH_OUTDIR}] \
                 vpn|queue|acl-profile|client-profile|client-username \
-                --message-vpn|--queue|--acl-profile|--client-profile|--client-username] {ITEM_NAME} \
+                --message-vpn {VPN_NAME} \
+                [--queue|--acl-profile|--client-profile|--client-username] {ITEM_NAME}] \
                 [--file {ITEM_YAML}] \
                 [--update] \
                 [--shutdown] \
