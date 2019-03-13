@@ -25,24 +25,25 @@ Objects that can be Provisioned, Updated and Downloaded
     
 This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 
-## Current Issues
+## Requirements
 
-fetching paginated responses from certain appliance versions can result in a error about unparsable cursorQuery. 
+### Solace Requirements
 
-## Requirements and Assumptions
+* A Recent version of Solace PubSub 9.x+ or HW Appliance 8.4+.
+* Config-sync enabled between routers.
 
-* A Recent version of Solace PubSub 9.x+ or HW Appliance 8.x+.
-* TLS enabled SEMP service *(otherwise secrets cannot be provisioned)*
-* TLS CA certificate in the default OS certificate chains and trusted.
-* Config-sync enabled for primary and backup routers.
+### Optional, but Highly Recommended 
 
-## Compiling Requirements
+* TLS enabled SEMP service *( otherwise some types of secrets cannot be provisioned )*
+* TLS CA certificate in the default OS certificate chains and trusted!
 
-rust *or* docker
+### Compiling Requirements
+
+rust 1.33 *or* docker
 
 # Usage
 
-solace-provision reads YAML files, and args in order to provision Solace managed objects. see `solace-provision --help` 
+<i>solace-provision</i> reads YAML files from disk which are used to provision Solace managed objects. see `solace-provision --help` 
 for details on each <i>subcommand</i>.
 
 Example:
@@ -51,7 +52,10 @@ Example:
 
 ## Configuration and Spec files
 
-### Configuring API Client
+Configuration, refers to the Solace SEMPv2 specific settings, like `hostname`, `user` and `password`. Spec files refers to
+the YAML files which describe the various types of Solace manageable objects.
+
+### Configuring SEMPv2 Client
 
 solace-provision requires a config to provide the Solace hostname, port and credentials.
 
@@ -60,6 +64,9 @@ Example Config:
 username: admin
 password: admin
 host: https://localhost:8080/SEMP/v2/config
+ok_emoki: 👍
+err_emoki: 🔥
+
 ```
 
 See [examples/config.yaml](examples/config.yaml) 
@@ -222,25 +229,26 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
 ## Compiling From Source
 
-Consider what version of appliance you run before compiling, as you should compile `solace-provision` with the lowest common
-appliance version you have in your cluster. see: [cargo.toml](/cargo.toml)
+solace-provision is compiled against a Rust solace-client, [rust_solace_semp_client](https://github.com/unixunion/rust_solace_semp_client.git).
+As new versions of the SEMPv2 spec are release, they can be generated into rust code with [solace_semp_client](https://github.com/unixunion/solace_semp_client.git).
 
-If you dont find a supported version in the [rust_solace_semp_client](https://github.com/unixunion/rust_solace_semp_client.git)
-repo, you can try just use the latest, and leave out keys which are not supported by your version of appliance from your YAML files. 
-You can also make a request to me to add the appropriate version. 
+### Building with cargo
 
-Alternatively, you can make your own using [solace_semp_client](https://github.com/unixunion/solace_semp_client.git).
-Then simply point the dependency, in this projects cargo.toml, to the filepath or git repo + branch where you have your 
-generated OpenAPI classes.
-
-Building with cargo
 ```bash
 cargo build --release
 ```
 
-Using Docker ( produces Linux binary )
+### Using Docker
+
 ```bash
 docker run -v `pwd`:/src rust:1.33 /src/mkrelease.sh
+```
+### Building Docker Image
+
+```bash
+docker run -v `pwd`:/src rust:1.33 /src/mkrelease.sh
+docker build -t solace-provision:0.1.3 .
+docker run --net=host -e "RUST_LOG=debug" -v`pwd`:/opt solace-provision:0.1.3 --config /opt/examples/config-hw.yaml vpn --fetch --message-vpn "*"
 ```
 
 ## Local Development
@@ -251,7 +259,7 @@ docker run -v `pwd`:/src rust:1.33 /src/mkrelease.sh
     
 ### Manually enable TLS
     
-Once the appliance is up, TLS must be enabled for SEMP. A development rootCA and localhost cert is available under [certs/](certs/), 
+Once the appliance is up, TLS must be enabled for SEMPv2. A development rootCA and localhost cert is available under [certs/](certs/), 
 and you can follow Solace's documentation for setting it up with those or your own certs.
 
 * Configure TLS for SEMP: https://docs.solace.com/Configuring-and-Managing/TLS-SSL-Service-Connections.htm#managing_tls_ssl_service_1762742558_317096
@@ -280,18 +288,8 @@ Testing TLS:
 
     curl -k --cacert ./certs/rootCa.crt https://localhost:8080/SEMP/v2/config 
 
-# Compiling
-
-If you want to link against a specific version of SEMPv2 API, you have some options:
-
-    * use a release branch from https://github.com/unixunion/rust_solace_semp_client.git
-    * request a backport release for your desired version from me.
-    * use https://github.com/unixunion/rust_solace_semp_client.git to generate your own
-
-Once you have decided on either of the above, you can edit Cargo.toml and modify the dep url/path for the rust_solace_semp_client.
-
 ## References
 
-https://docs.solace.com/API-Developer-Online-Ref-Documentation/swagger-ui/index.html
-https://github.com/swagger-api/swagger-codegen/blob/master/samples/client/petstore/rust/examples/client.rs
+* https://docs.solace.com/API-Developer-Online-Ref-Documentation/swagger-ui/index.html
+* https://github.com/swagger-api/swagger-codegen/blob/master/samples/client/petstore/rust/examples/client.rs
 

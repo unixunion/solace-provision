@@ -6,3 +6,5 @@ if [ -d "/src" ]; then
 fi
 
 cargo build --release
+cp /lib/x86_64-linux-gnu/libgcc_s.so.1 target/release
+cp /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 target/release
