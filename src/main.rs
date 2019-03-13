@@ -103,8 +103,8 @@ fn main() {
     let mut select = "*";
 
     // default emoji for OK / Error logging
-    let mut ok_emoji = "👍";
-    let mut err_emoji = "❌";
+    let mut ok_emoji = Cow::Borrowed("👍");
+    let mut err_emoji = Cow::Borrowed("❌");
 
     // configure the http client
     let mut core = Core::new().unwrap();
@@ -135,6 +135,8 @@ fn main() {
             configuration.base_path = sc.host;
             let auth = helpers::gencred(sc.username, sc.password);
             configuration.basic_auth = Some(auth);
+            ok_emoji = Cow::Owned(sc.ok_emoji);
+            err_emoji = Cow::Owned(sc.err_emoji);
         },
         Err(e) => error!("error reading config: {}", e)
     }
@@ -654,5 +656,7 @@ fn main() {
         },
         _  => {}
     }
+
+    info!("{}", ok_emoji);
 
 }
