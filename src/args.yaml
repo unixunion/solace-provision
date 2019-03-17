@@ -1,5 +1,5 @@
 name: solace-provision
-version: 0.1.3
+version: 0.1.4
 author: Kegan Holtzhausen <marzubus@gmail.com>
 about: SEMPv2 version 9.0.1.18 solace provisioning tool, see https://github.com/unixunion/solace-provision for src and examples
 args:
@@ -204,7 +204,7 @@ subcommands:
             takes_value: true
         - client-username:
             long: client-username
-            help: client-username to reference, if specified overrides specified aclName in spec file.
+            help: client-username to reference, if specified overrides specified in spec file.
             takes_value: true
         - update:
             long: update
@@ -238,4 +238,43 @@ subcommands:
             requires:
               - message-vpn
               - client-username
+            help: delete acl
+  - queue-subscription:
+      about: queue-subscription management
+      version: 9.0.1.18
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+            requires:
+              - message-vpn
+              - queue
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference, if specified overrides specified msgVpnName in spec file.
+            required: true
+            takes_value: true
+        - queue:
+            long: queue
+            help: queue to reference
+            required: true
+            takes_value: true
+        - subscription:
+            long: subscription
+            help: the subscription string
+            takes_value: true
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - queue
+            help: fetch an existing queue-subscription from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - queue
+              - subscription
             help: delete acl

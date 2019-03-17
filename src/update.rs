@@ -12,7 +12,7 @@ mod tests {
 
 use std::process;
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::MsgVpn;
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscriptionResponse};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -51,8 +51,8 @@ pub trait Update<T> {
     fn update(vpn_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str>;
     // change the enabled state fo a object
     fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str>;
-    // delete vpn
-    fn delete(msg_vpn: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str>;
+    // delete object
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str>;
 }
 
 impl Update<MsgVpnResponse> for MsgVpnResponse {
@@ -86,7 +86,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
 
     fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("changing enabled state to: {:?} for message-vpn: {}", state, msg_vpn);
-        let mut vpn = MsgVpnsResponse::fetch(item_name, item_name, 10, "", "", core, apiclient)?;
+        let mut vpn = MsgVpnsResponse::fetch(item_name, item_name, "",10, "", "", core, apiclient)?;
 
         let mut tvpn = vpn.data().unwrap().clone();
         if tvpn.len() == 1 {
@@ -111,7 +111,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
 
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str,  core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         let t = apiclient.default_api().delete_msg_vpn(item_name);
         match core.run(t) {
             Ok(vpn) => {
@@ -158,7 +158,7 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
 
     fn enabled(vpn_name: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("retrieving current queue from appliance");
-        let mut item = MsgVpnQueuesResponse::fetch(vpn_name, item_name, 10, "", "", core, apiclient)?;
+        let mut item = MsgVpnQueuesResponse::fetch(vpn_name, item_name, "",10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         if titem.len() == 1 {
@@ -184,7 +184,7 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
 
     }
 
-    fn delete(vpn_name: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn delete(vpn_name: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         let t = apiclient.default_api().delete_msg_vpn_queue(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
@@ -233,7 +233,7 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
         unimplemented!()
     }
 
-    fn delete(vpn_name: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn delete(vpn_name: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         let t = apiclient.default_api().delete_msg_vpn_acl_profile(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
@@ -285,7 +285,7 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
         unimplemented!()
     }
 
-    fn delete(vpn_name: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn delete(vpn_name: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         let t = apiclient.default_api().delete_msg_vpn_client_profile(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
@@ -334,7 +334,7 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
     fn enabled(vpn_name: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         println!("retrieving current client-username from appliance");
-        let mut item = MsgVpnClientUsernamesResponse::fetch(vpn_name, item_name, 10, "", "", core, apiclient)?;
+        let mut item = MsgVpnClientUsernamesResponse::fetch(vpn_name, item_name, "",10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         if titem.len() == 1 {
@@ -360,7 +360,7 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
     }
 
-    fn delete(vpn_name: &str, item_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn delete(vpn_name: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         let t = apiclient.default_api().delete_msg_vpn_client_username(vpn_name, item_name);
         match core.run(t) {
             Ok(vpn) => {
@@ -377,3 +377,29 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 }
 
 
+impl Update<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse {
+
+    fn update(vpn_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
+
+    fn enabled(vpn_name: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
+
+    fn delete(vpn_name: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        info!("deleting: {}", sub_identifier);
+        let t = apiclient.default_api().delete_msg_vpn_queue_subscription(vpn_name, item_name, sub_identifier);
+        match core.run(t) {
+            Ok(vpn) => {
+                info!("queue-subscription deleted");
+                Ok(())
+            },
+            Err(e) => {
+                error!("unable to delete queue-subscription: {:?}", e);
+                process::exit(126);
+                Err("unable to delete queue-subscription")
+            }
+        }
+    }
+}

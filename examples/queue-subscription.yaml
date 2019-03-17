@@ -1,0 +1,4 @@
+---
+msgVpnName: testvpn
+queueName: queue1
+subscriptionTopic: mytopic
