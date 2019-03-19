@@ -52,7 +52,7 @@ mod tests {
         let c = SPClientConnection::new("https://localhost:8080/SEMP/v2/config", "admin", "admin", hyperclient);
         let client = APIClient::new(c.configuration);
 
-        match MsgVpnsResponse::fetch("default", "default", 10, "", "*", &mut core, &client) {
+        match MsgVpnsResponse::fetch("default", "default", "default", 10, "", "*", &mut core, &client) {
             Ok(v) => {
                 assert_eq!(v.meta().response_code(), &200)
             },

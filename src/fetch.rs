@@ -24,7 +24,7 @@ mod tests {
         let c = SPClientConnection::new("https://localhost:8080/SEMP/v2/config", "admin", "admin", hyperclient);
         let client = APIClient::new(c.configuration);
 
-        match MsgVpnQueuesResponse::fetch("default", "*", 10, "", "*", &mut core, &client) {
+        match MsgVpnQueuesResponse::fetch("default", "*", "default", 10, "", "*", &mut core, &client) {
             Ok(i) => {
                 assert_eq!(&200, i.meta().response_code());
             },

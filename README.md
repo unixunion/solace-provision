@@ -6,6 +6,8 @@ solace-provision is a tool which reads flat files to provision solace hardware a
 
 Currently in *beta*
 
+Build Status: [![Build Status](https://travis-ci.com/unixunion/solace-provision.svg?branch=master)](https://travis-ci.com/unixunion/solace-provision)
+
 Capabilities:
 
     * Fetch + Save to disk
