@@ -6,8 +6,8 @@ authenticationBasicType: internal
 authenticationClientCertAllowApiProvidedUsernameEnabled: false
 authenticationClientCertEnabled: false
 authenticationClientCertMaxChainDepth: 3
-authenticationClientCertRevocationCheckMode: allow-valid
-authenticationClientCertUsernameSource: common-name
+#authenticationClientCertRevocationCheckMode: allow-valid
+#authenticationClientCertUsernameSource: common-name
 authenticationClientCertValidateDateEnabled: true
 authenticationKerberosAllowApiProvidedUsernameEnabled: false
 authenticationKerberosEnabled: false
@@ -61,10 +61,10 @@ eventPublishSubscriptionMode: off
 eventPublishTopicFormatMqttEnabled: false
 eventPublishTopicFormatSmfEnabled: true
 eventPublishMsgVpnEnabled: false
-eventServiceAmqpConnectionCountThreshold:
-  clearPercent: 40
+#eventServiceAmqpConnectionCountThreshold:
+#  clearPercent: 40
 #  clearValue: 0
-  setPercent: 60
+#  setPercent: 60
 #  setValue: 0
 eventServiceMqttConnectionCountThreshold:
   clearPercent: 40
@@ -116,8 +116,8 @@ msgVpnName: myvpn
 replicationAckPropagationIntervalMsgCount: 20
 replicationBridgeAuthenticationBasicClientUsername: ""
 replicationBridgeAuthenticationBasicPassword: ""
-replicationBridgeAuthenticationClientCertContent: ""
-replicationBridgeAuthenticationClientCertPassword: ""
+#replicationBridgeAuthenticationClientCertContent: ""
+#replicationBridgeAuthenticationClientCertPassword: ""
 replicationBridgeAuthenticationScheme: basic
 replicationBridgeCompressedDataEnabled: false
 replicationBridgeEgressFlowWindowSize: 255
@@ -138,13 +138,13 @@ sempOverMsgBusAdminClientEnabled: false
 sempOverMsgBusAdminDistributedCacheEnabled: false
 sempOverMsgBusAdminEnabled: false
 sempOverMsgBusEnabled: true
-sempOverMsgBusLegacyShowClearEnabled: false
+#sempOverMsgBusLegacyShowClearEnabled: false
 sempOverMsgBusShowEnabled: false
-serviceAmqpMaxConnectionCount: 20
-serviceAmqpPlainTextEnabled: false
-serviceAmqpPlainTextListenPort: 0
-serviceAmqpTlsEnabled: false
-serviceAmqpTlsListenPort: 0
+#serviceAmqpMaxConnectionCount: 20
+#serviceAmqpPlainTextEnabled: false
+#serviceAmqpPlainTextListenPort: 0
+#serviceAmqpTlsEnabled: false
+#serviceAmqpTlsListenPort: 0
 serviceMqttMaxConnectionCount: 20
 serviceMqttPlainTextEnabled: false
 serviceMqttPlainTextListenPort: 0
@@ -159,7 +159,7 @@ serviceRestIncomingPlainTextEnabled: false
 serviceRestIncomingPlainTextListenPort: 0
 serviceRestIncomingTlsEnabled: false
 serviceRestIncomingTlsListenPort: 0
-serviceRestMode: messaging
+#serviceRestMode: messaging
 serviceRestOutgoingMaxConnectionCount: 100
 serviceSmfMaxConnectionCount: 100
 serviceSmfPlainTextEnabled: true

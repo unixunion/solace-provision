@@ -13,7 +13,7 @@ use clap::{Arg, App, load_yaml};
 use serde_yaml;
 use std::process::exit;
 use std::borrow::Cow;
-use solace_semp_client::models::MsgVpn;
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse};
 use solace_semp_client::models::MsgVpnQueue;
 use solace_semp_client::models::MsgVpnResponse;
 use solace_semp_client::models::MsgVpnAclProfile;
@@ -51,6 +51,7 @@ mod update;
 mod fetch;
 mod save;
 mod args;
+mod clientconnection;
 
 
 mod test {
@@ -215,8 +216,9 @@ fn main() {
                                     MsgVpnResponse::update(message_vpn, file_name, &mut core,
                                                            &client);
                                 } else {
-                                    MsgVpnResponse::provision(message_vpn, file_name,
-                                                              &mut core, &client);
+                                    MsgVpnResponse::provision(message_vpn, "",
+                                                              file_name, &mut core,
+                                                              &client);
                                 }
                             },
                             _ => unimplemented!()
@@ -233,7 +235,7 @@ fn main() {
 
                 // finally if fetch is specified, we do this last.
                 while fetch {
-                    let data = MsgVpnsResponse::fetch(message_vpn, message_vpn, count, &*cursor.to_string(), select, &mut core, &client);
+                    let data = MsgVpnsResponse::fetch(message_vpn, message_vpn, "", count, &*cursor.to_string(), select, &mut core, &client);
 
                     match data {
                         Ok(item) => {
@@ -262,7 +264,7 @@ fn main() {
 
                 if delete {
                     info!("deleting message vpn");
-                    MsgVpnResponse::delete(message_vpn, message_vpn, &mut core, &client);
+                    MsgVpnResponse::delete(message_vpn, message_vpn, "", &mut core, &client);
                 }
             } else {
                 error!("No operation was specified, see --help")
@@ -315,7 +317,7 @@ fn main() {
                                     MsgVpnQueueResponse::update(message_vpn, file_name, &mut core,
                                                                 &client);
                                 } else {
-                                    MsgVpnQueueResponse::provision(message_vpn, file_name,
+                                    MsgVpnQueueResponse::provision(message_vpn, "",file_name,
                                                                    &mut core, &client);
                                 }
                             },
@@ -334,7 +336,7 @@ fn main() {
                 // finally if fetch is specified, we do this last.
                 while fetch {
                     let data = MsgVpnQueuesResponse::fetch(message_vpn,
-                                                           queue, count, &*cursor.to_string(), select,
+                                                           queue, "",count, &*cursor.to_string(), select,
                                                            &mut core, &client);
 
 
@@ -365,7 +367,7 @@ fn main() {
 
                 if delete {
                     info!("deleting queue");
-                    MsgVpnQueueResponse::delete(message_vpn, queue, &mut core, &client);
+                    MsgVpnQueueResponse::delete(message_vpn, queue, "", &mut core, &client);
                 }
             } else {
                 error!("No operation was specified, see --help")
@@ -412,7 +414,7 @@ fn main() {
                                     MsgVpnAclProfileResponse::update(message_vpn, file_name,
                                                                      &mut core, &client);
                                 } else {
-                                    MsgVpnAclProfileResponse::provision(message_vpn, file_name,
+                                    MsgVpnAclProfileResponse::provision(message_vpn, "",file_name,
                                                                         &mut core, &client);
                                 }
                             },
@@ -425,7 +427,7 @@ fn main() {
                 // finally if fetch is specified
                 while fetch {
                     info!("fetching acl");
-                    let data = MsgVpnAclProfilesResponse::fetch(message_vpn, acl, count, &*cursor.to_string(),
+                    let data = MsgVpnAclProfilesResponse::fetch(message_vpn, acl, "",count, &*cursor.to_string(),
                                                                 select, &mut core, &client);
                     match data {
                         Ok(item) => {
@@ -452,7 +454,7 @@ fn main() {
 
                 if delete {
                     info!("deleting acl");
-                    MsgVpnAclProfileResponse::delete(message_vpn, acl, &mut core, &client);
+                    MsgVpnAclProfileResponse::delete(message_vpn, acl, "", &mut core, &client);
                 }
             } else {
                 error!("No operation was specified, see --help")
@@ -497,7 +499,7 @@ fn main() {
                                     MsgVpnClientProfileResponse::update(message_vpn, file_name, &mut core,
                                                                         &client);
                                 } else {
-                                    MsgVpnClientProfileResponse::provision(message_vpn, file_name,
+                                    MsgVpnClientProfileResponse::provision(message_vpn, "", file_name,
                                                                            &mut core, &client);
                                 }
                             },
@@ -510,7 +512,7 @@ fn main() {
                 // finally if fetch is specified
                 while fetch {
                     info!("fetching client-profile");
-                    let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile, count, &*cursor.to_string(),
+                    let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile, "", count, &*cursor.to_string(),
                                                                    select, &mut core, &client);
                     match data {
                         Ok(item) => {
@@ -537,7 +539,7 @@ fn main() {
 
                 if delete {
                     info!("deleting client-profile");
-                    MsgVpnClientProfileResponse::delete(message_vpn, client_profile, &mut core, &client);
+                    MsgVpnClientProfileResponse::delete(message_vpn, client_profile, "", &mut core, &client);
                 }
             } else {
                 error!("No operation was specified, see --help")
@@ -592,7 +594,7 @@ fn main() {
                                     MsgVpnClientUsernameResponse::update(message_vpn, file_name, &mut core,
                                                                          &client);
                                 } else {
-                                    MsgVpnClientUsernameResponse::provision(message_vpn, file_name,
+                                    MsgVpnClientUsernameResponse::provision(message_vpn, "",file_name,
                                                                             &mut core, &client);
                                 }
                             },
@@ -610,7 +612,7 @@ fn main() {
 
                 // finally if fetch is specified, we do this last.
                 while fetch {
-                    let data = MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username, count, &*cursor.to_string(),
+                    let data = MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username, "", count, &*cursor.to_string(),
                                                                     select, &mut core, &client);
 
                     match data {
@@ -639,7 +641,7 @@ fn main() {
 
                 if delete {
                     info!("deleting client-username");
-                    MsgVpnClientUsernameResponse::delete(message_vpn, client_username, &mut core, &client);
+                    MsgVpnClientUsernameResponse::delete(message_vpn, client_username, "", &mut core, &client);
                 }
             } else {
                 error!("No operation was specified, see --help")
@@ -648,6 +650,96 @@ fn main() {
         }
 
     }
+
+
+
+    //
+    // QUEUE-SUBSCRIPTION
+    //
+
+
+    if matches.is_present("queue-subscription") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("queue-subscription") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let queue = matches.value_of("queue").unwrap_or("undefined");
+            let delete = matches.is_present("delete");
+            let fetch = matches.is_present("fetch");
+            let mut subscription = "";
+
+            if matches.is_present("subscription") {
+                subscription = matches.value_of("subscription").unwrap_or("*");
+                info!("subscription is: {}", subscription);
+            }
+
+            if fetch || delete || matches.is_present("file") {
+
+                // if file is passed, it means either provision or update.
+                let file_name = matches.value_of("file");
+                match file_name {
+                    Some(file_name) => {
+                        info!("using file: {:?}", file_name);
+
+                        // provision / update from file
+                        let file = std::fs::File::open(file_name).unwrap();
+                        let deserialized: Option<MsgVpnQueueSubscription> = serde_yaml::from_reader(file).unwrap();
+                        match deserialized {
+                            Some(mut item) => {
+                                MsgVpnQueueSubscriptionResponse::provision(message_vpn, queue,file_name,
+                                                                            &mut core, &client);
+                            },
+                            _ => unimplemented!()
+                        }
+                    },
+                    None => {}
+                }
+
+                // finally if fetch is specified, we do this last.
+                while fetch {
+                    let data = MsgVpnQueueSubscriptionsResponse::fetch(message_vpn, queue, subscription, count, &*cursor.to_string(),
+                                                                    select, &mut core, &client);
+
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
+                                MsgVpnQueueSubscriptionsResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+                }
+
+                if delete {
+                    info!("deleting queue-subscription");
+                    MsgVpnQueueSubscriptionResponse::delete(message_vpn, queue, subscription, &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
+
+
+
 
     match matches.subcommand_name() {
         None => {
