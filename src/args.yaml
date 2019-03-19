@@ -1,5 +1,5 @@
 name: solace-provision
-version: 0.1.4
+version: 0.1.5
 author: Kegan Holtzhausen <marzubus@gmail.com>
 about: SEMPv2 version 9.0.1.18 solace provisioning tool, see https://github.com/unixunion/solace-provision for src and examples
 args:
@@ -151,7 +151,7 @@ subcommands:
             requires:
               - message-vpn
               - acl-profile
-            help: delete acl
+            help: delete acl-profile
   - client-profile:
       about: client-profile management
       version: 9.0.1.18
@@ -187,7 +187,7 @@ subcommands:
             requires:
               - message-vpn
               - client-profile
-            help: delete acl
+            help: delete client-profile
   - client-username:
       about: client-username management
       version: 9.0.1.18
@@ -238,7 +238,7 @@ subcommands:
             requires:
               - message-vpn
               - client-username
-            help: delete acl
+            help: delete client-username
   - queue-subscription:
       about: queue-subscription management
       version: 9.0.1.18
@@ -277,4 +277,4 @@ subcommands:
               - message-vpn
               - queue
               - subscription
-            help: delete acl
+            help: delete a specific queue subscription

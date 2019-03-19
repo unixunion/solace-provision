@@ -22,6 +22,7 @@ Objects that can be Provisioned, Updated and Downloaded
     * ACL Profile
     * Client Profile
     * Client Username
+    * Queue Subscription
     
 This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 
@@ -248,8 +249,8 @@ docker run -v `pwd`:/src rust:1.33 /src/mkrelease.sh
 
 ```bash
 docker run -v `pwd`:/src rust:1.33 /src/mkrelease.sh
-docker build -t solace-provision:0.1.3 .
-docker run --net=host -e "RUST_LOG=debug" -v`pwd`:/opt solace-provision:0.1.3 --config /opt/examples/config-hw.yaml vpn --fetch --message-vpn "*"
+docker build -t solace-provision:0.1.4-beta .
+docker run --net=host -e "RUST_LOG=debug" -v`pwd`:/opt solace-provision:0.1.4-beta --config /opt/examples/config.yaml vpn --fetch --message-vpn "*"
 ```
 
 ## Local Development

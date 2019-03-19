@@ -4,14 +4,13 @@ extern crate env_logger;
 
 use solace_semp_client::apis::client::APIClient;
 use solace_semp_client::apis::configuration::Configuration;
-use hyper::Client;
+use hyper::{Client, Body};
 use tokio_core::reactor::Core;
 use std::prelude::v1::Vec;
 use colored::*;
 use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
-use std::process::exit;
 use std::borrow::Cow;
 use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse};
 use solace_semp_client::models::MsgVpnQueue;
@@ -43,6 +42,12 @@ use std::path::Path;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
+use native_tls::{TlsConnector, Certificate};
+use hyper::client::HttpConnector;
+use hyper_tls::HttpsConnector;
+use core::borrow::Borrow;
+use core::fmt;
+use std::process::exit;
 
 mod provision;
 mod clientconfig;
@@ -50,9 +55,8 @@ mod helpers;
 mod update;
 mod fetch;
 mod save;
-mod args;
 mod clientconnection;
-
+mod termination;
 
 mod test {
     use solace_semp_client::models::MsgVpn;
@@ -74,7 +78,8 @@ mod test {
 }
 
 
-fn main() {
+
+fn main() -> Result<(), Box<Error>> {
 
     // initialize the logger
     env_logger::init();
@@ -110,11 +115,35 @@ fn main() {
     // configure the http client
     let mut core = Core::new().unwrap();
     let handle = core.handle();
+
+
+    let mut http = HttpConnector::new(4, &handle);
+    http.enforce_http(false);
+
+//    let mut tls = TlsConnector::builder()?.build()?;
+
+    let mut tls = TlsConnector::builder()?;
+    let mut sac = clientconfig::readconfig(config_file_name.to_owned());
+
+    match sac {
+        Ok(c) => {
+            match c.certs {
+                Some(certs) => {
+                    for cert in certs.iter() {
+                        info!("Adding certificate to chain");
+                        let t: Certificate = Certificate::from_pem(cert.as_bytes())?;
+                        tls.add_root_certificate(t);
+                    }
+                },
+                None => info!("No certs")
+            }
+        },
+        Err(e) => panic!()
+    }
+
     let hyperclient = Client::configure()
-        .connector(hyper_tls::HttpsConnector::new(4, &handle)
-            .unwrap()
-        )
-        .build(&handle);
+        .connector(hyper_tls::HttpsConnector::from((http, tls.build()?))).build(&handle);
+
 
     // auth
     let auth = helpers::gencred("admin".to_owned(), "admin".to_owned());
@@ -141,6 +170,7 @@ fn main() {
         },
         Err(e) => error!("error reading config: {}", e)
     }
+
 
     // the API Client from swagger spec
     let client = APIClient::new(configuration);
@@ -750,5 +780,7 @@ fn main() {
     }
 
     info!("{}", ok_emoji);
+
+    Ok(())
 
 }
