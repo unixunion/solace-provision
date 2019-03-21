@@ -6,6 +6,8 @@ solace-provision is a tool which reads flat files to provision solace hardware a
 
 Currently in *beta*
 
+Build Status: [![Build Status](https://travis-ci.com/unixunion/solace-provision.svg?branch=master)](https://travis-ci.com/unixunion/solace-provision)
+
 Capabilities:
 
     * Fetch + Save to disk
@@ -22,6 +24,8 @@ Objects that can be Provisioned, Updated and Downloaded
     * ACL Profile
     * Client Profile
     * Client Username
+    * Queue Subscription
+    * Topic Endpoints
     
 This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 
@@ -66,6 +70,11 @@ password: admin
 host: https://localhost:8080/SEMP/v2/config
 ok_emoki: 👍
 err_emoki: 🔥
+certs:
+  - |
+    -----BEGIN CERTIFICATE-----
+    MIIFfzCCA2egAwIBAgIJAOFbdgBoLz0qMA0GCSqGSIb3DQEBCwUAMFYxCzAJBgNV
+    ...
 
 ```
 
@@ -217,6 +226,57 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
     solace-provision --config examples/config.yaml client-username --message-vpn myvpn --no-shutdown
 
+### Queue-Subscription
+
+#### Fetch [and Write to output dir]:
+
+    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  queue-subscription --queue-username "*" --message-vpn myvpn 
+    
+#### Provision
+
+    solace-provision --config examples/config.yaml queue-subscription --file examples/queue-subscription.yaml --message-vpn myvpn
+
+#### Delete
+
+    solace-provision --config examples/config.yaml queue-subscription --delete --message-vpn myvpn --queue-subscription mytopic
+
+### Sequenced-Topic
+
+#### Fetch [and Write to output dir]:
+
+    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  sequenced-topic --sequence-topic "*" --message-vpn myvpn 
+    
+#### Provision
+
+    solace-provision --config examples/config.yaml sequenced-topic --file examples/sequence-topic.yaml --message-vpn myvpn
+
+#### Delete
+
+    solace-provision --config examples/config.yaml sequenced-topic --delete --message-vpn myvpn --sequenced-topic mytopic
+
+### Topic-Endpoint
+
+#### Fetch [and Write to output dir]:
+
+    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  topic-endpoint --topic-endpoint "*" --message-vpn myvpn 
+    
+#### Provision
+
+    solace-provision --config examples/config.yaml topic-endpoint --file examples/topicendpoint.yaml --message-vpn myvpn
+    
+#### Shutdown / Partial Shutdown
+
+    solace-provision --config examples/config.yaml topic-endpoint --topic-endpint mytopic --message-vpn myvpn [--shutdown|--shutdown-ingress|--shutdown-egress]
+    
+#### Enable / Partial Enable
+
+    solace-provision --config examples/config.yaml topic-endpoint --topic-endpint mytopic --message-vpn myvpn [--no-shutdown|--no-shutdown-ingress|--no-shutdown-egress]
+
+#### Delete
+
+    solace-provision --config examples/config.yaml topic-endpoint --delete --topic-endpint mytopic --message-vpn myvpn
+
+
 ### Downloading Entire VPN's
 
 ```bash
@@ -248,8 +308,8 @@ docker run -v `pwd`:/src rust:1.33 /src/mkrelease.sh
 
 ```bash
 docker run -v `pwd`:/src rust:1.33 /src/mkrelease.sh
-docker build -t solace-provision:0.1.3 .
-docker run --net=host -e "RUST_LOG=debug" -v`pwd`:/opt solace-provision:0.1.3 --config /opt/examples/config-hw.yaml vpn --fetch --message-vpn "*"
+docker build -t solace-provision:0.1.4-beta .
+docker run --net=host -e "RUST_LOG=debug" -v`pwd`:/opt solace-provision:0.1.4-beta --config /opt/examples/config.yaml vpn --fetch --message-vpn "*"
 ```
 
 ## Local Development

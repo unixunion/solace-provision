@@ -15,7 +15,8 @@ pub struct SolaceApiConfig {
     pub password: String,
     pub host: String,
     pub ok_emoji: String,
-    pub err_emoji: String
+    pub err_emoji: String,
+    pub certs: Option<Vec<String>>,
 }
 
 

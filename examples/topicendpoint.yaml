@@ -1,0 +1,36 @@
+---
+accessType: exclusive
+consumerAckPropagationEnabled: true
+deadMsgQueue: #DEAD_MSG_QUEUE
+egressEnabled: false
+eventBindCountThreshold:
+  clearPercent: 40
+  #  clearValue: 0
+  setPercent: 60
+  #  setValue: 0
+eventRejectLowPriorityMsgLimitThreshold:
+  clearPercent: 40
+  #  clearValue: 0
+  setPercent: 60
+  #  setValue: 0
+eventSpoolUsageThreshold:
+  clearPercent: 40
+  #  clearValue: 0
+  setPercent: 60
+  #  setValue: 0
+ingressEnabled: false
+maxBindCount: 1
+maxDeliveredUnackedMsgsPerFlow: 10000
+maxMsgSize: 10000000
+maxRedeliveryCount: 0
+maxSpoolUsage: 64
+maxTtl: 0
+msgVpnName: testvpn
+owner: myusername
+permission: no-access
+rejectLowPriorityMsgEnabled: false
+rejectLowPriorityMsgLimit: 0
+rejectMsgToSenderOnDiscardBehavior: never
+respectMsgPriorityEnabled: false
+respectTtlEnabled: false
+topicEndpointName: mytopic

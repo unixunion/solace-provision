@@ -1,6 +1,6 @@
 
 
-use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse};
+use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpoint, MsgVpnTopicEndpointsResponse};
 use solace_semp_client::models::MsgVpn;
 use serde::Serialize;
 use std::path::Path;
@@ -129,27 +129,6 @@ impl Save<MsgVpnClientUsername> for MsgVpnClientUsername {
     }
 }
 
-impl Save<MsgVpnQueueSubscription> for MsgVpnQueueSubscription {
-    fn save(dir: &str, data: &MsgVpnQueueSubscription) -> Result<(), &'static str> where MsgVpnQueueSubscription: Serialize {
-        let vpn_name = data.msg_vpn_name();
-        let mut hasher = sha1::Sha1::new();
-        match data.subscription_topic() {
-            Some(i) => {
-                hasher.update(i.as_bytes());
-                let s = hasher.digest().to_string();
-                let item_name = Option::from(&s);
-                debug!("save queue-subscription: {:?}, {:?}", vpn_name, item_name);
-                data.save_in_dir(dir, "queue-subscription", &vpn_name, &item_name);
-                Ok(())
-            },
-            _ => {
-                panic!("unable to get queue subscription from item")
-            }
-        }
-
-    }
-}
-//MsgVpnQueueSubscriptionsResponse
 
 impl Save<MsgVpnsResponse> for MsgVpnsResponse {
     fn save(dir: &str, data: &MsgVpnsResponse) -> Result<(), &'static str> where MsgVpnsResponse: Serialize {
@@ -257,12 +236,118 @@ impl Save<MsgVpnClientUsernamesResponse> for MsgVpnClientUsernamesResponse {
     }
 }
 
+// Queue Subscriptions
+
+
+impl Save<MsgVpnQueueSubscription> for MsgVpnQueueSubscription {
+    fn save(dir: &str, data: &MsgVpnQueueSubscription) -> Result<(), &'static str> where MsgVpnQueueSubscription: Serialize {
+        let vpn_name = data.msg_vpn_name();
+        let mut hasher = sha1::Sha1::new();
+        match data.subscription_topic() {
+            Some(i) => {
+                hasher.update(i.as_bytes());
+                let s = hasher.digest().to_string();
+                let item_name = Option::from(&s);
+                debug!("save queue-subscription: {:?}, {:?}", vpn_name, item_name);
+                data.save_in_dir(dir, "queue-subscription", &vpn_name, &item_name);
+                Ok(())
+            },
+            _ => {
+                panic!("unable to get queue subscription from item")
+            }
+        }
+
+    }
+}
+
+
 impl Save<MsgVpnQueueSubscriptionsResponse> for MsgVpnQueueSubscriptionsResponse {
     fn save(dir: &str, data: &MsgVpnQueueSubscriptionsResponse) -> Result<(), &'static str> where MsgVpnQueueSubscriptionsResponse: Serialize {
         match data.data() {
             Some(items) => {
                 for item in items {
                     match MsgVpnQueueSubscription::save(dir, item) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no users");
+                Err("no users")
+            }
+        }
+    }
+}
+
+
+
+// Sequenced Topics
+
+impl Save<MsgVpnSequencedTopic> for MsgVpnSequencedTopic {
+    fn save(dir: &str, data: &MsgVpnSequencedTopic) -> Result<(), &'static str> where MsgVpnSequencedTopic: Serialize {
+        let vpn_name = data.msg_vpn_name();
+        let mut hasher = sha1::Sha1::new();
+        match data.sequenced_topic() {
+            Some(i) => {
+                hasher.update(i.as_bytes());
+                let s = hasher.digest().to_string();
+                let item_name = Option::from(&s);
+                debug!("save queue-subscription: {:?}, {:?}", vpn_name, item_name);
+                data.save_in_dir(dir, "sequenced-topic", &vpn_name, &item_name);
+                Ok(())
+            },
+            _ => {
+                panic!("unable to get queue subscription from item")
+            }
+        }
+
+    }
+}
+
+
+impl Save<MsgVpnSequencedTopicsResponse> for MsgVpnSequencedTopicsResponse {
+    fn save(dir: &str, data: &MsgVpnSequencedTopicsResponse) -> Result<(), &'static str> where MsgVpnSequencedTopicsResponse: Serialize {
+        match data.data() {
+            Some(items) => {
+                for item in items {
+                    match MsgVpnSequencedTopic::save(dir, item) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no users");
+                Err("no users")
+            }
+        }
+    }
+}
+
+
+// Topic Endpoint
+
+impl Save<MsgVpnTopicEndpoint> for MsgVpnTopicEndpoint {
+    fn save(dir: &str, data: &MsgVpnTopicEndpoint) -> Result<(), &'static str> where MsgVpnTopicEndpoint: Serialize {
+        let vpn_name = data.msg_vpn_name();
+        let item_name = data.topic_endpoint_name();
+
+        debug!("save topic-endpoint: {:?}, {:?}", vpn_name, item_name);
+        data.save_in_dir(dir, "topic-endpoint", &vpn_name, &item_name);
+        Ok(())
+    }
+}
+
+
+impl Save<MsgVpnTopicEndpointsResponse> for MsgVpnTopicEndpointsResponse {
+    fn save(dir: &str, data: &MsgVpnTopicEndpointsResponse) -> Result<(), &'static str> where MsgVpnTopicEndpointsResponse: Serialize {
+        match data.data() {
+            Some(items) => {
+                for item in items {
+                    match MsgVpnTopicEndpoint::save(dir, item) {
                         Ok(t) => debug!("success saving"),
                         Err(e) => error!("error writing: {:?}", e)
                     }

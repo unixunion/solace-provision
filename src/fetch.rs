@@ -10,35 +10,44 @@ mod tests {
     use solace_semp_client::apis::client::APIClient;
     use crate::clientconnection;
     use crate::clientconnection::SPClientConnection;
+    use hyper::client::HttpConnector;
+    use native_tls::{TlsConnector, Certificate};
 
-    #[test]
-    fn it_works() {
-        // create a new vpn, then test if our new traits and functions are bound
-        let mut core = Core::new().unwrap();
-        let handle = core.handle();
-        let hyperclient = Client::configure()
-            .connector(hyper_tls::HttpsConnector::new(4, &handle)
-                .unwrap()
-            )
-            .build(&handle);
-        let c = SPClientConnection::new("https://localhost:8080/SEMP/v2/config", "admin", "admin", hyperclient);
-        let client = APIClient::new(c.configuration);
 
-        match MsgVpnQueuesResponse::fetch("default", "*", 10, "", "*", &mut core, &client) {
-            Ok(i) => {
-                assert_eq!(&200, i.meta().response_code());
-            },
-            Err(e) =>{
-                error!("error: {}", e);
-                panic!("error: {}", e);
-            }
-        }
 
-    }
+//    #[test]
+//    fn it_works() {
+//        // create a new vpn, then test if our new traits and functions are bound
+//        let mut core = Core::new().unwrap();
+//        let handle = core.handle();
+//        let mut http = HttpConnector::new(4, &handle);
+//        http.enforce_http(false);
+//
+//        let mut tls = TlsConnector::builder().unwrap().build();
+//
+//        let hyperclient = Client::configure()
+//            .connector(hyper_tls::HttpsConnector::from((http, tls.unwrap()))).build(&handle);
+//
+//
+//        let c = SPClientConnection::new("https://localhost:8080/SEMP/v2/config", "admin", "admin", hyperclient);
+//        let client = APIClient::new(c.configuration);
+//
+//
+//        match MsgVpnQueuesResponse::fetch("default", "default", "default", 10, "", "*", &mut core, &client) {
+//            Ok(i) => {
+//                assert_eq!(&200, i.meta().response_code());
+//            },
+//            Err(e) =>{
+//                error!("error: {}", e);
+//                panic!("error: {}", e);
+//            }
+//        }
+//
+//    }
 }
 
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnTopicEndpointsResponse, MsgVpnSequencedTopic, MsgVpnQueueSubscriptionsResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnTopicEndpointsResponse, MsgVpnSequencedTopic, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -121,7 +130,7 @@ impl Fetch<MsgVpnQueuesResponse> for MsgVpnQueuesResponse {
             },
             Err(e) => {
                 error!("error fetching: {:?}", e);
-                panic!("fetch error");
+                panic!("fetch error {:?}", e);
                 Err("fetch error")
             }
         }
@@ -212,30 +221,15 @@ impl Fetch<MsgVpnClientUsernamesResponse> for MsgVpnClientUsernamesResponse {
 
 
 impl Fetch<MsgVpnQueueSubscriptionsResponse> for MsgVpnQueueSubscriptionsResponse {
-    fn fetch(in_vpn: &str, name: &str, sub_identifier: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionsResponse, &'static str> {
-        let (wherev, mut selectv) = helpers::getwhere("queueName", name, selector);
+    fn fetch(in_vpn: &str, sub_item: &str, sub_identifier: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionsResponse, &'static str> {
+        let (wherev, mut selectv) = helpers::getwhere("queueName", sub_item, selector);
 
-//        let mut request;
-
-//        if sub_identifier == "" {
-//        let whereitem = format!("{}=={}", "subscriptionTopic", sub_identifier);
-//        wherev.push(whereitem);
-//        info!("seklect vector {:?}", selectv);
         let request = apiclient
             .default_api()
-            .get_msg_vpn_queue_subscriptions(in_vpn, name, count, cursor, wherev, selectv)
+            .get_msg_vpn_queue_subscriptions(in_vpn, sub_item, count, cursor, wherev, selectv)
             .and_then(|item| {
                 futures::future::ok(item)
             });
-//        } else {
-//
-//            let request = apiclient
-//                .default_api()
-//                .get_msg_vpn_queue_subscription(in_vpn, name, sub_identifier, selectv)
-//                .and_then(|item| {
-//                    futures::future::ok(item)
-//                });
-//        }
 
         match core.run(request) {
             Ok(response) => {
@@ -249,5 +243,59 @@ impl Fetch<MsgVpnQueueSubscriptionsResponse> for MsgVpnQueueSubscriptionsRespons
             }
         }
 
+    }
+}
+
+
+impl Fetch<MsgVpnSequencedTopicsResponse> for MsgVpnSequencedTopicsResponse {
+    fn fetch(in_vpn: &str, sub_item: &str, sub_identifier: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnSequencedTopicsResponse, &'static str> {
+        let (wherev, mut selectv) = helpers::getwhere("sequencedTopic", sub_item, selector);
+
+        let request = apiclient
+            .default_api()
+            .get_msg_vpn_sequenced_topics(in_vpn, count, cursor,  wherev, selectv)
+            .and_then(|item| {
+                futures::future::ok(item)
+            });
+
+        match core.run(request) {
+            Ok(response) => {
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                Ok(response)
+            },
+            Err(e) => {
+                error!("error fetching: {:?}", e);
+                panic!("fetch error: {:?}", e);
+                Err("fetch error")
+            }
+        }
+    }
+}
+
+
+// topic endpoint
+
+impl Fetch<MsgVpnTopicEndpointsResponse> for MsgVpnTopicEndpointsResponse {
+    fn fetch(in_vpn: &str, sub_item: &str, sub_identifier: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointsResponse, &'static str> {
+        let (wherev, mut selectv) = helpers::getwhere("topicEndpointName", sub_item, selector);
+
+        let request = apiclient
+            .topic_endpoint_api()
+            .get_msg_vpn_topic_endpoints(in_vpn, count, cursor,  wherev, selectv)
+            .and_then(|item| {
+                futures::future::ok(item)
+            });
+
+        match core.run(request) {
+            Ok(response) => {
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                Ok(response)
+            },
+            Err(e) => {
+                error!("error fetching: {:?}", e);
+                panic!("fetch error: {:?}", e);
+                Err("fetch error")
+            }
+        }
     }
 }
