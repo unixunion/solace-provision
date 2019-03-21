@@ -633,31 +633,6 @@ fn main() -> Result<(), Box<Error>> {
                     }
                 }
 
-//                // if file is passed, it means either provision or update.
-//                let file_name = matches.value_of("file");
-//                match file_name {
-//                    Some(file_name) => {
-//                        info!("using file: {:?}", file_name);
-//
-//                        // provision / update from file
-//                        let file = std::fs::File::open(file_name).unwrap();
-//                        let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
-//                        match deserialized {
-//                            Some(mut item) => {
-//                                if update_item {
-//                                    MsgVpnClientUsernameResponse::update(message_vpn, file_name, &mut core,
-//                                                                         &client);
-//                                } else {
-//                                    MsgVpnClientUsernameResponse::provision(message_vpn, "",file_name,
-//                                                                            &mut core, &client);
-//                                }
-//                            },
-//                            _ => unimplemented!()
-//                        }
-//                    },
-//                    None => {}
-//                }
-
                 // late un-shutdown anything
                 if no_shutdown_item {
                     MsgVpnClientUsernameResponse::enabled(message_vpn, client_username,
