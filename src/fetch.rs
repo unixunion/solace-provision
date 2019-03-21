@@ -271,3 +271,31 @@ impl Fetch<MsgVpnSequencedTopicsResponse> for MsgVpnSequencedTopicsResponse {
         }
     }
 }
+
+
+// topic endpoint
+
+impl Fetch<MsgVpnTopicEndpointsResponse> for MsgVpnTopicEndpointsResponse {
+    fn fetch(in_vpn: &str, sub_item: &str, sub_identifier: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointsResponse, &'static str> {
+        let (wherev, mut selectv) = helpers::getwhere("topicEndpointName", sub_item, selector);
+
+        let request = apiclient
+            .topic_endpoint_api()
+            .get_msg_vpn_topic_endpoints(in_vpn, count, cursor,  wherev, selectv)
+            .and_then(|item| {
+                futures::future::ok(item)
+            });
+
+        match core.run(request) {
+            Ok(response) => {
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                Ok(response)
+            },
+            Err(e) => {
+                error!("error fetching: {:?}", e);
+                panic!("fetch error: {:?}", e);
+                Err("fetch error")
+            }
+        }
+    }
+}

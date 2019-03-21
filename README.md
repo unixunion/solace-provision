@@ -25,6 +25,7 @@ Objects that can be Provisioned, Updated and Downloaded
     * Client Profile
     * Client Username
     * Queue Subscription
+    * Topic Endpoints
     
 This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 

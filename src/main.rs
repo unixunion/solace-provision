@@ -12,7 +12,7 @@ use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
 use std::borrow::Cow;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse};
 use solace_semp_client::models::MsgVpnQueue;
 use solace_semp_client::models::MsgVpnResponse;
 use solace_semp_client::models::MsgVpnAclProfile;
@@ -299,14 +299,32 @@ fn main() -> Result<(), Box<Error>> {
             let update_item = matches.is_present("update");
             let shutdown_item = matches.is_present("shutdown");
             let no_shutdown_item = matches.is_present("no-shutdown");
+            let mut shutdown_ingress = matches.is_present("shutdown-ingress");
+            let mut no_shutdown_ingress = matches.is_present("no-shutdown-ingress");
+            let mut shutdown_egress = matches.is_present("shutdown-egress");
+            let mut no_shutdown_egress = matches.is_present("no-shutdown-egress");
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
 
-            if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
+            if update_item || shutdown_item || no_shutdown_item || shutdown_egress || no_shutdown_egress || shutdown_ingress || no_shutdown_ingress || fetch || delete || matches.is_present("file") {
 
                 // early shutdown if not provisioning new
-                if shutdown_item && update_item && matches.is_present("queue") && matches.is_present("message-vpn") {
-                    MsgVpnQueueResponse::enabled(message_vpn, queue,
+                if shutdown_item {
+                    shutdown_ingress = true;
+                    shutdown_egress = true;
+//                    MsgVpnQueueResponse::ingress(message_vpn, queue,
+//                                                 false, &mut core, &client);
+//                    MsgVpnQueueResponse::egress(message_vpn, queue,
+//                                                 false, &mut core, &client);
+                }
+
+                if shutdown_ingress {
+                    MsgVpnQueueResponse::ingress(message_vpn, queue,
+                                                 false, &mut core, &client);
+                }
+
+                if shutdown_egress {
+                    MsgVpnQueueResponse::egress(message_vpn, queue,
                                                  false, &mut core, &client);
                 }
 
@@ -337,9 +355,24 @@ fn main() -> Result<(), Box<Error>> {
 
                 // late un-shutdown anything
                 if no_shutdown_item {
-                    MsgVpnQueueResponse::enabled(message_vpn, queue,
+                    no_shutdown_egress = true;
+                    no_shutdown_ingress = true;
+//                    MsgVpnQueueResponse::ingress(message_vpn, queue,
+//                                                 true, &mut core, &client);
+//                    MsgVpnQueueResponse::egress(message_vpn, queue,
+//                                                 true, &mut core, &client);
+                }
+
+                if no_shutdown_ingress {
+                    MsgVpnQueueResponse::ingress(message_vpn, queue,
                                                  true, &mut core, &client);
                 }
+
+                if no_shutdown_egress {
+                    MsgVpnQueueResponse::egress(message_vpn, queue,
+                                                true, &mut core, &client);
+                }
+
 
                 // finally if fetch is specified, we do this last.
                 while fetch {
@@ -587,30 +620,43 @@ fn main() -> Result<(), Box<Error>> {
                                                           false, &mut core, &client);
                 }
 
-                // if file is passed, it means either provision or update.
-                let file_name = matches.value_of("file");
-                match file_name {
-                    Some(file_name) => {
-                        info!("using file: {:?}", file_name);
 
-                        // provision / update from file
-                        let file = std::fs::File::open(file_name).unwrap();
-                        let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
-                        match deserialized {
-                            Some(mut item) => {
-                                if update_item {
-                                    MsgVpnClientUsernameResponse::update(message_vpn, file_name, &mut core,
-                                                                         &client);
-                                } else {
-                                    MsgVpnClientUsernameResponse::provision(message_vpn, "",file_name,
-                                                                            &mut core, &client);
-                                }
-                            },
-                            _ => unimplemented!()
-                        }
-                    },
-                    None => {}
+                // if file is passed, it means either provision or update.
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file");
+                    if update_item {
+                        MsgVpnClientUsernameResponse::update(message_vpn, file_name.unwrap(), &mut core,
+                                                             &client);
+                    } else {
+                        MsgVpnClientUsernameResponse::provision(message_vpn, "",file_name.unwrap(),
+                                                                &mut core, &client);
+                    }
                 }
+
+//                // if file is passed, it means either provision or update.
+//                let file_name = matches.value_of("file");
+//                match file_name {
+//                    Some(file_name) => {
+//                        info!("using file: {:?}", file_name);
+//
+//                        // provision / update from file
+//                        let file = std::fs::File::open(file_name).unwrap();
+//                        let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
+//                        match deserialized {
+//                            Some(mut item) => {
+//                                if update_item {
+//                                    MsgVpnClientUsernameResponse::update(message_vpn, file_name, &mut core,
+//                                                                         &client);
+//                                } else {
+//                                    MsgVpnClientUsernameResponse::provision(message_vpn, "",file_name,
+//                                                                            &mut core, &client);
+//                                }
+//                            },
+//                            _ => unimplemented!()
+//                        }
+//                    },
+//                    None => {}
+//                }
 
                 // late un-shutdown anything
                 if no_shutdown_item {
@@ -686,23 +732,10 @@ fn main() -> Result<(), Box<Error>> {
             if fetch || delete || matches.is_present("file") {
 
                 // if file is passed, it means either provision or update.
-                let file_name = matches.value_of("file");
-                match file_name {
-                    Some(file_name) => {
-                        info!("using file: {:?}", file_name);
-
-                        // provision / update from file
-                        let file = std::fs::File::open(file_name).unwrap();
-                        let deserialized: Option<MsgVpnQueueSubscription> = serde_yaml::from_reader(file).unwrap();
-                        match deserialized {
-                            Some(mut item) => {
-                                MsgVpnQueueSubscriptionResponse::provision(message_vpn, queue,file_name,
-                                                                            &mut core, &client);
-                            },
-                            _ => unimplemented!()
-                        }
-                    },
-                    None => {}
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file");
+                    MsgVpnQueueSubscriptionResponse::provision(message_vpn, queue, file_name.unwrap(),
+                                                               &mut core, &client);
                 }
 
                 // finally if fetch is specified, we do this last.
@@ -822,6 +855,124 @@ fn main() -> Result<(), Box<Error>> {
 
 
 
+    // topic endpoint
+
+    if matches.is_present("topic-endpoint") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("topic-endpoint") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let topic_endpoint = matches.value_of("topic-endpoint").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let mut shutdown_ingress = matches.is_present("shutdown-ingress");
+            let mut no_shutdown_ingress = matches.is_present("no-shutdown-ingress");
+            let mut shutdown_egress = matches.is_present("shutdown-egress");
+            let mut no_shutdown_egress = matches.is_present("no-shutdown-egress");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if update_item || shutdown_item || no_shutdown_item || shutdown_egress || no_shutdown_egress || shutdown_ingress || no_shutdown_ingress || fetch || delete || matches.is_present("file") {
+
+                // early shutdown if not provisioning new
+                if shutdown_item {
+                    shutdown_ingress = true;
+                    shutdown_egress = true;
+                }
+
+                if shutdown_ingress {
+                    MsgVpnTopicEndpointResponse::ingress(message_vpn, topic_endpoint,
+                                                 false, &mut core, &client);
+                }
+
+                if shutdown_egress {
+                    MsgVpnTopicEndpointResponse::egress(message_vpn, topic_endpoint,
+                                                false, &mut core, &client);
+                }
+
+
+
+                // if file is passed, it means either provision or update.
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file").unwrap();
+                    if update_item {
+                        MsgVpnTopicEndpointResponse::update(message_vpn, file_name, &mut core,
+                                                    &client);
+                    } else {
+                        MsgVpnTopicEndpointResponse::provision(message_vpn, "",file_name,
+                                                       &mut core, &client);
+                    }
+                }
+
+
+                // late un-shutdown anything
+                if no_shutdown_item {
+                    no_shutdown_egress = true;
+                    no_shutdown_ingress = true;
+                }
+
+                if no_shutdown_ingress {
+                    MsgVpnTopicEndpointResponse::ingress(message_vpn, topic_endpoint,
+                                                 true, &mut core, &client);
+                }
+
+                if no_shutdown_egress {
+                    MsgVpnTopicEndpointResponse::egress(message_vpn, topic_endpoint,
+                                                true, &mut core, &client);
+                }
+
+
+                // finally if fetch is specified, we do this last.
+                while fetch {
+                    let data = MsgVpnTopicEndpointsResponse::fetch(message_vpn,
+                                                           topic_endpoint, "",count, &*cursor.to_string(), select,
+                                                           &mut core, &client);
+
+
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
+                                MsgVpnTopicEndpointsResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+
+                }
+
+                if delete {
+                    info!("deleting queue");
+                    MsgVpnTopicEndpointResponse::delete(message_vpn, topic_endpoint, "", &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
+
+
+
+
+    // other
     match matches.subcommand_name() {
         None => {
             println!("Please specify a subcommand, --help for more info");

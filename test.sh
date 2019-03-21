@@ -22,7 +22,7 @@ fi
 export RUSTFLAGS=-Awarnings
 export RUST_LOG=info
 
-if [ -f "target/release/solace-provision" ]; then
+if [ -x "target/release/solace-provision" ]; then
     bin="target/release/solace-provision"
 else
     bin="cargo run --"
@@ -59,7 +59,7 @@ $bin --config ${config_file} queue-subscription --file examples/queue-subscripti
 
 # create 6-99 queues
 i=6
-while [ $i -lt 100 ]; do
+while [ $i -lt 22 ]; do
     $bin --config ${config_file} queue --file examples/queue${i}.yaml --message-vpn ${rnd_vpn} --queue queue${i}
     ((i=$i+1))
 done
@@ -89,8 +89,26 @@ $bin --config ${config_file} client-username --file examples/client-username.yam
 $bin --config ${config_file} --output ./tmp client-username --message-vpn ${rnd_vpn} --fetch --client-username myusername
 test -f ./tmp/${rnd_vpn}/client-username/myusername.yaml
 
-#exit 0
+# sequenced topic
+$bin --config ${config_file} sequenced-topic --file examples/sequenced-topic.yaml --message-vpn ${rnd_vpn}
+$bin --config ${config_file} sequenced-topic --message-vpn ${rnd_vpn} --fetch --sequenced-topic "*"
 
+# topic endpoint
+$bin --config ${config_file} topic-endpoint --file examples/topicendpoint.yaml --message-vpn ${rnd_vpn}
+$bin --config ${config_file} topic-endpoint --message-vpn ${rnd_vpn} --fetch --topic-endpoint mytopic
+$bin --config ${config_file} topic-endpoint --message-vpn ${rnd_vpn} --update --topic-endpoint mytopic --shutdown
+$bin --config ${config_file} topic-endpoint --message-vpn ${rnd_vpn} --update --topic-endpoint mytopic --no-shutdown
+$bin --config ${config_file} topic-endpoint --message-vpn ${rnd_vpn} --update --topic-endpoint mytopic --shutdown-ingress
+$bin --config ${config_file} topic-endpoint --message-vpn ${rnd_vpn} --update --topic-endpoint mytopic --no-shutdown-ingress
+$bin --config ${config_file} topic-endpoint --message-vpn ${rnd_vpn} --update --topic-endpoint mytopic --shutdown-egress
+$bin --config ${config_file} topic-endpoint --message-vpn ${rnd_vpn} --update --topic-endpoint mytopic --no-shutdown-egress
+
+
+#exit 0
+# topic endpoont
+$bin --config ${config_file} topic-endpoint --message-vpn ${rnd_vpn} --update --topic-endpoint mytopic --delete
+# sequenced topic
+$bin --config ${config_file} sequenced-topic --message-vpn ${rnd_vpn} --delete --sequenced-topic "mytopic"
 # delete client-username
 $bin --config ${config_file} client-username --delete --message-vpn ${rnd_vpn} --update --client-username myusername
 # delete client-profile

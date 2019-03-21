@@ -1,6 +1,6 @@
 
 
-use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic};
+use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpoint, MsgVpnTopicEndpointsResponse};
 use solace_semp_client::models::MsgVpn;
 use serde::Serialize;
 use std::path::Path;
@@ -313,6 +313,41 @@ impl Save<MsgVpnSequencedTopicsResponse> for MsgVpnSequencedTopicsResponse {
             Some(items) => {
                 for item in items {
                     match MsgVpnSequencedTopic::save(dir, item) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no users");
+                Err("no users")
+            }
+        }
+    }
+}
+
+
+// Topic Endpoint
+
+impl Save<MsgVpnTopicEndpoint> for MsgVpnTopicEndpoint {
+    fn save(dir: &str, data: &MsgVpnTopicEndpoint) -> Result<(), &'static str> where MsgVpnTopicEndpoint: Serialize {
+        let vpn_name = data.msg_vpn_name();
+        let item_name = data.topic_endpoint_name();
+
+        debug!("save topic-endpoint: {:?}, {:?}", vpn_name, item_name);
+        data.save_in_dir(dir, "topic-endpoint", &vpn_name, &item_name);
+        Ok(())
+    }
+}
+
+
+impl Save<MsgVpnTopicEndpointsResponse> for MsgVpnTopicEndpointsResponse {
+    fn save(dir: &str, data: &MsgVpnTopicEndpointsResponse) -> Result<(), &'static str> where MsgVpnTopicEndpointsResponse: Serialize {
+        match data.data() {
+            Some(items) => {
+                for item in items {
+                    match MsgVpnTopicEndpoint::save(dir, item) {
                         Ok(t) => debug!("success saving"),
                         Err(e) => error!("error writing: {:?}", e)
                     }
