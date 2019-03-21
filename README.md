@@ -226,6 +226,57 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
     solace-provision --config examples/config.yaml client-username --message-vpn myvpn --no-shutdown
 
+### Queue-Subscription
+
+#### Fetch [and Write to output dir]:
+
+    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  queue-subscription --queue-username "*" --message-vpn myvpn 
+    
+#### Provision
+
+    solace-provision --config examples/config.yaml queue-subscription --file examples/queue-subscription.yaml --message-vpn myvpn
+
+#### Delete
+
+    solace-provision --config examples/config.yaml queue-subscription --delete --message-vpn myvpn --queue-subscription mytopic
+
+### Sequenced-Topic
+
+#### Fetch [and Write to output dir]:
+
+    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  sequenced-topic --sequence-topic "*" --message-vpn myvpn 
+    
+#### Provision
+
+    solace-provision --config examples/config.yaml sequenced-topic --file examples/sequence-topic.yaml --message-vpn myvpn
+
+#### Delete
+
+    solace-provision --config examples/config.yaml sequenced-topic --delete --message-vpn myvpn --sequenced-topic mytopic
+
+### Topic-Endpoint
+
+#### Fetch [and Write to output dir]:
+
+    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  topic-endpoint --topic-endpoint "*" --message-vpn myvpn 
+    
+#### Provision
+
+    solace-provision --config examples/config.yaml topic-endpoint --file examples/topicendpoint.yaml --message-vpn myvpn
+    
+#### Shutdown / Partial Shutdown
+
+    solace-provision --config examples/config.yaml topic-endpoint --topic-endpint mytopic --message-vpn myvpn [--shutdown|--shutdown-ingress|--shutdown-egress]
+    
+#### Enable / Partial Enable
+
+    solace-provision --config examples/config.yaml topic-endpoint --topic-endpint mytopic --message-vpn myvpn [--no-shutdown|--no-shutdown-ingress|--no-shutdown-egress]
+
+#### Delete
+
+    solace-provision --config examples/config.yaml topic-endpoint --delete --topic-endpint mytopic --message-vpn myvpn
+
+
 ### Downloading Entire VPN's
 
 ```bash
