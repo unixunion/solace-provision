@@ -278,3 +278,35 @@ subcommands:
               - queue
               - subscription
             help: delete a specific queue subscription
+  - sequenced-topic:
+      about: sequenced-topic management
+      version: 9.0.1.18
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+            requires:
+              - message-vpn
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference, if specified overrides specified msgVpnName in spec file.
+            required: true
+            takes_value: true
+        - sequenced-topic:
+            long: sequenced-topic
+            help: the sequenced-topic string
+            takes_value: true
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - sequenced-topic
+            help: fetch an existing sequenced-topic from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - sequenced-topic
+            help: delete a specific sequenced-topic

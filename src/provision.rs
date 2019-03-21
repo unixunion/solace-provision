@@ -15,7 +15,7 @@ mod tests {
 
 
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnQueueSubscriptionResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnSequencedTopic};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -190,8 +190,6 @@ impl Provision<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 }
 
 
-//
-
 
 impl Provision<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse {
 
@@ -204,6 +202,35 @@ impl Provision<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionRespo
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_queue_subscription(in_vpn, item_name, item, getselect("*"));
+                match core.run(request) {
+                    Ok(response) => {
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        Ok(response)
+                    },
+                    Err(e) => {
+                        error!("provision error: {:?}", e);
+                        exit(126);
+                        Err("provision error")
+                    }
+                }
+            }
+            _ => unimplemented!()
+        }
+    }
+}
+
+
+impl Provision<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
+
+    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnSequencedTopicResponse, &'static str> {
+        let file = std::fs::File::open(file_name).unwrap();
+        let deserialized: Option<MsgVpnSequencedTopic> = serde_yaml::from_reader(file).unwrap();
+        match deserialized {
+            Some(mut item) => {
+                item.set_msg_vpn_name(in_vpn.to_owned());
+                let request = apiclient
+                    .default_api()
+                    .create_msg_vpn_sequenced_topic(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));

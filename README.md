@@ -69,6 +69,11 @@ password: admin
 host: https://localhost:8080/SEMP/v2/config
 ok_emoki: 👍
 err_emoki: 🔥
+certs:
+  - |
+    -----BEGIN CERTIFICATE-----
+    MIIFfzCCA2egAwIBAgIJAOFbdgBoLz0qMA0GCSqGSIb3DQEBCwUAMFYxCzAJBgNV
+    ...
 
 ```
 

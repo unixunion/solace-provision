@@ -28,39 +28,3 @@ impl <C: hyper::client::Connect> SPClientConnection<C> {
         }
     }
 }
-
-mod tests {
-    use hyper::{Client, Body};
-    use tokio_core::reactor::{Core, Handle};
-    use hyper_tls::HttpsConnector;
-    use hyper::client::HttpConnector;
-    use crate::clientconnection::SPClientConnection;
-    use solace_semp_client::apis::client::APIClient;
-    use futures::future::Future;
-    use solace_semp_client::models::MsgVpnsResponse;
-    use crate::fetch::Fetch;
-
-    #[test]
-    fn it_works() {
-        let mut core = Core::new().unwrap();
-        let handle = core.handle();
-        let hyperclient = Client::configure()
-            .connector(hyper_tls::HttpsConnector::new(4, &handle)
-                .unwrap()
-            )
-            .build(&handle);
-        let c = SPClientConnection::new("https://localhost:8080/SEMP/v2/config", "admin", "admin", hyperclient);
-        let client = APIClient::new(c.configuration);
-
-        match MsgVpnsResponse::fetch("default", "default", "default", 10, "", "*", &mut core, &client) {
-            Ok(v) => {
-                assert_eq!(v.meta().response_code(), &200)
-            },
-            Err(e) => {
-                panic!("panic")
-            }
-        }
-
-    }
-
-}

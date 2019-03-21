@@ -12,7 +12,7 @@ mod tests {
 
 use std::process;
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscriptionResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -379,17 +379,17 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
 impl Update<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse {
 
-    fn update(vpn_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn update(msg_vpn: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         unimplemented!()
     }
 
-    fn enabled(vpn_name: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         unimplemented!()
     }
 
-    fn delete(vpn_name: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("deleting: {}", sub_identifier);
-        let t = apiclient.default_api().delete_msg_vpn_queue_subscription(vpn_name, item_name, sub_identifier);
+        let t = apiclient.default_api().delete_msg_vpn_queue_subscription(msg_vpn, item_name, sub_identifier);
         match core.run(t) {
             Ok(vpn) => {
                 info!("queue-subscription deleted");
@@ -399,6 +399,34 @@ impl Update<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse
                 error!("unable to delete queue-subscription: {:?}", e);
                 process::exit(126);
                 Err("unable to delete queue-subscription")
+            }
+        }
+    }
+}
+
+
+
+impl Update<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
+    fn update(vpn_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
+
+    fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
+
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        info!("deleting: {}", sub_identifier);
+        let t = apiclient.default_api().delete_msg_vpn_sequenced_topic(msg_vpn, item_name);
+        match core.run(t) {
+            Ok(vpn) => {
+                info!("sequence-topic deleted");
+                Ok(())
+            },
+            Err(e) => {
+                error!("unable to delete sequence-topic: {:?}", e);
+                process::exit(126);
+                Err("unable to delete sequence-topic")
             }
         }
     }

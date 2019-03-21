@@ -12,7 +12,7 @@ use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
 use std::borrow::Cow;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse};
 use solace_semp_client::models::MsgVpnQueue;
 use solace_semp_client::models::MsgVpnResponse;
 use solace_semp_client::models::MsgVpnAclProfile;
@@ -116,11 +116,8 @@ fn main() -> Result<(), Box<Error>> {
     let mut core = Core::new().unwrap();
     let handle = core.handle();
 
-
     let mut http = HttpConnector::new(4, &handle);
     http.enforce_http(false);
-
-//    let mut tls = TlsConnector::builder()?.build()?;
 
     let mut tls = TlsConnector::builder()?;
     let mut sac = clientconfig::readconfig(config_file_name.to_owned());
@@ -174,25 +171,6 @@ fn main() -> Result<(), Box<Error>> {
 
     // the API Client from swagger spec
     let client = APIClient::new(configuration);
-
-
-    //
-    //  PRE CHECKS
-    //
-
-//    let request = client.
-//        .and_then(|info| {
-//            futures::future::ok(info)
-//        });
-//    match core.run(request) {
-//        Ok(response) => {
-//            println!("{}", response.data().un)
-//        },
-//        Err(e) => {
-//            println!("error getting system information: {:?}", e);
-//            exit(126);
-//        }
-//    }
 
 
     //
@@ -768,6 +746,79 @@ fn main() -> Result<(), Box<Error>> {
 
     }
 
+
+
+
+    //
+    // SEQUENCED-TOPICS
+    //
+
+
+    if matches.is_present("sequenced-topic") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("sequenced-topic") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let delete = matches.is_present("delete");
+            let fetch = matches.is_present("fetch");
+            let mut sequenced_topic = "";
+
+            if matches.is_present("sequenced-topic") {
+                sequenced_topic = matches.value_of("sequenced-topic").unwrap_or("*");
+                info!("sequenced-topic is: {}", sequenced_topic);
+            }
+
+            if fetch || delete || matches.is_present("file") {
+
+                // if file is passed, it means either provision or update.
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file");
+                    MsgVpnSequencedTopicResponse::provision(message_vpn, "", file_name.unwrap(),
+                                                            &mut core, &client);
+                }
+
+                // finally if fetch is specified, we do this last.
+                while fetch {
+                    let data = MsgVpnSequencedTopicsResponse::fetch(message_vpn, sequenced_topic, "", count, &*cursor.to_string(),
+                                                                       select, &mut core, &client);
+
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
+                                MsgVpnSequencedTopicsResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+                }
+
+                if delete {
+                    info!("deleting sequence-topic");
+                    MsgVpnSequencedTopicResponse::delete(message_vpn, sequenced_topic, "", &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
 
 
 
