@@ -1,8 +1,21 @@
 language: rust
 rust:
-  - stable
-  - nightly
+- stable
+- nightly
 matrix:
   allow_failures:
-    - rust: nightly
+  - rust: nightly
   fast_finish: true
+cache:
+  directories:
+  - "/home/travis/.cargo"
+before_cache:
+- rm -rf /home/travis/.cargo/registry
+deploy:
+  provider: releases
+  api_key:
+    secure: sNy9xP50Fx7HtlasF9RorrWWDVSgYlAdPM30Ifga/QjSULcA+Jodqc+bRdW8DuIwDd3KB4UaFQsU72CFesMdmsoyXlUGuMD4JZvpZvBGyjLYFN9qAMRd4fSWYle8OHUeYDpVgUqoIuUbDD31If8KHr0tTNZ/fdpukcyRuY9sDYNf57idbGE9kStV9YLLKSInU9/rbg6w6dRvxZ8X8Z8kMIsHaZV+KECBpExvQv7ZsBM1MiKOamSzqFqlOjoT2toR3JejIbr813IgEUDRmr30srpF/c6J2Jmg1/6TyVq1nG5/+cPK+QME2LIhpUvLiT/Yz5L9tmvc1Fi0pRDo1r+UQFtDk9xzPJ++RgiXOKjnSPpZnKWRP7ahGxZM58kU4zWu1VtHGrDItXnedmtkvZQQRodyoIGP8xZJ7L88yG/VUkW0BW4So015qakBNxyFiJif6xQxK02cRbrhIT5u6CdWIwu/mTcWECjDIrQE3+w45HhYzDDkYrnfuVLvEp36CWRnSc5bz/vySpfIhlWxP/JaeT726uCctcWukdnLd+TZ4/7vDl3wKFXPs+NVVcTulu7wLHDwg5Ua7b14Rm1WTs7VXvfW1LwOkprJIUyJW1K8aj4/XNGspi82INRMi1up7zsdC59Bcg9vz+4/HNFakGevc+Kbl93D5nCofY30W/EdqPQ=
+  file: target/release/solace-provision
+  on:
+    repo: unixunion/solace-provision
+    branch: release-0.1-branch
