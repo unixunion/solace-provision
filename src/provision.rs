@@ -15,7 +15,7 @@ mod tests {
 
 
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpointsResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpoint};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpointsResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpoint, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -264,6 +264,36 @@ impl Provision<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_topic_endpoint(in_vpn, item, getselect("*"));
+                match core.run(request) {
+                    Ok(response) => {
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        Ok(response)
+                    },
+                    Err(e) => {
+                        error!("provision error: {:?}", e);
+                        exit(126);
+                        Err("provision error")
+                    }
+                }
+            }
+            _ => unimplemented!()
+        }
+    }
+}
+
+// authorization group
+
+impl Provision<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupResponse {
+
+    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupResponse, &'static str> {
+        let file = std::fs::File::open(file_name).unwrap();
+        let deserialized: Option<MsgVpnAuthorizationGroup> = serde_yaml::from_reader(file).unwrap();
+        match deserialized {
+            Some(mut item) => {
+                item.set_msg_vpn_name(in_vpn.to_owned());
+                let request = apiclient
+                    .default_api()
+                    .create_msg_vpn_authorization_group(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));

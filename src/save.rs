@@ -1,6 +1,6 @@
 
 
-use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpoint, MsgVpnTopicEndpointsResponse};
+use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpoint, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse};
 use solace_semp_client::models::MsgVpn;
 use serde::Serialize;
 use std::path::Path;
@@ -361,3 +361,39 @@ impl Save<MsgVpnTopicEndpointsResponse> for MsgVpnTopicEndpointsResponse {
         }
     }
 }
+
+// authorization group
+
+impl Save<MsgVpnAuthorizationGroup> for MsgVpnAuthorizationGroup {
+    fn save(dir: &str, data: &MsgVpnAuthorizationGroup) -> Result<(), &'static str> where MsgVpnAuthorizationGroup: Serialize {
+        let vpn_name = data.msg_vpn_name();
+        let item_name = data.authorization_group_name();
+
+        debug!("save authorization-group: {:?}, {:?}", vpn_name, item_name);
+        data.save_in_dir(dir, "authorization-group", &vpn_name, &item_name);
+        Ok(())
+    }
+}
+
+
+impl Save<MsgVpnAuthorizationGroupsResponse> for MsgVpnAuthorizationGroupsResponse {
+    fn save(dir: &str, data: &MsgVpnAuthorizationGroupsResponse) -> Result<(), &'static str> where MsgVpnAuthorizationGroupsResponse: Serialize {
+        match data.data() {
+            Some(items) => {
+                for item in items {
+                    match MsgVpnAuthorizationGroup::save(dir, item) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no users");
+                Err("no users")
+            }
+        }
+    }
+}
+
+//

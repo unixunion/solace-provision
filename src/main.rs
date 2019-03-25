@@ -12,7 +12,7 @@ use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
 use std::borrow::Cow;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup};
 use solace_semp_client::models::MsgVpnQueue;
 use solace_semp_client::models::MsgVpnResponse;
 use solace_semp_client::models::MsgVpnAclProfile;
@@ -933,7 +933,7 @@ fn main() -> Result<(), Box<Error>> {
                 }
 
                 if delete {
-                    info!("deleting queue");
+                    info!("deleting topic endpoint");
                     MsgVpnTopicEndpointResponse::delete(message_vpn, topic_endpoint, "", &mut core, &client);
                 }
             } else {
@@ -945,6 +945,91 @@ fn main() -> Result<(), Box<Error>> {
     }
 
 
+
+
+    // authorization groups
+
+    if matches.is_present("auth-group") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("auth-group") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let authorization_group = matches.value_of("auth-group").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if update_item || shutdown_item || fetch || delete || matches.is_present("file") {
+
+                if shutdown_item {
+                    MsgVpnAuthorizationGroupResponse::enabled(message_vpn, authorization_group,
+                                            false, &mut core, &client);
+                }
+
+                // if file is passed, it means either provision or update.
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file").unwrap();
+                    if update_item {
+                        MsgVpnAuthorizationGroupResponse::update(message_vpn, file_name, &mut core,
+                                                            &client);
+                    } else {
+                        MsgVpnAuthorizationGroupResponse::provision(message_vpn, "", file_name,
+                                                               &mut core, &client);
+                    }
+                }
+
+
+                if no_shutdown_item {
+                    MsgVpnAuthorizationGroupResponse::enabled(message_vpn, authorization_group,
+                                            true, &mut core, &client);
+                }
+
+                // finally if fetch is specified, we do this last.
+                while fetch {
+                    let data = MsgVpnAuthorizationGroupsResponse::fetch(message_vpn,
+                                                                   authorization_group, "",count, &*cursor.to_string(), select,
+                                                                   &mut core, &client);
+
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
+                                MsgVpnAuthorizationGroupsResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+
+                }
+
+                if delete {
+                    info!("deleting authorization group");
+                    MsgVpnAuthorizationGroupResponse::delete(message_vpn, authorization_group, "", &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
 
 
     // other
