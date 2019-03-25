@@ -26,6 +26,7 @@ Objects that can be Provisioned, Updated and Downloaded
     * Client Username
     * Queue Subscription
     * Topic Endpoints
+    * Authorization Groups
     
 This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 
@@ -275,6 +276,24 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 #### Delete
 
     solace-provision --config examples/config.yaml topic-endpoint --delete --topic-endpint mytopic --message-vpn myvpn
+
+### Authorization Group
+
+#### Fetch [and Write to output dir]:
+
+    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  auth-group --auth-group "*" --message-vpn myvpn 
+    
+#### Provision
+
+    solace-provision --config examples/config.yaml auth-group --file examples/authgroup.yaml --message-vpn myvpn
+    
+#### Shutdown / Enable
+
+    solace-provision --config examples/config.yaml auth-group --auth-group myauthgroup --message-vpn myvpn [--shutdown|--no-shutdown]
+    
+#### Delete
+
+    solace-provision --config examples/config.yaml auth-group --delete --auth-group myauthgroup --message-vpn myvpn
 
 
 ### Downloading Entire VPN's

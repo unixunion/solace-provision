@@ -12,7 +12,7 @@ mod tests {
 
 use std::process;
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -422,6 +422,7 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
             println!("changing enabled state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
             x.set_enabled(state);
+            // this sets the password to None, so its not sent back to the appliance
             x.reset_password();
             let r = core.run(apiclient.default_api().update_msg_vpn_client_username(msg_vpn, item_name, x, getselect("*")));
             match r {
@@ -616,4 +617,88 @@ impl Update<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
             }
         }
     }
+}
+
+
+// authorization group
+
+impl Update<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupResponse {
+
+    fn update(msg_vpn: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+
+        let file = std::fs::File::open(file_name).unwrap();
+        let deserialized: Option<MsgVpnAuthorizationGroup> = serde_yaml::from_reader(file).unwrap();
+
+        match deserialized {
+            Some(mut item) => {
+                item.set_msg_vpn_name(msg_vpn.to_owned());
+                let item_name = item.authorization_group_name().cloned();
+                let request = apiclient
+                    .default_api()
+                    .update_msg_vpn_authorization_group(msg_vpn, &*item_name.unwrap(), item, getselect("*"));
+                match core.run(request) {
+                    Ok(response) => {
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        Ok(())
+                    },
+                    Err(e) => {
+                        error!("update error: {:?}", e);
+                        process::exit(126);
+                        Err("update error")
+                    }
+                }
+            }
+            _ => unimplemented!()
+        }
+    }
+
+    fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        println!("retrieving current authorization-group from appliance");
+        let mut item = MsgVpnAuthorizationGroupsResponse::fetch(msg_vpn, item_name, "",10, "", "", core, apiclient)?;
+        let mut titem = item.data().unwrap().clone();
+
+        if titem.len() == 1 {
+            println!("changing enabled state to: {}", state.to_string());
+            let mut x = titem.pop().unwrap();
+            x.set_enabled(state);
+            let r = core.run(apiclient.default_api().update_msg_vpn_authorization_group(msg_vpn, item_name, x, getselect("*")));
+            match r {
+                Ok(t) => info!("state successfully changed to {:?}", state),
+                Err(e) => {
+                    error!("error changing enabled state for authorization-group: {}, {:?}", item_name, e);
+                    exit(126);
+                }
+            }
+
+        } else {
+            error!("error, did not find exactly one item matching query");
+            process::exit(126);
+        }
+
+        Ok(())
+    }
+
+    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
+
+    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
+
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        let t = apiclient.default_api().delete_msg_vpn_authorization_group(msg_vpn, item_name);
+        match core.run(t) {
+            Ok(vpn) => {
+                info!("authorization-group deleted");
+                Ok(())
+            },
+            Err(e) => {
+                error!("unable to delete authorization-group: {:?}", e);
+                process::exit(126);
+                Err("unable to delete authorization-group")
+            }
+        }
+    }
+
 }
