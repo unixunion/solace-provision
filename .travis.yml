@@ -11,19 +11,19 @@ cache:
   - "/home/travis/.cargo"
 before_cache:
 - rm -rf /home/travis/.cargo/registry
-before_deploy:
-  # Set up git user name and tag this commit
-  - git config --local user.name "Kegan Holtzhausen"
-  - git config --local user.email "marzubus@gmail.com"
-  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
-  - git tag $TRAVIS_TAG
-deploy:
-  provider: releases
-  api_key:
-    secure: qy+9hMamSXQ8HikE/F1bZ37rTyBW6RfDe0R6V5bVLgs4IeDOlV7eD6EPj2bXWVYMJfg3dXHFmQsYZXvxyOwrZXuydl16Kyuk/I2onev50ffxYUGmcJh7peGzShwlh+WdNNC3hUmQoBC93DZToslnHsJ9jTH/Th+09t2nH5GwpCZXZS7SaJgtu3HoY3cx6sK78aMXAUWl9B5MKsRmuGIYHGK4b3kCRKtsDGD+4SA2FPjQWPIVemy7MCAxU0SdXhW5dWYcp/Znkl9+sGnQFryozt3GFxx4pfGOR5/usNqqZE+NAaOeyeKW2NeWlQEHdObNmUowKW+9A5+klGcJGa3m5Qkb0hfTTLhAZ/yq1rapnBGwzoSdG7bAIsaq03rcxyAY/ulbZPVY70dhu4yBdG+RGJxP7ZtKqJaMWsJ6w0LBZLWcRJ4lcC6NjGoiBeNU5WmNE3IQMPP1SvziRMX3JdgZMa6cKft27Xr48UvhuIqjlnYjudicZ67ZagHgz5QfUQnvDUeWTuAYfOXyNhL0P4Zu/ZpsKGnnQk1T5CeRaQrsQACokehAGfDBT99J+DdnHd/5U3yA5nqt1qNMigt47wO0it4egfPtWY3MVyV/FPR8Tz9zajIC5rxTCeVbEW+KvzwIWbJUSpHT3JhzXybpFyVd956QN1nn74x474dIm2gDY9c=
-  file: target/release/solace-provision
-  skip_cleanup: true
-  on:
-    repo: unixunion/solace-provision
-    tags: true
-  draft: true
+#before_deploy:
+#  # Set up git user name and tag this commit
+#  - git config --local user.name "Kegan Holtzhausen"
+#  - git config --local user.email "marzubus@gmail.com"
+#  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
+#  - git tag $TRAVIS_TAG
+#deploy:
+#  provider: releases
+#  api_key:
+#    secure: qy+9hMamSXQ8HikE/F1bZ37rTyBW6RfDe0R6V5bVLgs4IeDOlV7eD6EPj2bXWVYMJfg3dXHFmQsYZXvxyOwrZXuydl16Kyuk/I2onev50ffxYUGmcJh7peGzShwlh+WdNNC3hUmQoBC93DZToslnHsJ9jTH/Th+09t2nH5GwpCZXZS7SaJgtu3HoY3cx6sK78aMXAUWl9B5MKsRmuGIYHGK4b3kCRKtsDGD+4SA2FPjQWPIVemy7MCAxU0SdXhW5dWYcp/Znkl9+sGnQFryozt3GFxx4pfGOR5/usNqqZE+NAaOeyeKW2NeWlQEHdObNmUowKW+9A5+klGcJGa3m5Qkb0hfTTLhAZ/yq1rapnBGwzoSdG7bAIsaq03rcxyAY/ulbZPVY70dhu4yBdG+RGJxP7ZtKqJaMWsJ6w0LBZLWcRJ4lcC6NjGoiBeNU5WmNE3IQMPP1SvziRMX3JdgZMa6cKft27Xr48UvhuIqjlnYjudicZ67ZagHgz5QfUQnvDUeWTuAYfOXyNhL0P4Zu/ZpsKGnnQk1T5CeRaQrsQACokehAGfDBT99J+DdnHd/5U3yA5nqt1qNMigt47wO0it4egfPtWY3MVyV/FPR8Tz9zajIC5rxTCeVbEW+KvzwIWbJUSpHT3JhzXybpFyVd956QN1nn74x474dIm2gDY9c=
+#  file: target/release/solace-provision
+#  skip_cleanup: true
+#  on:
+#    repo: unixunion/solace-provision
+#    tags: true
+#  draft: true
