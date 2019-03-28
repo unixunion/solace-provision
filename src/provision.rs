@@ -1,13 +1,117 @@
 
 mod tests {
 
-    use solace_semp_client::models::MsgVpn;
+    use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnQueueResponse, MsgVpnAclProfileResponse, MsgVpnClientProfileResponse, MsgVpnClientUsernameResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnAuthorizationGroupResponse};
     use crate::provision::Provision;
     use solace_semp_client::models::MsgVpnQueue;
+    use tokio_core::reactor::Core;
+    use hyper::client::HttpConnector;
+    use native_tls::TlsConnector;
+    use hyper::Client;
+    use crate::helpers;
+    use solace_semp_client::apis::configuration::Configuration;
+    use solace_semp_client::apis::client::APIClient;
+    use std::error::Error;
 
+    use crate::update::Update;
+
+    //-> Result<(), Box<Error>>
     #[test]
-    fn it_works() {
-        // create a new vpn, then test if our new traits and functions are bound
+    fn provision() {
+        info!("provision tests");
+
+        // configure the http client
+        let mut core = Core::new().unwrap();
+        let handle = core.handle();
+
+        let mut http = HttpConnector::new(4, &handle);
+        http.enforce_http(false);
+
+        let mut tls = TlsConnector::builder().unwrap();
+
+        let hyperclient = Client::configure()
+            .connector(hyper_tls::HttpsConnector::from((http, tls.build().unwrap()))).build(&handle);
+
+        let auth = helpers::gencred("admin".to_owned(), "admin".to_owned());
+
+        // the configuration for the APIClient
+        let mut configuration = Configuration {
+            base_path: "http://localhost:8081/SEMP/v2/config".to_owned(),
+            user_agent: Some("solace-provision".to_owned()),
+            client: hyperclient,
+            basic_auth: Some(auth),
+            oauth_access_token: None,
+            api_key: None,
+        };
+
+        let client = APIClient::new(configuration);
+
+        let v = MsgVpnResponse::provision("testvpn",
+                                          "",
+                                          "examples/vpn.yaml", &mut core,
+                                          &client);
+
+
+        let q = MsgVpnQueueResponse::provision("testvpn",
+                                               " queue1",
+                                               "examples/queue1.yaml", &mut core,
+                                               &client);
+
+        let a = MsgVpnAclProfileResponse::provision("testvpn",
+                                                    "myacl",
+                                                    "examples/acl.yaml", &mut core,
+                                                    &client);
+
+        let cp = MsgVpnClientProfileResponse::provision("testvpn",
+                                                        "myclientprofile",
+                                                        "examples/client-profile.yaml",
+                                                        &mut core, &client);
+
+
+        let cu = MsgVpnClientUsernameResponse::provision("testvpn",
+                                                         "myusername",
+                                                         "examples/client-username.yaml",
+                                                         &mut core, &client);
+
+
+        let qs = MsgVpnQueueSubscriptionResponse::provision("testvpn",
+                                                            "queue1",
+                                                            "examples/queue-subscription.yaml",
+                                                            &mut core, &client);
+
+        let st = MsgVpnSequencedTopicResponse::provision("testvpn",
+                                                         "",
+                                                         "examples/sequenced-topic.yaml",
+                                                         &mut core, &client);
+
+        let te = MsgVpnTopicEndpointResponse::provision("testvpn",
+                                                        "",
+                                                        "examples/topicendpoint.yaml",
+                                                        &mut core, &client);
+
+        let ag = MsgVpnAuthorizationGroupResponse::provision("testvpn",
+                                                             "",
+                                                             "examples/authgroup.yaml",
+                                                             &mut core, &client);
+
+        match v {
+            Ok(vpn) => {
+                assert_eq!(vpn.data().unwrap().msg_vpn_name().unwrap(), "testvpn");
+            },
+            Err(e) => {
+                error!("cannot test");
+            }
+        }
+
+        match q {
+            Ok(queue) => {
+                assert_eq!(queue.data().unwrap().queue_name().unwrap(), "queue1");
+            },
+            Err(e) => {
+                error!("cannot test");
+            }
+        }
+
 
     }
 }
@@ -160,7 +264,6 @@ impl Provision<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
     }
 }
 
-
 impl Provision<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
     fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientUsernameResponse, &'static str> {
@@ -189,11 +292,9 @@ impl Provision<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
     }
 }
 
-
-
 impl Provision<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse {
 
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionResponse, &'static str> {
+    fn provision(in_vpn: &str, queue_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnQueueSubscription> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -201,7 +302,7 @@ impl Provision<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionRespo
                 item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_queue_subscription(in_vpn, item_name, item, getselect("*"));
+                    .create_msg_vpn_queue_subscription(in_vpn, queue_name, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
@@ -219,9 +320,7 @@ impl Provision<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionRespo
     }
 }
 
-
 // sequenced topic
-
 impl Provision<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
 
     fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnSequencedTopicResponse, &'static str> {
@@ -250,9 +349,7 @@ impl Provision<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
     }
 }
 
-
 // topic endpoint
-
 impl Provision<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
 
     fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointResponse, &'static str> {
@@ -282,7 +379,6 @@ impl Provision<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
 }
 
 // authorization group
-
 impl Provision<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupResponse {
 
     fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupResponse, &'static str> {

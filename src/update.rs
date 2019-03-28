@@ -89,7 +89,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
 
     fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("changing enabled state to: {:?} for message-vpn: {}", state, msg_vpn);
-        let mut vpn = MsgVpnsResponse::fetch(item_name, item_name, "",10, "", "", core, apiclient)?;
+        let mut vpn = MsgVpnsResponse::fetch(item_name, item_name, "msgVpnName",item_name, 10, "", "", core, apiclient)?;
 
         let mut tvpn = vpn.data().unwrap().clone();
         if tvpn.len() == 1 {
@@ -131,7 +131,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
             },
             Err(e) => {
                 error!("unable to delete vpn: {:?}", e);
-                process::exit(126);
+//                process::exit(126);
                 Err("unable to delete vpn")
             }
         }
@@ -169,37 +169,12 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
     }
 
     fn enabled(vpn_name: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-//        info!("retrieving current queue from appliance");
-//        let mut item = MsgVpnQueuesResponse::fetch(vpn_name, item_name, "",10, "", "", core, apiclient)?;
-//        let mut titem = item.data().unwrap().clone();
-//
-//        if titem.len() == 1 {
-//            info!("changing enabled state to: {}", state.to_string());
-//            let mut x = titem.pop().unwrap();
-//            x.set_ingress_enabled(state);
-//            x.set_egress_enabled(state);
-//            let r = core.run(apiclient.default_api().update_msg_vpn_queue(vpn_name, item_name, x, getselect("*")));
-//            match r {
-//                Ok(t) => info!("state successfully changed to {:?}", state),
-//                Err(e) => {
-//                    error!("error changing enabled state for vpn: {}, {:?}", item_name, e);
-//                    exit(126);
-//                }
-//            }
-//
-//        } else {
-//            error!("error, did not find exactly one item matching query");
-//            process::exit(126);
-//        }
-//
-//        Ok(())
-        
         unimplemented!()
     }
 
     fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("retrieving current queue from appliance");
-        let mut item = MsgVpnQueuesResponse::fetch(msg_vpn, item_name, "",10, "", "", core, apiclient)?;
+        let mut item = MsgVpnQueuesResponse::fetch(msg_vpn, item_name, "queueName",item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         if titem.len() == 1 {
@@ -225,7 +200,7 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
 
     fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("retrieving current queue from appliance");
-        let mut item = MsgVpnQueuesResponse::fetch(msg_vpn, item_name, "",10, "", "", core, apiclient)?;
+        let mut item = MsgVpnQueuesResponse::fetch(msg_vpn, item_name, "queueName",item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         if titem.len() == 1 {
@@ -258,7 +233,7 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
             },
             Err(e) => {
                 error!("unable to delete queue: {:?}", e);
-                process::exit(126);
+//                process::exit(126);
                 Err("unable to delete queue")
             }
         }
@@ -315,7 +290,7 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
             },
             Err(e) => {
                 error!("unable to delete acl: {:?}", e);
-                process::exit(126);
+//                process::exit(126);
                 Err("unable to delete acl")
             }
         }
@@ -375,7 +350,7 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
             },
             Err(e) => {
                 error!("unable to delete client-profile: {:?}", e);
-                process::exit(126);
+//                process::exit(126);
                 Err("unable to delete client-profile")
             }
         }
@@ -415,7 +390,7 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
     fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         println!("retrieving current client-username from appliance");
-        let mut item = MsgVpnClientUsernamesResponse::fetch(msg_vpn, item_name, "",10, "", "", core, apiclient)?;
+        let mut item = MsgVpnClientUsernamesResponse::fetch(msg_vpn, item_name, "clientUsername",item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         if titem.len() == 1 {
@@ -458,7 +433,7 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
             },
             Err(e) => {
                 error!("unable to delete client-username: {:?}", e);
-                process::exit(126);
+//                process::exit(126);
                 Err("unable to delete client-username")
             }
         }
@@ -494,7 +469,7 @@ impl Update<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse
             },
             Err(e) => {
                 error!("unable to delete queue-subscription: {:?}", e);
-                process::exit(126);
+//                process::exit(126);
                 Err("unable to delete queue-subscription")
             }
         }
@@ -530,7 +505,7 @@ impl Update<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
             },
             Err(e) => {
                 error!("unable to delete sequence-topic: {:?}", e);
-                process::exit(126);
+//                process::exit(126);
                 Err("unable to delete sequence-topic")
             }
         }
@@ -552,7 +527,7 @@ impl Update<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
 
     fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("retrieving current topic endpoint from appliance");
-        let mut item = MsgVpnTopicEndpointsResponse::fetch(msg_vpn, item_name, "",10, "", "", core, apiclient)?;
+        let mut item = MsgVpnTopicEndpointsResponse::fetch(msg_vpn, item_name, "topicEndpointName",item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         if titem.len() == 1 {
@@ -578,7 +553,7 @@ impl Update<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
 
     fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("retrieving current queue from appliance");
-        let mut item = MsgVpnTopicEndpointsResponse::fetch(msg_vpn, item_name, "",10, "", "", core, apiclient)?;
+        let mut item = MsgVpnTopicEndpointsResponse::fetch(msg_vpn, item_name, "topicEndpointName",item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         if titem.len() == 1 {
@@ -612,7 +587,7 @@ impl Update<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
             },
             Err(e) => {
                 error!("unable to delete topic-endpoint: {:?}", e);
-                process::exit(126);
+//                process::exit(126);
                 Err("unable to delete topic-endpoint")
             }
         }
@@ -654,7 +629,7 @@ impl Update<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupRespon
 
     fn enabled(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         println!("retrieving current authorization-group from appliance");
-        let mut item = MsgVpnAuthorizationGroupsResponse::fetch(msg_vpn, item_name, "",10, "", "", core, apiclient)?;
+        let mut item = MsgVpnAuthorizationGroupsResponse::fetch(msg_vpn, item_name, "authorizationGroupName",item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         if titem.len() == 1 {
@@ -695,7 +670,7 @@ impl Update<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupRespon
             },
             Err(e) => {
                 error!("unable to delete authorization-group: {:?}", e);
-                process::exit(126);
+//                process::exit(126);
                 Err("unable to delete authorization-group")
             }
         }
