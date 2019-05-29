@@ -442,6 +442,7 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
     }
 }
 
+// queue subscription
 
 impl Update<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse {
 
@@ -798,7 +799,7 @@ impl Update<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnRespon
                 let bridge_virtual_router = item.bridge_virtual_router().cloned();
                 let remote_vpn_name = item.remote_msg_vpn_name().cloned();
                 let remote_vpn_location = item.remote_msg_vpn_location().cloned();
-                let remote_msg_vpn_interface = item.remote_msg_vpn_location().cloned();
+                let remote_msg_vpn_interface = item.remote_msg_vpn_interface().cloned();
                 let request = apiclient
                     .default_api()
                     .update_msg_vpn_bridge_remote_msg_vpn(msg_vpn,

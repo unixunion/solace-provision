@@ -410,6 +410,7 @@ impl Provision<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
 }
 
 // authorization group
+
 impl Provision<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupResponse {
 
     fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupResponse, &'static str> {
