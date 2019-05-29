@@ -1,0 +1,16 @@
+---
+bridgeName: mybridge
+bridgeVirtualRouter: primary
+clientUsername: myusername
+compressedDataEnabled: false
+connectOrder: 4
+egressFlowWindowSize: 255
+enabled: true
+msgVpnName: myvpn
+password: secretpw
+queueBinding: queue1
+#remoteMsgVpnInterface:
+remoteMsgVpnLocation: v:solace
+remoteMsgVpnName: default
+tlsEnabled: false
+unidirectionalClientProfile: myclientprofile

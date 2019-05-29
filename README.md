@@ -27,6 +27,8 @@ Objects that can be Provisioned, Updated and Downloaded
     * Queue Subscription
     * Topic Endpoints
     * Authorization Groups
+    * Bridge
+    * Remote Bridge VPN
     
 This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 
@@ -45,6 +47,12 @@ This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-A
 ### Compiling Requirements
 
 rust 1.33 *or* docker
+
+### Testing
+
+docker-compose up -d
+sh clean.sh examples/config.yaml testvpn
+RUST_BACKTRACE=full cargo test -- --nocapture 
 
 # Usage
 
@@ -108,9 +116,10 @@ Executable quick overview:
 ```bash
 solace-provision --config {CLIENT_CONFIG} \
                 [--output {FETCH_OUTDIR}] \
-                vpn|queue|acl-profile|client-profile|client-username \
+                vpn|queue|acl-profile|client-profile|client-username|bridge|remote-bridge \
                 --message-vpn {VPN_NAME} \
                 [--queue|--acl-profile|--client-profile|--client-username] {ITEM_NAME}] \
+                [--virtual-router primary|backup|auto] \
                 [--file {ITEM_YAML}] \
                 [--update] \
                 [--shutdown] \
@@ -149,151 +158,6 @@ solace-provision takes args both within the subcommand scope and outside of it. 
     --output OPTIONAL: save path for "fetch" operations 
     --count n OPTIONAL: items per "fetch", default=10
 
-### VPN Subcommand
-
-#### Fetch [and Write to output dir]:
-
-    solace-provision --config examples/config.yaml [--output ./out_dir] [--count 10] vpn --fetch --message-vpn "*"    
-
-#### Provision / Update
-
-    solace-provision --config examples/config.yaml vpn --file examples/vpn.yaml [--update] [--shutdown] [--no-shutdown]
-
-#### Shutdown
-
-    solace-provision --config examples/config.yaml vpn --message-vpn myvpn --shutdown --update
-    
-#### Enable
-
-    solace-provision --config examples/config.yaml vpn --message-vpn myvpn --no-shutdown --update
-
-#### Delete VPN
-
-    solace-provision --config examples/config.yaml vpn --message-vpn myvpn --delete
-
-### Queue Subcommand
-
-#### Fetch [and Write to output dir]:
-
-    solace-provision --config examples/config.yaml [--output ./out_dir] [--count 10] queue --fetch --queue "*" --message-vpn myvpn
-
-#### Provision / Update
-
-    solace-provision --config examples/config.yaml queue --message-vpn myvpn --file examples/queue.yaml [--update]
-
-#### Shutdown
-
-    solace-provision --config examples/config.yaml queue --message-vpn myvpn --queue-name myqueue --shutdown --update
-    
-#### Enable
-
-    solace-provision --config examples/config.yaml queue --message-vpn myvpn --queue-name myqueue --no-shutdown
-
-### ACL Subcommand
-
-#### Fetch [and Write to output dir]:
-
-    solace-provision --config examples/config.yaml [--output tmp] [--count 10] acl-profile --fetch --acl-profile "*" --message-vpn myvpn
-
-#### Provision / Update
-
-    solace-provision --config examples/config.yaml acl-profile --file examples/acl.yaml --message-vpn myvpn [--update]
-    
-### Client Profile
-
-#### Fetch
-
-    solace-provision --config examples/config.yaml [--output tmp] [--count 10] client-profile --fetch --client-profile "*" --message-vpn myvpn
-
-#### Provision / Update
-
-    solace-provision --config examples/config.yaml client-profile --file examples/client-profile.yaml --message-vpn myvpn [--update]
-
-### Client-Username
-    
-#### Fetch [and Write to output dir]:
-
-    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  client-username --client-username "*" --message-vpn myvpn 
-    
-#### Provision / Update
-
-    solace-provision --config examples/config.yaml client-username --file examples/client-username.yaml --message-vpn myvpn [--update]
-
-#### Shutdown
-
-    solace-provision --config examples/config.yaml client-username --message-vpn myvpn --shutdown --update
-
-#### Enable
-
-    solace-provision --config examples/config.yaml client-username --message-vpn myvpn --no-shutdown
-
-### Queue-Subscription
-
-#### Fetch [and Write to output dir]:
-
-    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  queue-subscription --queue-username "*" --message-vpn myvpn 
-    
-#### Provision
-
-    solace-provision --config examples/config.yaml queue-subscription --file examples/queue-subscription.yaml --message-vpn myvpn
-
-#### Delete
-
-    solace-provision --config examples/config.yaml queue-subscription --delete --message-vpn myvpn --queue-subscription mytopic
-
-### Sequenced-Topic
-
-#### Fetch [and Write to output dir]:
-
-    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  sequenced-topic --sequence-topic "*" --message-vpn myvpn 
-    
-#### Provision
-
-    solace-provision --config examples/config.yaml sequenced-topic --file examples/sequence-topic.yaml --message-vpn myvpn
-
-#### Delete
-
-    solace-provision --config examples/config.yaml sequenced-topic --delete --message-vpn myvpn --sequenced-topic mytopic
-
-### Topic-Endpoint
-
-#### Fetch [and Write to output dir]:
-
-    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  topic-endpoint --topic-endpoint "*" --message-vpn myvpn 
-    
-#### Provision
-
-    solace-provision --config examples/config.yaml topic-endpoint --file examples/topicendpoint.yaml --message-vpn myvpn
-    
-#### Shutdown / Partial Shutdown
-
-    solace-provision --config examples/config.yaml topic-endpoint --topic-endpint mytopic --message-vpn myvpn [--shutdown|--shutdown-ingress|--shutdown-egress]
-    
-#### Enable / Partial Enable
-
-    solace-provision --config examples/config.yaml topic-endpoint --topic-endpint mytopic --message-vpn myvpn [--no-shutdown|--no-shutdown-ingress|--no-shutdown-egress]
-
-#### Delete
-
-    solace-provision --config examples/config.yaml topic-endpoint --delete --topic-endpint mytopic --message-vpn myvpn
-
-### Authorization Group
-
-#### Fetch [and Write to output dir]:
-
-    solace-provision --config examples/config.yaml [--output tmp] [--count 10]  auth-group --auth-group "*" --message-vpn myvpn 
-    
-#### Provision
-
-    solace-provision --config examples/config.yaml auth-group --file examples/authgroup.yaml --message-vpn myvpn
-    
-#### Shutdown / Enable
-
-    solace-provision --config examples/config.yaml auth-group --auth-group myauthgroup --message-vpn myvpn [--shutdown|--no-shutdown]
-    
-#### Delete
-
-    solace-provision --config examples/config.yaml auth-group --delete --auth-group myauthgroup --message-vpn myvpn
 
 
 ### Downloading Entire VPN's

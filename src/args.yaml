@@ -1,5 +1,5 @@
 name: solace-provision
-version: 0.1.6
+version: 0.1.7
 author: Kegan Holtzhausen <marzubus@gmail.com>
 about: SEMPv2 version 9.0.1.18 solace provisioning tool, see https://github.com/unixunion/solace-provision for src and examples
 args:
@@ -470,3 +470,118 @@ subcommands:
               - message-vpn
               - auth-group
             help: update an existing authorization group by name
+  - bridge:
+      about: bridge management
+      version: 9.0.1.18
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+            requires:
+              - message-vpn
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference, if specified overrides specified msgVpnName in spec file.
+            required: true
+            takes_value: true
+        - bridge:
+            long: bridge
+            help: the bridge name
+            takes_value: true
+        - shutdown:
+            long: shutdown
+            requires:
+              - message-vpn
+              - bridge
+              - update
+            help: shutdown an authorization group
+        - no-shutdown:
+            long: no-shutdown
+            requires:
+              - message-vpn
+              - bridge
+              - update
+            help: enable authorization group
+        - virtual-router:
+            long: virtual-router
+            takes_value: true
+            help: the virtual-router e.g primary / backup / auto
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - bridge
+            help: fetch an existing bridge from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - bridge
+              - virtual-router
+            help: delete a specified bridge
+        - update:
+            long: update
+            requires:
+              - message-vpn
+            help: update an existing authorization group by name
+  - remote-bridge:
+      about: remote bridge management
+      version: 9.0.1.18
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+            requires:
+              - message-vpn
+              - bridge
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference on the local side
+            required: true
+            takes_value: true
+        - bridge:
+            long: bridge
+            help: the bridge name
+            takes_value: true
+        - shutdown:
+            long: shutdown
+            requires:
+              - message-vpn
+              - bridge
+              - update
+            help: shutdown an remote-bridg
+        - no-shutdown:
+            long: no-shutdown
+            requires:
+              - message-vpn
+              - bridge
+              - update
+            help: enable remote-bridge
+        - virtual-router:
+            long: virtual-router
+            takes_value: true
+            help: the virtual-router e.g primary / backup / auto
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - bridge
+              - virtual-router
+            help: fetch an existing bridge from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - bridge
+              - virtual-router
+            help: delete a specified bridge
+        - update:
+            long: update
+            requires:
+              - message-vpn
+              - bridge
+            help: update an existing remote-bridge
