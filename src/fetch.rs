@@ -57,7 +57,7 @@ use solace_semp_client::models::MsgVpnAclProfile;
 use serde::Serialize;
 use colored::Colorize;
 use futures::{Future};
-use futures::future::AndThen;
+use futures::future::{AndThen, FutureResult};
 use std::fs::File;
 use serde::Deserialize;
 use crate::helpers;
@@ -73,14 +73,17 @@ use log::{info, warn, error, debug};
 use std::path::Path;
 use std::fs;
 use std::io::Write;
+use serde_json::Value;
+
 
 // shared base trait for all solace fetch-able objects
 pub trait Fetch<T> {
-
     fn fetch(in_vpn: &str, sub_item: &str, select_key: &str, select_value: &str, count: i32,  cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<T, &'static str>;
 
 }
 
+
+//futures::future::and_then::AndThen<std::boxed::Box<dyn futures::future::Future<Item=solace_semp_client::models::msg_vpns_response::MsgVpnsResponse, Error=solace_semp_client::apis::Error<serde_json::value::Value>>>, futures::future::result_::FutureResult<solace_semp_client::models::msg_vpns_response::MsgVpnsResponse, solace_semp_client::apis::Error<serde_json::value::Value>>, [closure@src/fetch.rs:105:23: 108:14]>` cannot be formatted with the default formatter
 
 // fetch multple msgvpnsresponse
 impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
@@ -94,6 +97,10 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
                 debug!("{:?}", vpn);
                 futures::future::ok(vpn)
             });
+
+//        info!("{}", request);
+//        core_run(request)
+//        Self::core_run(request, core)
 
         match core.run(request) {
             Ok(response) => {
@@ -362,7 +369,7 @@ impl Fetch<MsgVpnBridgesResponse> for MsgVpnBridgesResponse {
 
 impl Fetch<MsgVpnBridgeRemoteMsgVpnsResponse> for MsgVpnBridgeRemoteMsgVpnsResponse {
     fn fetch(in_vpn: &str, bridge_name: &str, bridge_virtual_router: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteMsgVpnsResponse, &'static str> {
-        let (wherev, mut selectv) = helpers::getwhere("bridgeName", select_value, selector);
+        let (wherev, mut selectv) = helpers::getwhere("bridgeName", bridge_name, selector);
 
         let request = apiclient
             .default_api()

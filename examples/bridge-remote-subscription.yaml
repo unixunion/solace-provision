@@ -1,0 +1,6 @@
+---
+bridgeName: mybridge
+bridgeVirtualRouter: primary
+deliverAlwaysEnabled: true
+msgVpnName: myvpn
+remoteSubscriptionTopic: remotetopic

@@ -1,6 +1,6 @@
 
 
-use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpoint, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse};
+use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpoint, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgesResponse, MsgVpnBridge, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteMsgVpnsResponse};
 use solace_semp_client::models::MsgVpn;
 use serde::Serialize;
 use std::path::Path;
@@ -396,4 +396,66 @@ impl Save<MsgVpnAuthorizationGroupsResponse> for MsgVpnAuthorizationGroupsRespon
     }
 }
 
-//
+// bridge
+
+impl Save<MsgVpnBridge> for MsgVpnBridge {
+    fn save(dir: &str, data: &MsgVpnBridge) -> Result<(), &'static str> where MsgVpnBridge: Serialize {
+        let vpn_name = data.msg_vpn_name();
+        let item_name = data.bridge_name();
+        debug!("save bridge: {:?}, {:?}", vpn_name, item_name);
+        data.save_in_dir(dir, "bridge", &vpn_name, &item_name);
+        Ok(())
+    }
+}
+
+impl Save<MsgVpnBridgesResponse> for MsgVpnBridgesResponse {
+    fn save(dir: &str, data: &MsgVpnBridgesResponse) -> Result<(), &'static str> where MsgVpnBridgesResponse: Serialize {
+        match data.data() {
+            Some(items) => {
+                for item in items {
+                    match MsgVpnBridge::save(dir, item) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no users");
+                Err("no users")
+            }
+        }
+    }
+}
+
+// bridge-remote
+
+impl Save<MsgVpnBridgeRemoteMsgVpn> for MsgVpnBridgeRemoteMsgVpn {
+    fn save(dir: &str, data: &MsgVpnBridgeRemoteMsgVpn) -> Result<(), &'static str> where MsgVpnBridgeRemoteMsgVpn: Serialize {
+        let vpn_name = data.msg_vpn_name();
+        let item_name = data.bridge_name();
+        debug!("save bridge: {:?}, {:?}", vpn_name, item_name);
+        data.save_in_dir(dir, "remote-bridge", &vpn_name, &item_name);
+        Ok(())
+    }
+}
+
+impl Save<MsgVpnBridgeRemoteMsgVpnsResponse> for MsgVpnBridgeRemoteMsgVpnsResponse {
+    fn save(dir: &str, data: &MsgVpnBridgeRemoteMsgVpnsResponse) -> Result<(), &'static str> where MsgVpnBridgeRemoteMsgVpnsResponse: Serialize {
+        match data.data() {
+            Some(items) => {
+                for item in items {
+                    match MsgVpnBridgeRemoteMsgVpn::save(dir, item) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no users");
+                Err("no users")
+            }
+        }
+    }
+}

@@ -1,0 +1,15 @@
+---
+bridgeName: mybridge
+bridgeVirtualRouter: primary
+enabled: true
+maxTtl: 8
+msgVpnName: myvpn
+remoteAuthenticationBasicClientUsername: myusername
+remoteAuthenticationBasicPassword: secretpw
+#remoteAuthenticationClientCertContent:
+#remoteAuthenticationClientCertPassword:
+remoteAuthenticationScheme: basic
+remoteConnectionRetryCount: 0
+remoteConnectionRetryDelay: 3
+remoteDeliverToOnePriority: p1
+#tlsCipherSuiteList: default

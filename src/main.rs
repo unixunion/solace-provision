@@ -12,7 +12,7 @@ use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
 use std::borrow::Cow;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridgesResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpnsResponse};
 use solace_semp_client::models::MsgVpnQueue;
 use solace_semp_client::models::MsgVpnResponse;
 use solace_semp_client::models::MsgVpnAclProfile;
@@ -56,7 +56,6 @@ mod update;
 mod fetch;
 mod save;
 mod clientconnection;
-mod termination;
 
 mod test {
     use solace_semp_client::models::MsgVpn;
@@ -190,22 +189,14 @@ fn main() -> Result<(), Box<Error>> {
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
 
-//            match args::at_least_one_of(vec!["update", "shutdown", "no-shutdown", "fetch", "delete"], matches) {
-//                Ok(x) => {
-//
-//                },
-//                Err(e) => {
-//
-//                }
-//            }
 
             if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
 
 
                 // early shutdown if not provisioning new
                 if shutdown_item && update_item && matches.is_present("message-vpn") {
-                    MsgVpnResponse::enabled(message_vpn, message_vpn,
-                                            false, &mut core, &client);
+                    MsgVpnResponse::enabled(message_vpn, message_vpn, vec![],
+                                            false, &mut core, &client)?;
                 }
 
                 // if file is passed, it means either provision or update.
@@ -221,8 +212,8 @@ fn main() -> Result<(), Box<Error>> {
                         match deserialized {
                             Some(mut item) => {
                                 if update_item {
-                                    MsgVpnResponse::update(message_vpn, file_name, &mut core,
-                                                           &client);
+                                    MsgVpnResponse::update(message_vpn, file_name, "",
+                                                           &mut core, &client);
                                 } else {
                                     MsgVpnResponse::provision(message_vpn, "",
                                                               file_name, &mut core,
@@ -237,7 +228,7 @@ fn main() -> Result<(), Box<Error>> {
 
                 // late un-shutdown anything
                 if no_shutdown_item {
-                    MsgVpnResponse::enabled(message_vpn, message_vpn,
+                    MsgVpnResponse::enabled(message_vpn, message_vpn, vec![],
                                             true, &mut core, &client);
                 }
 
@@ -340,8 +331,8 @@ fn main() -> Result<(), Box<Error>> {
                         match deserialized {
                             Some(mut item) => {
                                 if update_item {
-                                    MsgVpnQueueResponse::update(message_vpn, file_name, &mut core,
-                                                                &client);
+                                    MsgVpnQueueResponse::update(message_vpn, file_name, "",
+                                                                &mut core, &client);
                                 } else {
                                     MsgVpnQueueResponse::provision(message_vpn, "",file_name,
                                                                    &mut core, &client);
@@ -452,7 +443,7 @@ fn main() -> Result<(), Box<Error>> {
                         match deserialized {
                             Some(mut item) => {
                                 if update_item {
-                                    MsgVpnAclProfileResponse::update(message_vpn, file_name,
+                                    MsgVpnAclProfileResponse::update(message_vpn, file_name, "",
                                                                      &mut core, &client);
                                 } else {
                                     MsgVpnAclProfileResponse::provision(message_vpn, "",file_name,
@@ -538,8 +529,8 @@ fn main() -> Result<(), Box<Error>> {
                         match deserialized {
                             Some(mut item) => {
                                 if update_item {
-                                    MsgVpnClientProfileResponse::update(message_vpn, file_name, &mut core,
-                                                                        &client);
+                                    MsgVpnClientProfileResponse::update(message_vpn, file_name, "",
+                                                                        &mut core, &client);
                                 } else {
                                     MsgVpnClientProfileResponse::provision(message_vpn, "", file_name,
                                                                            &mut core, &client);
@@ -618,7 +609,7 @@ fn main() -> Result<(), Box<Error>> {
 
                 // early shutdown if not provisioning new
                 if shutdown_item && update_item && matches.is_present("client-username") && matches.is_present("message-vpn") {
-                    MsgVpnClientUsernameResponse::enabled(message_vpn, client_username,
+                    MsgVpnClientUsernameResponse::enabled(message_vpn, client_username, vec![],
                                                           false, &mut core, &client);
                 }
 
@@ -627,8 +618,8 @@ fn main() -> Result<(), Box<Error>> {
                 if matches.is_present("file") {
                     let file_name = matches.value_of("file");
                     if update_item {
-                        MsgVpnClientUsernameResponse::update(message_vpn, file_name.unwrap(), &mut core,
-                                                             &client);
+                        MsgVpnClientUsernameResponse::update(message_vpn, file_name.unwrap(), "",
+                                                             &mut core, &client);
                     } else {
                         MsgVpnClientUsernameResponse::provision(message_vpn, "",file_name.unwrap(),
                                                                 &mut core, &client);
@@ -637,7 +628,7 @@ fn main() -> Result<(), Box<Error>> {
 
                 // late un-shutdown anything
                 if no_shutdown_item {
-                    MsgVpnClientUsernameResponse::enabled(message_vpn, client_username,
+                    MsgVpnClientUsernameResponse::enabled(message_vpn, client_username, vec![],
                                                           true, &mut core, &client);
                 }
 
@@ -877,8 +868,8 @@ fn main() -> Result<(), Box<Error>> {
                 if matches.is_present("file") {
                     let file_name = matches.value_of("file").unwrap();
                     if update_item {
-                        MsgVpnTopicEndpointResponse::update(message_vpn, file_name, &mut core,
-                                                    &client);
+                        MsgVpnTopicEndpointResponse::update(message_vpn, file_name, "",
+                                                            &mut core, &client);
                     } else {
                         MsgVpnTopicEndpointResponse::provision(message_vpn, "",file_name,
                                                        &mut core, &client);
@@ -969,7 +960,7 @@ fn main() -> Result<(), Box<Error>> {
             if update_item || shutdown_item || fetch || delete || matches.is_present("file") {
 
                 if shutdown_item {
-                    MsgVpnAuthorizationGroupResponse::enabled(message_vpn, authorization_group,
+                    MsgVpnAuthorizationGroupResponse::enabled(message_vpn, authorization_group, vec![],
                                             false, &mut core, &client);
                 }
 
@@ -977,8 +968,8 @@ fn main() -> Result<(), Box<Error>> {
                 if matches.is_present("file") {
                     let file_name = matches.value_of("file").unwrap();
                     if update_item {
-                        MsgVpnAuthorizationGroupResponse::update(message_vpn, file_name, &mut core,
-                                                            &client);
+                        MsgVpnAuthorizationGroupResponse::update(message_vpn, file_name, "",
+                                                                 &mut core, &client);
                     } else {
                         MsgVpnAuthorizationGroupResponse::provision(message_vpn, "", file_name,
                                                                &mut core, &client);
@@ -987,7 +978,7 @@ fn main() -> Result<(), Box<Error>> {
 
 
                 if no_shutdown_item {
-                    MsgVpnAuthorizationGroupResponse::enabled(message_vpn, authorization_group,
+                    MsgVpnAuthorizationGroupResponse::enabled(message_vpn, authorization_group, vec![],
                                             true, &mut core, &client);
                 }
 
@@ -1037,87 +1028,196 @@ fn main() -> Result<(), Box<Error>> {
 
     // bridge
 
-//    if matches.is_present("bridge") {
-//
-//        // source subcommand args into matches
-//        if let Some(matches) = matches.subcommand_matches("bridge") {
-//
-//            // get all args within the subcommand
-//            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
-//            let bridge = matches.value_of("bridge").unwrap_or("undefined");
-//            let update_item = matches.is_present("update");
-//            let shutdown_item = matches.is_present("shutdown");
-//            let no_shutdown_item = matches.is_present("no-shutdown");
-//            let fetch = matches.is_present("fetch");
-//            let delete = matches.is_present("delete");
-//
-//            if update_item || shutdown_item || fetch || delete || matches.is_present("file") {
-//
-//                if shutdown_item {
-//                    MsgVpnBridgeResponse::enabled(message_vpn, authorization_group,
-//                                                              false, &mut core, &client);
-//                }
-//
-//                // if file is passed, it means either provision or update.
-//                if matches.is_present("file") {
-//                    let file_name = matches.value_of("file").unwrap();
-//                    if update_item {
-//                        MsgVpnAuthorizationGroupResponse::update(message_vpn, file_name, &mut core,
-//                                                                 &client);
-//                    } else {
-//                        MsgVpnAuthorizationGroupResponse::provision(message_vpn, "", file_name,
-//                                                                    &mut core, &client);
-//                    }
-//                }
-//
-//
-//                if no_shutdown_item {
-//                    MsgVpnAuthorizationGroupResponse::enabled(message_vpn, authorization_group,
-//                                                              true, &mut core, &client);
-//                }
-//
-//                // finally if fetch is specified, we do this last.
-//                while fetch {
-//                    let data = MsgVpnAuthorizationGroupsResponse::fetch(message_vpn,
-//                                                                        authorization_group, "authorizationGroupName",authorization_group, count, &*cursor.to_string(), select,
-//                                                                        &mut core, &client);
-//
-//                    match data {
-//                        Ok(item) => {
-//                            if write_fetch_files {
-//                                MsgVpnAuthorizationGroupsResponse::save(output_dir, &item);
-//                            }
-//
-//                            let cq = item.meta().paging();
-//                            match cq {
-//                                Some(paging) => {
-//                                    info!("cq: {:?}", paging.cursor_query());
-//                                    cursor = Cow::Owned(paging.cursor_query().clone());
-//                                },
-//                                _ => {
-//                                    break
-//                                }
-//                            }
-//                        },
-//                        Err(e) => {
-//                            error!("error: {}", e)
-//                        }
-//                    }
-//
-//
-//                }
-//
-//                if delete {
-//                    info!("deleting authorization group");
-//                    MsgVpnAuthorizationGroupResponse::delete(message_vpn, authorization_group, "", &mut core, &client);
-//                }
-//            } else {
-//                error!("No operation was specified, see --help")
-//            }
-//
-//        }
-//
-//    }
+    if matches.is_present("bridge") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("bridge") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let bridge = matches.value_of("bridge").unwrap_or("undefined");
+            let virtual_router = matches.value_of("virtual-router").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
+
+                if shutdown_item {
+                    MsgVpnBridgeResponse::enabled(message_vpn, bridge, vec![],
+                                                              false, &mut core, &client);
+                }
+
+                // if file is passed, it means either provision or update.
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file").unwrap();
+                    if update_item {
+                        MsgVpnBridgeResponse::update(message_vpn, file_name, "", &mut core,
+                                                                 &client);
+                    } else {
+                        MsgVpnBridgeResponse::provision(message_vpn, "", file_name,
+                                                                    &mut core, &client);
+                    }
+                }
+
+
+                if no_shutdown_item {
+                    MsgVpnBridgeResponse::enabled(message_vpn, bridge, vec![],
+                                                              true, &mut core, &client);
+                }
+
+                // finally if fetch is specified, we do this last.
+                while fetch {
+                    let data = MsgVpnBridgesResponse::fetch(message_vpn,
+                                                                        bridge, "bridgeName",bridge, count, &*cursor.to_string(), select,
+                                                                        &mut core, &client);
+
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
+                                MsgVpnBridgesResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+
+                }
+
+                if delete {
+                    info!("deleting authorization group");
+                    MsgVpnBridgeResponse::delete(message_vpn, bridge, virtual_router, &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
+
+
+    // remote bridge
+
+    if matches.is_present("remote-bridge") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("remote-bridge") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let bridge = matches.value_of("bridge").unwrap_or("undefined");
+            let virtual_router = matches.value_of("virtual-router").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
+
+                if shutdown_item {
+                    MsgVpnBridgeRemoteMsgVpnResponse::enabled(message_vpn,
+                                                              bridge,
+                                                              vec![virtual_router],
+                                                              false,
+                                                              &mut core,
+                                                              &client);
+                }
+
+                // if file is passed, it means either provision or update.
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file").unwrap();
+                    if update_item {
+                        MsgVpnBridgeRemoteMsgVpnResponse::update(message_vpn, file_name, "", &mut core,
+                                                     &client);
+                    } else {
+                        MsgVpnBridgeRemoteMsgVpnResponse::provision(message_vpn,
+                                                                    bridge,
+                                                                    file_name,
+                                                                    &mut core,
+                                                                    &client);
+                    }
+                }
+
+
+                if no_shutdown_item {
+                    MsgVpnBridgeRemoteMsgVpnResponse::enabled(message_vpn,
+                                                              bridge,
+                                                              vec![virtual_router],
+                                                              true,
+                                                              &mut core,
+                                                              &client);
+                }
+
+                // finally if fetch is specified, we do this last.
+                while fetch {
+                    let data = MsgVpnBridgeRemoteMsgVpnsResponse::fetch(
+                        message_vpn,
+                        bridge,
+                        virtual_router,
+                        bridge,
+                        count,
+                        &*cursor.to_string(),
+                        select,
+                        &mut core,
+                        &client);
+
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
+                                MsgVpnBridgeRemoteMsgVpnsResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+
+                }
+
+                if delete {
+                    info!("deleting authorization group");
+                    MsgVpnBridgeRemoteMsgVpnResponse::delete(message_vpn,
+                                                             bridge,
+                                                             virtual_router,
+                                                             &mut core,
+                                                             &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
 
 
     // other

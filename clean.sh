@@ -36,6 +36,7 @@ delete() {
     $bin --config ${config_file} acl-profile --delete --message-vpn ${rnd_vpn} --update --acl-profile myacl
     # delete queue subscription
     $bin --config ${config_file} queue-subscription --message-vpn ${rnd_vpn} --queue queue1 --delete --subscription mytopic
+
     # delete queue
     $bin --config ${config_file} queue --queue queue5 --message-vpn ${rnd_vpn} --delete
     $bin --config ${config_file} queue --queue queue4 --message-vpn ${rnd_vpn} --delete
@@ -48,6 +49,9 @@ delete() {
         $bin --config ${config_file} queue --message-vpn ${rnd_vpn} --queue queue${i} --delete
         ((i=$i+1))
     done
+
+    # delete bridge
+    $bin --config ${config_file} bridge --message-vpn ${rnd_vpn} --delete --bridge mybridge --virtual-router primary
 
     # delete vpn
     $bin --config ${config_file} vpn --message-vpn ${rnd_vpn} --delete
