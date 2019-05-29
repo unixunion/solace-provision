@@ -490,20 +490,20 @@ subcommands:
             long: bridge
             help: the bridge name
             takes_value: true
-#        - shutdown:
-#            long: shutdown
-#            requires:
-#              - message-vpn
-#              - auth-group
-#              - update
-#            help: shutdown an authorization group
-#        - no-shutdown:
-#            long: no-shutdown
-#            requires:
-#              - message-vpn
-#              - auth-group
-#              - update
-#            help: enable authorization group
+        - shutdown:
+            long: shutdown
+            requires:
+              - message-vpn
+              - bridge
+              - update
+            help: shutdown an authorization group
+        - no-shutdown:
+            long: no-shutdown
+            requires:
+              - message-vpn
+              - bridge
+              - update
+            help: enable authorization group
         - virtual-router:
             long: virtual-router
             takes_value: true
@@ -521,12 +521,11 @@ subcommands:
               - bridge
               - virtual-router
             help: delete a specified bridge
-#        - update:
-#            long: update
-#            requires:
-#              - message-vpn
-#              - auth-group
-#            help: update an existing authorization group by name
+        - update:
+            long: update
+            requires:
+              - message-vpn
+            help: update an existing authorization group by name
   - remote-bridge:
       about: remote bridge management
       version: 9.0.1.18

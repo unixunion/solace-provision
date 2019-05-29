@@ -719,7 +719,7 @@ impl Update<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
     }
 
     fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        println!("retrieving current authorization-group from appliance");
+        println!("retrieving current bridge from appliance");
         let mut item = MsgVpnBridgesResponse::fetch(msg_vpn,
                                                     item_name,
                                                     "bridgeName",
