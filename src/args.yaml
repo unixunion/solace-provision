@@ -216,6 +216,12 @@ subcommands:
               - message-vpn
               - client-profile
             help: delete client-profile
+        - shutdown:
+            long: shutdown
+            help: not implemented for client-profile
+        - no-shutdown:
+            long: no-shutdown
+            help: not implemented for client-profile
   - client-username:
       about: client-username management
       version: 9.0.1.18
@@ -278,7 +284,7 @@ subcommands:
             takes_value: true
             requires:
               - message-vpn
-              - queue
+#              - queue
         - message-vpn:
             long: message-vpn
             help: vpn to reference, if specified overrides specified msgVpnName in spec file.
@@ -286,8 +292,7 @@ subcommands:
             takes_value: true
         - queue:
             long: queue
-            help: queue to reference
-            required: true
+            help: queue for when deleting subscriptions
             takes_value: true
         - subscription:
             long: subscription
@@ -297,7 +302,7 @@ subcommands:
             long: fetch
             requires:
               - message-vpn
-              - queue
+#              - queue
             help: fetch an existing queue-subscription from the appliance
         - delete:
             long: delete
@@ -306,6 +311,15 @@ subcommands:
               - queue
               - subscription
             help: delete a specific queue subscription
+        - update:
+            long: update
+            help: not implemented for queue-subscription
+        - shutdown:
+            long: shutdown
+            help: not implemented for queue-subscription
+        - no-shutdown:
+            long: no-shutdown
+            help: not implemented for queue-subscription
   - sequenced-topic:
       about: sequenced-topic management
       version: 9.0.1.18

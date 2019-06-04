@@ -17,15 +17,16 @@ Capabilities:
     * Enable
     * Delete
 
-Objects that can be Provisioned, Updated and Downloaded
+Objects that can be managed
 
     * VPN
     * Queue
+    * Queue Subscription
+    * Topic Endpoints
+    * Sequenced Topic
     * ACL Profile
     * Client Profile
     * Client Username
-    * Queue Subscription
-    * Topic Endpoints
     * Authorization Groups
     * Bridge
     * Remote Bridge VPN
@@ -42,7 +43,9 @@ This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-A
 ### Optional, but Highly Recommended 
 
 * TLS enabled SEMP service *( otherwise some types of secrets cannot be provisioned )*
-* TLS CA certificate in the default OS certificate chains and trusted!
+* TLS CA certificate in either:
+    * System certificate chain
+    * Appliance [config.yaml](examples/config.yaml) file
 
 ### Compiling Requirements
 
@@ -50,27 +53,37 @@ rust 1.33 *or* docker
 
 ### Testing
 
+```
 docker-compose up -d
+(Wait for solace to be ready)
 sh clean.sh examples/config.yaml testvpn
-RUST_BACKTRACE=full cargo test -- --nocapture 
+RUST_BACKTRACE=full cargo test -- --nocapture
+docker-compose down
+```
 
 # Usage
 
 <i>solace-provision</i> reads YAML files from disk which are used to provision Solace managed objects. see `solace-provision --help` 
-for details on each <i>subcommand</i>.
+for more and solace-provision \[<i>subcommand</i>\] --help
 
 Example:
 
-    solace-provision --config config.yaml vpn --message-vpn myvpn --file vpnspec.yaml --shutdown --update --no-shutdown
+    solace-provision --config config.yaml vpn\
+        --message-vpn myvpn \
+        --file vpnspec.yaml \
+        --shutdown \
+        --update \
+        --no-shutdown
 
-## Configuration and Spec files
+## Config and Spec files
 
-Configuration, refers to the Solace SEMPv2 specific settings, like `hostname`, `user` and `password`. Spec files refers to
-the YAML files which describe the various types of Solace manageable objects.
+<i>Config</i> file refers to the Solace REST API settings, e.g `hostname`, `username` and `password`.
+
+<i>Spec</i> files refers to the YAML files which describe the various Solace manageable objects.
 
 ### Configuring SEMPv2 Client
 
-solace-provision requires a config to provide the Solace hostname, port and credentials.
+solace-provision requires a config file to provide the Solace REST API endppoint and credentials.
 
 Example Config:
 ```yaml
@@ -98,9 +111,14 @@ Examples Provision Files:
 
 * [vpn.yaml](examples/vpn.yaml) 
 * [queue1.yaml](examples/queue1.yaml)
+* [queue-subscription.yaml](examples/queue-subscription.yaml)
+* [topic-endppoint.yaml](examples/topicendpoint.yaml)
+* [sequenced-topic.yaml](examples/sequenced-topic.yaml)
 * [acl.yaml](examples/acl.yaml)
 * [client-profile.yaml](/examples/client-profile.yaml)
 * [client-username.yaml](/examples/client-username.yaml)
+* [bridge.yaml](/examples/bridge-primary.yaml)
+* [bridge-remote.yaml](examples/bridge-remote-primary.yaml)
 
 ## Provisioning
 
@@ -116,14 +134,14 @@ Executable quick overview:
 ```bash
 solace-provision --config {CLIENT_CONFIG} \
                 [--output {FETCH_OUTDIR}] \
-                vpn|queue|acl-profile|client-profile|client-username|bridge|remote-bridge \
+                acl-profile|auth-group|bridge|client-profile|client-username|queue|queue-subscription|remote-bridge|sequenced-topic|topic-endpoint|vpn \
                 --message-vpn {VPN_NAME} \
-                [--queue|--acl-profile|--client-profile|--client-username] {ITEM_NAME}] \
+                [--queue|--acl-profile|--client-profile|--client-username|bridge] {ITEM_NAME}] \
                 [--virtual-router primary|backup|auto] \
                 [--file {ITEM_YAML}] \
                 [--update] \
-                [--shutdown] \
-                [--no-shutdown] \
+                [--shutdown|--shutdown-egress|--shutdown-ingress] \
+                [--no-shutdown|--no-shutdown-egress|--no-shutdown-ingress] \
                 [--fetch]
 ```
 
