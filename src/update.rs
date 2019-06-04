@@ -300,7 +300,7 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
 }
 
 
-
+// client-profile
 
 impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
 
@@ -390,22 +390,23 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
         }
     }
 
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn enabled(msg_vpn: &str, client_username: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         println!("retrieving current client-username from appliance");
-        let mut item = MsgVpnClientUsernamesResponse::fetch(msg_vpn, item_name, "clientUsername",item_name, 10, "", "", core, apiclient)?;
+        let mut item = MsgVpnClientUsernamesResponse::fetch(msg_vpn, client_username, "clientUsername",client_username, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         if titem.len() == 1 {
             println!("changing enabled state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
+//            let client_username = x.client_username().clone().unwrap();
             x.set_enabled(state);
             // this sets the password to None, so its not sent back to the appliance
             x.reset_password();
-            let r = core.run(apiclient.default_api().update_msg_vpn_client_username(msg_vpn, item_name, x, getselect("*")));
+            let r = core.run(apiclient.default_api().update_msg_vpn_client_username(msg_vpn, client_username, x, getselect("*")));
             match r {
                 Ok(t) => info!("state successfully changed to {:?}", state),
                 Err(e) => {
-                    error!("error changing enabled state for client-username: {}, {:?}", item_name, e);
+                    error!("error changing enabled state for client-username: {}, {:?}", client_username, e);
                     exit(126);
                 }
             }
@@ -462,9 +463,9 @@ impl Update<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse
         unimplemented!()
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        info!("deleting: {}", sub_identifier);
-        let t = apiclient.default_api().delete_msg_vpn_queue_subscription(msg_vpn, item_name, sub_identifier);
+    fn delete(msg_vpn: &str, queue_name: &str, subscription_topic: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        info!("deleting: {}", subscription_topic);
+        let t = apiclient.default_api().delete_msg_vpn_queue_subscription(msg_vpn, queue_name, subscription_topic);
         match core.run(t) {
             Ok(vpn) => {
                 info!("queue-subscription deleted");

@@ -689,12 +689,13 @@ fn main() -> Result<(), Box<Error>> {
             // get all args within the subcommand
             let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
             let queue = matches.value_of("queue").unwrap_or("undefined");
+//            let queue = "undefined";
             let delete = matches.is_present("delete");
             let fetch = matches.is_present("fetch");
             let mut subscription = "";
 
             if matches.is_present("subscription") {
-                subscription = matches.value_of("subscription").unwrap_or("*");
+                subscription = matches.value_of("subscription").expect("error interpreting subscription");
                 info!("subscription is: {}", subscription);
             }
 

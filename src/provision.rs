@@ -325,11 +325,13 @@ impl Provision<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
 impl Provision<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse {
 
-    fn provision(in_vpn: &str, queue_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionResponse, &'static str> {
+    fn provision(in_vpn: &str, mut unimplemented_queue_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnQueueSubscription> = serde_yaml::from_reader(file).unwrap();
+
         match deserialized {
             Some(mut item) => {
+                let queue_name = &*item.queue_name().cloned().unwrap();
                 item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
