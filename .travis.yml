@@ -1,12 +1,11 @@
 sudo: required
-language: rust
+# language: rust
 services:
   - docker
 before_script:
-  - docker run -d --name solace solace/solace-pubsub-standard:9.0.1.7
+  - docker run -d --name solace -e username_admin_globalaccesslevel=admin -e username_admin_password=admin -e system_scaling_maxconnectioncount=100 -p 8080:8080 solace/solace-pubsub-standard:9.0.1.7
   - docker run --link solace:api -e CHECK_PORT=8080 -e CHECK_HOST=solace giorgos/takis
-  - docker run --link solace:smf -e CHECK_PORT=55555 -e CHECK_HOST=solace giorgos/takis
-  - docker run --link solace:api --link solace:smf -v `pwd`:/src rust:1.33 /src/mkrelease.sh
+  - docker run --link solace:api -v `pwd`:/src rust:1.33 /src/mkrelease.sh
 # rust:
 # - stable
 # - nightly
