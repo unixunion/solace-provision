@@ -1,16 +1,24 @@
+sudo: required
 language: rust
-rust:
-- stable
-- nightly
-matrix:
-  allow_failures:
-  - rust: nightly
-  fast_finish: true
-cache:
-  directories:
-  - "/home/travis/.cargo"
-before_cache:
-- rm -rf /home/travis/.cargo/registry
+services:
+  - docker
+before_script:
+  - docker run -d --name solace solace/solace-pubsub-standard:9.0.1.7
+  - docker run --link solace:api -e CHECK_PORT=8080 -e CHECK_HOST=solace giorgos/takis
+  - docker run --link solace:smf -e CHECK_PORT=55555 -e CHECK_HOST=solace giorgos/takis
+  - docker run --link solace:api --link solace:smf -v `pwd`:/src rust:1.33 /src/mkrelease.sh
+# rust:
+# - stable
+# - nightly
+# matrix:
+#   allow_failures:
+#   - rust: nightly
+#   fast_finish: true
+# cache:
+#   directories:
+#   - "/home/travis/.cargo"
+# before_cache:
+# - rm -rf /home/travis/.cargo/registry
 #before_deploy:
 #  # Set up git user name and tag this commit
 #  - git config --local user.name "Kegan Holtzhausen"
