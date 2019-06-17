@@ -1,7 +1,7 @@
 name: solace-provision
-version: 0.1.7
+version: 0.1.8
 author: Kegan Holtzhausen <marzubus@gmail.com>
-about: SEMPv2 version 9.0.1.18 solace provisioning tool, see https://github.com/unixunion/solace-provision for src and examples
+about: SEMPv2 version 9.0.1.77 solace provisioning tool, see https://github.com/unixunion/solace-provision for src and examples
 args:
   - config:
       long: config
@@ -25,7 +25,7 @@ subcommands:
   # Rust code later
   - vpn:
       about: vpn management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       # Subcommand args are exactly like App args
       args:
@@ -67,7 +67,7 @@ subcommands:
             help: delete vpn
   - queue:
       about: queue management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       # Subcommand args are exactly like App args
       args:
@@ -146,7 +146,7 @@ subcommands:
             help: delete queue
   - acl-profile:
       about: acl management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       args:
         - file:
@@ -182,7 +182,7 @@ subcommands:
             help: delete acl-profile
   - client-profile:
       about: client-profile management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       args:
         - file:
@@ -224,7 +224,7 @@ subcommands:
             help: not implemented for client-profile
   - client-username:
       about: client-username management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       args:
         - file:
@@ -275,7 +275,7 @@ subcommands:
             help: delete client-username
   - queue-subscription:
       about: queue-subscription management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       args:
         - file:
@@ -322,7 +322,7 @@ subcommands:
             help: not implemented for queue-subscription
   - sequenced-topic:
       about: sequenced-topic management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       args:
         - file:
@@ -354,7 +354,7 @@ subcommands:
             help: delete a specific sequenced-topic
   - topic-endpoint:
       about: topic-endpoint management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       args:
         - file:
@@ -434,7 +434,7 @@ subcommands:
             help: update an existing topic-endpoint by name
   - auth-group:
       about: authorization-group management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       args:
         - file:
@@ -486,7 +486,7 @@ subcommands:
             help: update an existing authorization group by name
   - bridge:
       about: bridge management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       args:
         - file:
@@ -542,7 +542,7 @@ subcommands:
             help: update an existing authorization group by name
   - remote-bridge:
       about: remote bridge management
-      version: 9.0.1.18
+      version: 9.0.1.77
       author: Kegan Holtzhausen <marzubus@gmail.com>
       args:
         - file:
