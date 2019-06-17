@@ -43,7 +43,7 @@ This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-A
 ### Optional, but Highly Recommended 
 
 * TLS enabled SEMP service *( otherwise some types of secrets cannot be provisioned )*
-* TLS CA certificate in either:
+* CA certificate in either:
     * System certificate chain
     * Appliance [config.yaml](examples/config.yaml) file
 
@@ -191,7 +191,7 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
 ## Compiling From Source
 
-solace-provision is compiled against a Rust solace-client, [rust_solace_semp_client](https://github.com/unixunion/rust_solace_semp_client.git).
+solace-provision is compiled against [rust_solace_semp_client](https://github.com/unixunion/rust_solace_semp_client.git).
 As new versions of the SEMPv2 spec are release, they can be generated into rust code with [solace_semp_client](https://github.com/unixunion/solace_semp_client.git).
 
 ### Building with cargo

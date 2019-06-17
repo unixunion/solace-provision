@@ -134,7 +134,7 @@ fn main() -> Result<(), Box<Error>> {
                 None => info!("No certs")
             }
         },
-        Err(e) => panic!()
+        Err(e) => panic!("Error parsing config file")
     }
 
     let hyperclient = Client::configure()

@@ -1,16 +1,24 @@
-language: rust
-rust:
-- stable
-- nightly
-matrix:
-  allow_failures:
-  - rust: nightly
-  fast_finish: true
-cache:
-  directories:
-  - "/home/travis/.cargo"
-before_cache:
-- rm -rf /home/travis/.cargo/registry
+sudo: required
+# language: rust
+services:
+  - docker
+before_script:
+  - docker network create --subnet=172.53.12.0/24 mynetzz2
+  - docker run --network mynetzz2 -d --name solace -e username_admin_globalaccesslevel=admin -e username_admin_password=admin -e system_scaling_maxconnectioncount=100 --shm-size 2g -p 8080:8080 solace/solace-pubsub-standard:9.0.1.7
+  - docker run --network mynetzz2 -e CHECK_PORT=8080 -e CHECK_HOST=solace giorgos/takis
+  - docker run --network mynetzz2 -v `pwd`:/src rust:1.33 /src/mkrelease.sh
+# rust:
+# - stable
+# - nightly
+# matrix:
+#   allow_failures:
+#   - rust: nightly
+#   fast_finish: true
+# cache:
+#   directories:
+#   - "/home/travis/.cargo"
+# before_cache:
+# - rm -rf /home/travis/.cargo/registry
 #before_deploy:
 #  # Set up git user name and tag this commit
 #  - git config --local user.name "Kegan Holtzhausen"
