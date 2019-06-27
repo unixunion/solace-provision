@@ -26,8 +26,8 @@ services:
 #      retries: 3
   solace-legacy:
     container_name: solace_legacy
-    image: solace/solace-pubsub-standard:9.0.1.7
-    shm_size: 2g
+    image: solace/solace-pubsub-standard:9.0.1.30
+    shm_size: 4g
     ulimits:
       core: 1
       nofile:

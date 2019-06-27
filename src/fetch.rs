@@ -47,7 +47,7 @@ mod tests {
 }
 
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnTopicEndpointsResponse, MsgVpnSequencedTopic, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnBridgeRemoteSubscriptionsResponse, MsgVpnBridgesResponse, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnBridgeTlsTrustedCommonNamesResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnTopicEndpointsResponse, MsgVpnSequencedTopic, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnBridgeRemoteSubscriptionsResponse, MsgVpnBridgesResponse, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnBridgeTlsTrustedCommonNamesResponse, AboutApiResponse, MsgVpnReplayLogsResponse, MsgVpnReplayLogResponse};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -83,7 +83,31 @@ pub trait Fetch<T> {
 }
 
 
-//futures::future::and_then::AndThen<std::boxed::Box<dyn futures::future::Future<Item=solace_semp_client::models::msg_vpns_response::MsgVpnsResponse, Error=solace_semp_client::apis::Error<serde_json::value::Value>>>, futures::future::result_::FutureResult<solace_semp_client::models::msg_vpns_response::MsgVpnsResponse, solace_semp_client::apis::Error<serde_json::value::Value>>, [closure@src/fetch.rs:105:23: 108:14]>` cannot be formatted with the default formatter
+// fetch about
+impl Fetch<AboutApiResponse> for AboutApiResponse {
+    fn fetch(in_vpn: &str, sub_item: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<AboutApiResponse, &'static str> {
+        let request = apiclient
+            .about_api()
+            .get_about_api()
+            .and_then(|about| {
+                debug!("{:?}", about);
+                futures::future::ok(about)
+            });
+
+        match core.run(request) {
+            Ok(response) => {
+                let t = format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap());
+                println!("{}", &t);
+                Ok(response)
+            },
+            Err(e) => {
+                error!("error fetching: {:?}", e);
+                panic!("fetch error: {:?}", e);
+                Err("fetch error")
+            }
+        }
+    }
+}
 
 // fetch multple msgvpnsresponse
 impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
@@ -207,8 +231,9 @@ impl Fetch<MsgVpnClientUsernamesResponse> for MsgVpnClientUsernamesResponse {
         let request = apiclient
             .msg_vpn_api()
             .get_msg_vpn_client_usernames(in_vpn, count, cursor, wherev, selectv)
-            .and_then(|acl| {
-                futures::future::ok(acl)
+            .and_then(|cu| {
+                debug!("{:?}", cu);
+                futures::future::ok(cu)
             });
 
         match core.run(request) {
@@ -445,4 +470,31 @@ impl Fetch<MsgVpnBridgeTlsTrustedCommonNamesResponse> for MsgVpnBridgeTlsTrusted
         }
     }
 }
+
+// replay log
+
+impl Fetch<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
+    fn fetch(in_vpn: &str, replay_log_name: &str, unused_1: &str, unused_2: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
+        let (wherev, mut selectv) = helpers::getwhere("replayLogName", replay_log_name, selector);
+        let request = apiclient
+            .default_api()
+            .get_msg_vpn_replay_log(in_vpn, replay_log_name,  selectv)
+            .and_then(|item| {
+                futures::future::ok(item)
+            });
+
+        match core.run(request) {
+            Ok(response) => {
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                Ok(response)
+            },
+            Err(e) => {
+                error!("error fetching: {:?}", e);
+                panic!("fetch error: {:?}", e);
+                Err("fetch error")
+            }
+        }
+    }
+}
+
 
