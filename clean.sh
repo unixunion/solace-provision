@@ -23,6 +23,9 @@ fi
 
 delete() {
 
+    # replay-log
+    $bin --config ${config_file} replay-log --message-vpn ${rnd_vpn} --delete --replay-log myreplaylog
+    # auth group
     $bin --config ${config_file} auth-group --message-vpn ${rnd_vpn} --delete --auth-group myauthgroup
     # topic endpoont
     $bin --config ${config_file} topic-endpoint --message-vpn ${rnd_vpn} --update --topic-endpoint mytopic --delete

@@ -12,7 +12,7 @@ mod tests {
 
 use std::process;
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgeResponse, MsgVpnBridgesResponse, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteMsgVpnResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgeResponse, MsgVpnBridgesResponse, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnReplayLogResponse};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -928,5 +928,70 @@ impl Update<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnRespon
             process::exit(126);
         }
 
+    }
+}
+
+// replay log
+impl Update<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
+
+    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
+
+    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
+
+    fn ingress(msg_vpn: &str, replay_log_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        info!("retrieving current replay-log from appliance");
+        let mut item = MsgVpnReplayLogResponse::fetch(msg_vpn, replay_log_name, "x","x", 10, "", "", core, apiclient)?;
+        let mut titem = item.data().unwrap().clone();
+
+        info!("changing ingress state to: {}", state.to_string());
+        titem.set_ingress_enabled(state);
+        let r = core.run(apiclient.default_api().update_msg_vpn_replay_log(msg_vpn, replay_log_name, titem, getselect("*")));
+        match r {
+            Ok(t) => info!("ingress successfully changed to {:?}", state),
+            Err(e) => {
+                error!("error changing ingress state for replay-log: {}, {:?}", replay_log_name, e);
+                exit(126);
+            }
+        }
+
+        Ok(())
+    }
+
+    fn egress(msg_vpn: &str, replay_log_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        info!("retrieving current queue from appliance");
+        let mut item = MsgVpnReplayLogResponse::fetch(msg_vpn, replay_log_name, "x","x", 10, "", "", core, apiclient)?;
+        let mut titem = item.data().unwrap().clone();
+
+        info!("changing egress state to: {}", state.to_string());
+        titem.set_egress_enabled(state);
+        let r = core.run(apiclient.default_api().update_msg_vpn_replay_log(msg_vpn, replay_log_name, titem, getselect("*")));
+        match r {
+            Ok(t) => info!("egress successfully changed to {:?}", state),
+            Err(e) => {
+                error!("error changing egress state for vpn: {}, {:?}", replay_log_name, e);
+                exit(126);
+            }
+        }
+
+        Ok(())
+    }
+
+    fn delete(msg_vpn: &str, replay_log_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        info!("deleting replay-log: {}", replay_log_name);
+        let t = apiclient.default_api().delete_msg_vpn_replay_log(msg_vpn, replay_log_name);
+        match core.run(t) {
+            Ok(vpn) => {
+                info!("replay-log deleted");
+                Ok(())
+            },
+            Err(e) => {
+                error!("unable to delete replay-log: {:?}", e);
+                Err("unable to delete replay-log")
+            }
+        }
     }
 }

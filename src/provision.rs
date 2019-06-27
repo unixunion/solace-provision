@@ -1,7 +1,7 @@
 
 mod tests {
 
-    use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnQueueResponse, MsgVpnAclProfileResponse, MsgVpnClientProfileResponse, MsgVpnClientUsernameResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnAuthorizationGroupResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteSubscriptionResponse};
+    use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnQueueResponse, MsgVpnAclProfileResponse, MsgVpnClientProfileResponse, MsgVpnClientUsernameResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnAuthorizationGroupResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnReplayLog, MsgVpnReplayLogResponse};
     use crate::provision::Provision;
     use solace_semp_client::models::MsgVpnQueue;
     use tokio_core::reactor::Core;
@@ -125,6 +125,12 @@ mod tests {
                                                             "examples/bridge-remote-subscription.yaml",
                                                             &mut core, &client);
 
+        println!("create replay-log");
+        let rpl = MsgVpnReplayLogResponse::provision("testvpn",
+                                                     "myreplaylog",
+                                                     "examples/replay.yaml",
+                                                     &mut core, &client);
+
 
         match v {
             Ok(vpn) => {
@@ -151,7 +157,7 @@ mod tests {
 
 
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpointsResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpoint, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnBridgeRemoteSubscription};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpointsResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpoint, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnBridgeRemoteSubscription, MsgVpnReplayLogResponse, MsgVpnReplayLogsResponse, MsgVpnReplayLog};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -531,4 +537,33 @@ impl Provision<MsgVpnBridgeRemoteSubscriptionResponse> for MsgVpnBridgeRemoteSub
             _ => unimplemented!()
         }
     }
+}
+
+impl Provision<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
+
+    fn provision(in_vpn: &str, unused_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
+        let file = std::fs::File::open(file_name).unwrap();
+        let deserialized: Option<MsgVpnReplayLog> = serde_yaml::from_reader(file).unwrap();
+        match deserialized {
+            Some(mut item) => {
+                item.set_msg_vpn_name(in_vpn.to_owned());
+                let request = apiclient
+                    .default_api()
+                    .create_msg_vpn_replay_log(in_vpn, item,  getselect("*"));
+                match core.run(request) {
+                    Ok(response) => {
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        Ok(response)
+                    },
+                    Err(e) => {
+                        println!("provision error: {:?}", e);
+                        exit(126);
+                        Err("provision error")
+                    }
+                }
+            }
+            _ => unimplemented!()
+        }
+    }
+
 }

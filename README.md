@@ -30,6 +30,7 @@ Objects that can be managed
     * Authorization Groups
     * Bridge
     * Remote Bridge VPN
+    * Replay Log
     
 This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 
@@ -119,6 +120,7 @@ Examples Provision Files:
 * [client-username.yaml](/examples/client-username.yaml)
 * [bridge.yaml](/examples/bridge-primary.yaml)
 * [bridge-remote.yaml](examples/bridge-remote-primary.yaml)
+* [replay.yaml](examples/replay.yaml)
 
 ## Provisioning
 
@@ -134,7 +136,7 @@ Executable quick overview:
 ```bash
 solace-provision --config {CLIENT_CONFIG} \
                 [--output {FETCH_OUTDIR}] \
-                acl-profile|auth-group|bridge|client-profile|client-username|queue|queue-subscription|remote-bridge|sequenced-topic|topic-endpoint|vpn \
+                acl-profile|auth-group|bridge|client-profile|client-username|queue|queue-subscription|remote-bridge|replay-log|sequenced-topic|topic-endpoint|vpn \
                 --message-vpn {VPN_NAME} \
                 [--queue|--acl-profile|--client-profile|--client-username|bridge] {ITEM_NAME}] \
                 [--virtual-router primary|backup|auto] \
@@ -182,11 +184,11 @@ solace-provision takes args both within the subcommand scope and outside of it. 
 
 ```bash
   RUST_LOG=solace_provision solace-provision --output output --config examples/config-hw.yaml vpn --fetch --message-vpn "*"
-  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml queue --fetch --message-vpn ci1_accounting --queue "*"
-  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml acl --fetch --message-vpn ci1_accounting --acl-profile "*"
-  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml acl-profile --fetch --message-vpn ci1_accounting --acl-profile "*"
-  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml client-profile --fetch --message-vpn ci1_accounting --client-profile "*"
-  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml client-username --fetch --message-vpn ci1_accounting --client-username "*"
+  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml queue --fetch --message-vpn ci1_somevpn --queue "*"
+  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml acl --fetch --message-vpn ci1_somevpn --acl-profile "*"
+  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml acl-profile --fetch --message-vpn ci1_somevpn --acl-profile "*"
+  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml client-profile --fetch --message-vpn ci1_somevpn --client-profile "*"
+  RUST_LOG=solace_provision solace-provision --count 1024  --output output --config examples/config-hw.yaml client-username --fetch --message-vpn ci1_somevpn --client-username "*"
 ```
 
 ## Compiling From Source

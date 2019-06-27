@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate log;
 extern crate env_logger;
+extern crate tokio_request;
 
 use solace_semp_client::apis::client::APIClient;
 use solace_semp_client::apis::configuration::Configuration;
@@ -12,7 +13,7 @@ use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
 use std::borrow::Cow;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpnsResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpnsResponse, AboutApiResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog};
 use solace_semp_client::models::MsgVpnQueue;
 use solace_semp_client::models::MsgVpnResponse;
 use solace_semp_client::models::MsgVpnAclProfile;
@@ -48,6 +49,7 @@ use hyper_tls::HttpsConnector;
 use core::borrow::Borrow;
 use core::fmt;
 use std::process::exit;
+use tokio_request::str::get;
 
 mod provision;
 mod clientconfig;
@@ -118,6 +120,8 @@ fn main() -> Result<(), Box<Error>> {
     let mut http = HttpConnector::new(4, &handle);
     http.enforce_http(false);
 
+    let mut version_check_url = "";
+
     let mut tls = TlsConnector::builder()?;
     let mut sac = clientconfig::readconfig(config_file_name.to_owned());
 
@@ -168,9 +172,35 @@ fn main() -> Result<(), Box<Error>> {
     }
 
 
+    let about_url = &configuration.base_path.clone();
+
     // the API Client from swagger spec
     let client = APIClient::new(configuration);
 
+
+//    // version check
+//    let about_url = format!("{}/about/api", &about_url);
+//    let future = get(&about_url)
+//        .header("User-Agent", "solace-provision")
+//        .header("Authorization", &about_url)
+//        .send(core.handle());
+//    let result = core.run(future).expect("HTTP Request failed!");
+//    println!(
+//        "Site answered with status code {} and body\n{}",
+//        result.status_code(),
+//        result.body_str().unwrap_or("<No response body>")
+//    );
+
+
+//    let v = AboutApiResponse::fetch("", "", "", "", 0, "", "", &mut core, &client);
+//    match v {
+//        Ok(t) => {
+//            info!("Appliance Version: {}", t.data().unwrap().semp_version());
+//        },
+//        Err(e) => {
+//            panic!("unable to determine version")
+//        }
+//    }
 
     //
     // VPN
@@ -1219,6 +1249,122 @@ fn main() -> Result<(), Box<Error>> {
         }
 
     }
+
+
+    // replay log
+    if matches.is_present("replay-log") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("replay-log") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap();
+            let replay_log = matches.value_of("replay-log").unwrap();
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let mut shutdown_ingress = matches.is_present("shutdown-ingress");
+            let mut no_shutdown_ingress = matches.is_present("no-shutdown-ingress");
+            let mut shutdown_egress = matches.is_present("shutdown-egress");
+            let mut no_shutdown_egress = matches.is_present("no-shutdown-egress");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if update_item || shutdown_item || no_shutdown_item || shutdown_egress || no_shutdown_egress || shutdown_ingress || no_shutdown_ingress || fetch || delete || matches.is_present("file") {
+
+                // early shutdown if not provisioning new
+                if shutdown_item {
+                    shutdown_ingress = true;
+                    shutdown_egress = true;
+                }
+
+                if shutdown_ingress {
+                    MsgVpnReplayLogResponse::ingress(message_vpn, replay_log,
+                                                         false, &mut core, &client);
+                }
+
+                if shutdown_egress {
+                    MsgVpnReplayLogResponse::egress(message_vpn, replay_log,
+                                                        false, &mut core, &client);
+                }
+
+
+
+                // if file is passed, it means either provision or update.
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file").unwrap();
+                    if update_item {
+                        MsgVpnReplayLogResponse::update(message_vpn, file_name, "",
+                                                            &mut core, &client);
+                    } else {
+                        MsgVpnReplayLogResponse::provision(message_vpn, "",file_name,
+                                                               &mut core, &client);
+                    }
+                }
+
+
+                // late un-shutdown anything
+                if no_shutdown_item {
+                    no_shutdown_egress = true;
+                    no_shutdown_ingress = true;
+                }
+
+                if no_shutdown_ingress {
+                    MsgVpnReplayLogResponse::ingress(message_vpn, replay_log,
+                                                         true, &mut core, &client);
+                }
+
+                if no_shutdown_egress {
+                    MsgVpnReplayLogResponse::egress(message_vpn, replay_log,
+                                                        true, &mut core, &client);
+                }
+
+
+                // finally if fetch is specified, we do this last.
+                while fetch {
+                    let data = MsgVpnReplayLogResponse::fetch(message_vpn,
+                                                                   replay_log, "x","x", count, &*cursor.to_string(), select,
+                                                                   &mut core, &client);
+
+
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
+                                MsgVpnReplayLog::save(output_dir, &item.data().unwrap());
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+
+                }
+
+                if delete {
+                    info!("deleting topic endpoint");
+                    MsgVpnReplayLogResponse::delete(message_vpn, replay_log, "", &mut core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
+
+
 
 
     // other
