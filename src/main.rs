@@ -58,6 +58,8 @@ mod update;
 mod fetch;
 mod save;
 mod clientconnection;
+mod provisionable;
+mod vpn;
 
 mod test {
     use solace_semp_client::models::MsgVpn;

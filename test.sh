@@ -1,8 +1,5 @@
 #!/bin/bash
 
-
-
-
 echo "config: $1"
 echo "lang: $2"
 echo "stop_on_error: $3"
