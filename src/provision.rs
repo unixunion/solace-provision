@@ -48,88 +48,88 @@ mod tests {
 
         println!("create vpn");
 
-        let v = MsgVpnResponse::provision("testvpn",
-                                          "",
-                                          "examples/vpn.yaml", &mut core,
-                                          &client);
+        let v = MsgVpnResponse::provision_with_file("testvpn",
+                                                    "",
+                                                    "examples/vpn.yaml", &mut core,
+                                                    &client);
 
         println!("create queue");
 
-        let q = MsgVpnQueueResponse::provision("testvpn",
-                                               " queue1",
-                                               "examples/queue1.yaml", &mut core,
-                                               &client);
+        let q = MsgVpnQueueResponse::provision_with_file("testvpn",
+                                                         " queue1",
+                                                         "examples/queue1.yaml", &mut core,
+                                                         &client);
 
         println!("create acl");
 
-        let a = MsgVpnAclProfileResponse::provision("testvpn",
-                                                    "myacl",
-                                                    "examples/acl.yaml", &mut core,
-                                                    &client);
+        let a = MsgVpnAclProfileResponse::provision_with_file("testvpn",
+                                                              "myacl",
+                                                              "examples/acl.yaml", &mut core,
+                                                              &client);
 
         println!("create client profile");
 
-        let cp = MsgVpnClientProfileResponse::provision("testvpn",
-                                                        "myclientprofile",
-                                                        "examples/client-profile.yaml",
-                                                        &mut core, &client);
+        let cp = MsgVpnClientProfileResponse::provision_with_file("testvpn",
+                                                                  "myclientprofile",
+                                                                  "examples/client-profile.yaml",
+                                                                  &mut core, &client);
 
 
         println!("create client username");
 
-        let cu = MsgVpnClientUsernameResponse::provision("testvpn",
-                                                         "myusername",
-                                                         "examples/client-username.yaml",
-                                                         &mut core, &client);
+        let cu = MsgVpnClientUsernameResponse::provision_with_file("testvpn",
+                                                                   "myusername",
+                                                                   "examples/client-username.yaml",
+                                                                   &mut core, &client);
 
 
         println!("create queue subscription");
-        let qs = MsgVpnQueueSubscriptionResponse::provision("testvpn",
-                                                            "queue1",
-                                                            "examples/queue-subscription.yaml",
-                                                            &mut core, &client);
+        let qs = MsgVpnQueueSubscriptionResponse::provision_with_file("testvpn",
+                                                                      "queue1",
+                                                                      "examples/queue-subscription.yaml",
+                                                                      &mut core, &client);
 
         println!("create sequenced topic");
-        let st = MsgVpnSequencedTopicResponse::provision("testvpn",
-                                                         "",
-                                                         "examples/sequenced-topic.yaml",
-                                                         &mut core, &client);
+        let st = MsgVpnSequencedTopicResponse::provision_with_file("testvpn",
+                                                                   "",
+                                                                   "examples/sequenced-topic.yaml",
+                                                                   &mut core, &client);
 
         println!("create topic endpoint");
-        let te = MsgVpnTopicEndpointResponse::provision("testvpn",
-                                                        "",
-                                                        "examples/topicendpoint.yaml",
-                                                        &mut core, &client);
+        let te = MsgVpnTopicEndpointResponse::provision_with_file("testvpn",
+                                                                  "",
+                                                                  "examples/topicendpoint.yaml",
+                                                                  &mut core, &client);
 
         println!("create auth group");
-        let ag = MsgVpnAuthorizationGroupResponse::provision("testvpn",
-                                                             "",
-                                                             "examples/authgroup.yaml",
-                                                             &mut core, &client);
+        let ag = MsgVpnAuthorizationGroupResponse::provision_with_file("testvpn",
+                                                                       "",
+                                                                       "examples/authgroup.yaml",
+                                                                       &mut core, &client);
 
         println!("create bridge");
-        let bp = MsgVpnBridgeResponse::provision("testvpn",
-                                                 "mybridge",
-                                                 "examples/bridge-primary.yaml", &mut core,
-                                                 &client);
+        let bp = MsgVpnBridgeResponse::provision_with_file("testvpn",
+                                                           "mybridge",
+                                                           "examples/bridge-primary.yaml", &mut core,
+                                                           &client);
 
         println!("create remote bridge");
-        let br = MsgVpnBridgeRemoteMsgVpnResponse::provision("testvpn",
-                                                             "mybridge",
-                                                             "examples/bridge-remote-primary.yaml",
-                                                             &mut core, &client);
+        let br = MsgVpnBridgeRemoteMsgVpnResponse::provision_with_file("testvpn",
+                                                                       "mybridge",
+                                                                       "examples/bridge-remote-primary.yaml",
+                                                                       &mut core, &client);
 
         println!("create remote bridge subscription");
-        let rbs = MsgVpnBridgeRemoteSubscriptionResponse::provision("testvpn",
-                                                            "mybridge",
-                                                            "examples/bridge-remote-subscription.yaml",
-                                                            &mut core, &client);
+        let rbs = MsgVpnBridgeRemoteSubscriptionResponse::provision_with_file("testvpn",
+                                                                              "mybridge",
+                                                                              "examples/bridge-remote-subscription.yaml",
+                                                                              &mut core, &client);
 
         println!("create replay-log");
-        let rpl = MsgVpnReplayLogResponse::provision("testvpn",
-                                                     "myreplaylog",
-                                                     "examples/replay.yaml",
-                                                     &mut core, &client);
+        let rpl = MsgVpnReplayLogResponse::provision_with_file("testvpn",
+                                                               "myreplaylog",
+                                                               "examples/replay.yaml",
+                                                               &mut core, &client);
 
 
         match v {
@@ -186,12 +186,13 @@ use crate::helpers::getselect;
 
 
 pub trait Provision<T> {
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<T, &'static str>;
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<T, &'static str>;
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<T, &'static str>;
 }
 
 impl Provision<MsgVpnResponse> for MsgVpnResponse {
 
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -215,11 +216,15 @@ impl Provision<MsgVpnResponse> for MsgVpnResponse {
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 impl Provision<MsgVpnQueueResponse> for MsgVpnQueueResponse {
 
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -243,11 +248,15 @@ impl Provision<MsgVpnQueueResponse> for MsgVpnQueueResponse {
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
 
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnAclProfile> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -271,11 +280,15 @@ impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 impl Provision<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
 
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientProfileResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientProfileResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnClientProfile> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -299,11 +312,15 @@ impl Provision<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientProfileResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 impl Provision<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientUsernameResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientUsernameResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnClientUsername> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -327,11 +344,15 @@ impl Provision<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientUsernameResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 impl Provision<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse {
 
-    fn provision(in_vpn: &str, mut unimplemented_queue_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, mut unimplemented_queue_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnQueueSubscription> = serde_yaml::from_reader(file).unwrap();
 
@@ -357,12 +378,16 @@ impl Provision<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionRespo
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 // sequenced topic
 impl Provision<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
 
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnSequencedTopicResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnSequencedTopicResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnSequencedTopic> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -386,12 +411,16 @@ impl Provision<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnSequencedTopicResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 // topic endpoint
 impl Provision<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
 
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnTopicEndpoint> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -415,13 +444,17 @@ impl Provision<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 // authorization group
 
 impl Provision<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupResponse {
 
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnAuthorizationGroup> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -445,13 +478,17 @@ impl Provision<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupRes
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 // bridge
 
 impl Provision<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
 
-    fn provision(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnBridge> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -475,13 +512,17 @@ impl Provision<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 // remote bridge
 
 impl Provision<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnResponse {
 
-    fn provision(in_vpn: &str, bridge_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteMsgVpnResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, bridge_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteMsgVpnResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnBridgeRemoteMsgVpn> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -506,13 +547,17 @@ impl Provision<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnRes
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteMsgVpnResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 // remote bridge subscriptions
 
 impl Provision<MsgVpnBridgeRemoteSubscriptionResponse> for MsgVpnBridgeRemoteSubscriptionResponse {
 
-    fn provision(in_vpn: &str, bridge_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteSubscriptionResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, bridge_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteSubscriptionResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnBridgeRemoteSubscription> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -537,11 +582,15 @@ impl Provision<MsgVpnBridgeRemoteSubscriptionResponse> for MsgVpnBridgeRemoteSub
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteSubscriptionResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
 impl Provision<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
 
-    fn provision(in_vpn: &str, unused_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, unused_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnReplayLog> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -566,11 +615,15 @@ impl Provision<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
         }
     }
 
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
+        unimplemented!()
+    }
 }
 
+// DMR
 
 impl Provision<MsgVpnDmrBridgeResponse> for MsgVpnDmrBridgeResponse {
-    fn provision(in_vpn: &str, unused_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnDmrBridgeResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, unused_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnDmrBridgeResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnDmrBridge> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
@@ -594,4 +647,9 @@ impl Provision<MsgVpnDmrBridgeResponse> for MsgVpnDmrBridgeResponse {
             _ => unimplemented!()
         }
     }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnDmrBridgeResponse, &'static str> {
+        unimplemented!()
+    }
 }
+

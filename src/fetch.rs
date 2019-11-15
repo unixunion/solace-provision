@@ -47,7 +47,7 @@ mod tests {
 }
 
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnTopicEndpointsResponse, MsgVpnSequencedTopic, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnBridgeRemoteSubscriptionsResponse, MsgVpnBridgesResponse, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnBridgeTlsTrustedCommonNamesResponse, AboutApiResponse, MsgVpnReplayLogsResponse, MsgVpnReplayLogResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnTopicEndpointsResponse, MsgVpnSequencedTopic, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnBridgeRemoteSubscriptionsResponse, MsgVpnBridgesResponse, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnBridgeTlsTrustedCommonNamesResponse, AboutApiResponse, MsgVpnReplayLogsResponse, MsgVpnReplayLogResponse, MsgVpnDmrBridgesResponse, MsgVpnDmrBridgeResponse, DmrClustersResponse, DmrClusterResponse};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -498,3 +498,94 @@ impl Fetch<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
 }
 
 
+
+
+
+// DMR Bridges
+
+/**
+    select key is one of: msgVpnName, remoteMsgVpnName, remoteNodeName
+**/
+///
+/// #Argumentts
+/// * `in_vpn` - the vpn name
+/// * `sub_item` - unused
+/// * `select_key` - one of msgVpnName, remoteMsgVpnName, remoteNodeName
+/// * `select_value` - match value for the select_key
+///
+impl Fetch<MsgVpnDmrBridgesResponse> for MsgVpnDmrBridgesResponse {
+    fn fetch(in_vpn: &str, unused_sub_item: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnDmrBridgesResponse, &'static str> {
+        let (wherev, mut selectv) = helpers::getwhere(select_key, select_value, selector);
+        let request = apiclient
+            .dmr_bridge_api()
+            .get_msg_vpn_dmr_bridges(in_vpn, count,  cursor, wherev, selectv)
+            .and_then(|item| {
+                futures::future::ok(item)
+            });
+
+        match core.run(request) {
+            Ok(response) => {
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                Ok(response)
+            },
+            Err(e) => {
+                error!("error fetching: {:?}", e);
+                panic!("fetch error: {:?}", e);
+                Err("fetch error")
+            }
+        }
+    }
+}
+
+
+// DMR cluster
+
+impl Fetch<DmrClusterResponse> for DmrClusterResponse {
+    fn fetch(in_vpn: &str, dmr_cluster_name: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterResponse, &'static str> {
+        let (wherev, mut selectv) = helpers::getwhere(select_key, select_value, selector);
+        let request = apiclient
+            .default_api()
+            .get_dmr_cluster(dmr_cluster_name, selectv)
+            .and_then(|item| {
+                futures::future::ok(item)
+            });
+
+        match core.run(request) {
+            Ok(response) => {
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                Ok(response)
+            },
+            Err(e) => {
+                error!("error fetching: {:?}", e);
+                panic!("fetch error: {:?}", e);
+                Err("fetch error")
+            }
+        }
+    }
+}
+
+// fetch all clusters by a key, wher key is one of
+//
+impl Fetch<DmrClustersResponse> for DmrClustersResponse {
+    fn fetch(in_vpn: &str, dmr_cluster_name: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClustersResponse, &'static str> {
+        let (wherev, mut selectv) = helpers::getwhere(select_key, select_value, selector);
+        let request = apiclient
+            .dmr_cluster_api()
+            .get_dmr_clusters(count, cursor, wherev, selectv)
+            .and_then(|item| {
+                futures::future::ok(item)
+            });
+
+        match core.run(request) {
+            Ok(response) => {
+                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                Ok(response)
+            },
+            Err(e) => {
+                error!("error fetching: {:?}", e);
+                panic!("fetch error: {:?}", e);
+                Err("fetch error")
+            }
+        }
+    }
+}

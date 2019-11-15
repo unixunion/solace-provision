@@ -680,3 +680,99 @@ subcommands:
               - message-vpn
               - replay-log
             help: update an existing replay log
+  - dmr-bridge:
+      about: dmr bridge management
+      version: 9.1.0-201
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+            requires:
+              - message-vpn
+              - remote-vpn
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference on the local side
+            required: true
+            takes_value: true
+        - remote-vpn:
+            long: remote-message-vpn
+            help: the remote vpn name
+            takes_value: true
+        - shutdown:
+            long: shutdown
+            requires:
+              - message-vpn
+              - bridge
+              - update
+            help: shutdown an dmr bridge
+        - no-shutdown:
+            long: no-shutdown
+            requires:
+              - message-vpn
+              - bridge
+              - update
+            help: enable dmr bridge
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - remote-vpn
+            help: fetch an existing dmr bridge from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - remote-vpn
+            help: delete a specified dmr bridge
+        - update:
+            long: update
+            requires:
+              - message-vpn
+              - remote-vpn
+            help: update an existing dmr bridge
+  - dmr-cluster:
+      about: dmr cluster management
+      version: 9.1.0-201
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+            requires:
+              - cluster-name
+        - cluster-name:
+            long: cluster-name
+            help: the cluster name
+            required: true
+            takes_value: true
+        - shutdown:
+            long: shutdown
+            requires:
+              - cluster-name
+              - update
+            help: shutdown an dmr cluster
+        - no-shutdown:
+            long: no-shutdown
+            requires:
+              - cluster-name
+              - update
+            help: enable dmr cluster
+        - fetch:
+            long: fetch
+            requires:
+              - cluster-name
+            help: fetch an existing dmr cluster from the appliance
+        - delete:
+            long: delete
+            requires:
+              - cluster-name
+            help: delete a specified dmr cluster
+        - update:
+            long: update
+            requires:
+              - cluster-name
+            help: update an existing dmr cluster

@@ -13,7 +13,7 @@ use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
 use std::borrow::Cow;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpnsResponse, AboutApiResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpnsResponse, AboutApiResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog, MsgVpnDmrBridgesResponse, MsgVpnDmrBridgeResponse, MsgVpnDmrBridge, DmrClusterResponse, DmrClustersResponse};
 use solace_semp_client::models::MsgVpnQueue;
 use solace_semp_client::models::MsgVpnResponse;
 use solace_semp_client::models::MsgVpnAclProfile;
@@ -245,9 +245,9 @@ fn main() -> Result<(), Box<Error>> {
                                     MsgVpnResponse::update(message_vpn, file_name, "",
                                                            &mut core, &client);
                                 } else {
-                                    MsgVpnResponse::provision(message_vpn, "",
-                                                              file_name, &mut core,
-                                                              &client);
+                                    MsgVpnResponse::provision_with_file(message_vpn, "",
+                                                                        file_name, &mut core,
+                                                                        &client);
                                 }
                             },
                             _ => unimplemented!()
@@ -364,8 +364,8 @@ fn main() -> Result<(), Box<Error>> {
                                     MsgVpnQueueResponse::update(message_vpn, file_name, "",
                                                                 &mut core, &client);
                                 } else {
-                                    MsgVpnQueueResponse::provision(message_vpn, "",file_name,
-                                                                   &mut core, &client);
+                                    MsgVpnQueueResponse::provision_with_file(message_vpn, "", file_name,
+                                                                             &mut core, &client);
                                 }
                             },
                             _ => unimplemented!()
@@ -476,8 +476,8 @@ fn main() -> Result<(), Box<Error>> {
                                     MsgVpnAclProfileResponse::update(message_vpn, file_name, "",
                                                                      &mut core, &client);
                                 } else {
-                                    MsgVpnAclProfileResponse::provision(message_vpn, "",file_name,
-                                                                        &mut core, &client);
+                                    MsgVpnAclProfileResponse::provision_with_file(message_vpn, "", file_name,
+                                                                                  &mut core, &client);
                                 }
                             },
                             _ => unimplemented!()
@@ -562,8 +562,8 @@ fn main() -> Result<(), Box<Error>> {
                                     MsgVpnClientProfileResponse::update(message_vpn, file_name, "",
                                                                         &mut core, &client);
                                 } else {
-                                    MsgVpnClientProfileResponse::provision(message_vpn, "", file_name,
-                                                                           &mut core, &client);
+                                    MsgVpnClientProfileResponse::provision_with_file(message_vpn, "", file_name,
+                                                                                     &mut core, &client);
                                 }
                             },
                             _ => unimplemented!()
@@ -651,8 +651,8 @@ fn main() -> Result<(), Box<Error>> {
                         MsgVpnClientUsernameResponse::update(message_vpn, file_name.unwrap(), "",
                                                              &mut core, &client);
                     } else {
-                        MsgVpnClientUsernameResponse::provision(message_vpn, "",file_name.unwrap(),
-                                                                &mut core, &client);
+                        MsgVpnClientUsernameResponse::provision_with_file(message_vpn, "", file_name.unwrap(),
+                                                                          &mut core, &client);
                     }
                 }
 
@@ -734,8 +734,8 @@ fn main() -> Result<(), Box<Error>> {
                 // if file is passed, it means either provision or update.
                 if matches.is_present("file") {
                     let file_name = matches.value_of("file");
-                    MsgVpnQueueSubscriptionResponse::provision(message_vpn, queue, file_name.unwrap(),
-                                                               &mut core, &client);
+                    MsgVpnQueueSubscriptionResponse::provision_with_file(message_vpn, queue, file_name.unwrap(),
+                                                                         &mut core, &client);
                 }
 
                 // finally if fetch is specified, we do this last.
@@ -808,8 +808,8 @@ fn main() -> Result<(), Box<Error>> {
                 // if file is passed, it means either provision or update.
                 if matches.is_present("file") {
                     let file_name = matches.value_of("file");
-                    MsgVpnSequencedTopicResponse::provision(message_vpn, "", file_name.unwrap(),
-                                                            &mut core, &client);
+                    MsgVpnSequencedTopicResponse::provision_with_file(message_vpn, "", file_name.unwrap(),
+                                                                      &mut core, &client);
                 }
 
                 // finally if fetch is specified, we do this last.
@@ -902,8 +902,8 @@ fn main() -> Result<(), Box<Error>> {
                         MsgVpnTopicEndpointResponse::update(message_vpn, file_name, "",
                                                             &mut core, &client);
                     } else {
-                        MsgVpnTopicEndpointResponse::provision(message_vpn, "",file_name,
-                                                       &mut core, &client);
+                        MsgVpnTopicEndpointResponse::provision_with_file(message_vpn, "", file_name,
+                                                                         &mut core, &client);
                     }
                 }
 
@@ -1002,8 +1002,8 @@ fn main() -> Result<(), Box<Error>> {
                         MsgVpnAuthorizationGroupResponse::update(message_vpn, file_name, "",
                                                                  &mut core, &client);
                     } else {
-                        MsgVpnAuthorizationGroupResponse::provision(message_vpn, "", file_name,
-                                                               &mut core, &client);
+                        MsgVpnAuthorizationGroupResponse::provision_with_file(message_vpn, "", file_name,
+                                                                              &mut core, &client);
                     }
                 }
 
@@ -1088,8 +1088,8 @@ fn main() -> Result<(), Box<Error>> {
                         MsgVpnBridgeResponse::update(message_vpn, file_name, "", &mut core,
                                                                  &client);
                     } else {
-                        MsgVpnBridgeResponse::provision(message_vpn, "", file_name,
-                                                                    &mut core, &client);
+                        MsgVpnBridgeResponse::provision_with_file(message_vpn, "", file_name,
+                                                                  &mut core, &client);
                     }
                 }
 
@@ -1178,11 +1178,11 @@ fn main() -> Result<(), Box<Error>> {
                         MsgVpnBridgeRemoteMsgVpnResponse::update(message_vpn, file_name, "", &mut core,
                                                      &client);
                     } else {
-                        MsgVpnBridgeRemoteMsgVpnResponse::provision(message_vpn,
-                                                                    bridge,
-                                                                    file_name,
-                                                                    &mut core,
-                                                                    &client);
+                        MsgVpnBridgeRemoteMsgVpnResponse::provision_with_file(message_vpn,
+                                                                              bridge,
+                                                                              file_name,
+                                                                              &mut core,
+                                                                              &client);
                     }
                 }
 
@@ -1297,8 +1297,8 @@ fn main() -> Result<(), Box<Error>> {
                         MsgVpnReplayLogResponse::update(message_vpn, file_name, "",
                                                             &mut core, &client);
                     } else {
-                        MsgVpnReplayLogResponse::provision(message_vpn, "",file_name,
-                                                               &mut core, &client);
+                        MsgVpnReplayLogResponse::provision_with_file(message_vpn, "", file_name,
+                                                                     &mut core, &client);
                     }
                 }
 
@@ -1364,6 +1364,234 @@ fn main() -> Result<(), Box<Error>> {
 
     }
 
+
+    // dmr
+    if matches.is_present("dmr-bridge") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("dmr-bridge") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap();
+            let remote_vpn_name = matches.value_of("remote-vpn").unwrap();
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let mut shutdown_ingress = matches.is_present("shutdown-ingress");
+            let mut no_shutdown_ingress = matches.is_present("no-shutdown-ingress");
+            let mut shutdown_egress = matches.is_present("shutdown-egress");
+            let mut no_shutdown_egress = matches.is_present("no-shutdown-egress");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if update_item || shutdown_item || no_shutdown_item || shutdown_egress || no_shutdown_egress || shutdown_ingress || no_shutdown_ingress || fetch || delete || matches.is_present("file") {
+
+                // early shutdown if not provisioning new
+//                if shutdown_item {
+//                    shutdown_ingress = true;
+//                    shutdown_egress = true;
+//                }
+
+//                if shutdown_ingress {
+//                    MsgVpnReplayLogResponse::ingress(message_vpn, replay_log,
+//                                                     false, &mut core, &client);
+//                }
+//
+//                if shutdown_egress {
+//                    MsgVpnReplayLogResponse::egress(message_vpn, replay_log,
+//                                                    false, &mut core, &client);
+//                }
+
+
+
+                // if file is passed, it means either provision or update.
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file").unwrap();
+//                    if update_item {
+//                        MsgVpnDmrBridgesResponse::update(message_vpn, file_name, "",
+//                                                        &mut core, &client);
+//                    } else {
+                    MsgVpnDmrBridgeResponse::provision_with_file(message_vpn, "", file_name,
+                                                                     &mut core, &client);
+//                    }
+                }
+
+
+                // late un-shutdown anything
+//                if no_shutdown_item {
+//                    no_shutdown_egress = true;
+//                    no_shutdown_ingress = true;
+//                }
+//
+//                if no_shutdown_ingress {
+//                    MsgVpnReplayLogResponse::ingress(message_vpn, replay_log,
+//                                                     true, &mut core, &client);
+//                }
+//
+//                if no_shutdown_egress {
+//                    MsgVpnReplayLogResponse::egress(message_vpn, replay_log,
+//                                                    true, &mut core, &client);
+//                }
+
+
+                // finally if fetch is specified, we do this last.
+                while fetch {
+                    let data = MsgVpnDmrBridgesResponse::fetch(message_vpn,
+                                                              "", "remoteMsgVpnName",remote_vpn_name, count, &*cursor.to_string(), select,
+                                                              &mut core, &client);
+
+
+                    match data {
+                        Ok(item) => {
+
+                            if write_fetch_files {
+                                MsgVpnDmrBridgesResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+
+                }
+
+//                if delete {
+//                    info!("deleting dmr-bridge");
+//                    MsgVpnReplayLogResponse::delete(message_vpn, replay_log, "", &mut core, &client);
+//                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
+
+
+    // DMR Cluster
+    if matches.is_present("dmr-cluster") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("dmr-cluster") {
+
+            // get all args within the subcommand
+            let cluster_name = matches.value_of("cluster-name").unwrap();
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let mut shutdown_ingress = matches.is_present("shutdown-ingress");
+            let mut no_shutdown_ingress = matches.is_present("no-shutdown-ingress");
+            let mut shutdown_egress = matches.is_present("shutdown-egress");
+            let mut no_shutdown_egress = matches.is_present("no-shutdown-egress");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if update_item || shutdown_item || no_shutdown_item || shutdown_egress || no_shutdown_egress || shutdown_ingress || no_shutdown_ingress || fetch || delete || matches.is_present("file") {
+
+                // early shutdown if not provisioning new
+//                if shutdown_item {
+//                    shutdown_ingress = true;
+//                    shutdown_egress = true;
+//                }
+
+//                if shutdown_ingress {
+//                    MsgVpnReplayLogResponse::ingress(message_vpn, replay_log,
+//                                                     false, &mut core, &client);
+//                }
+//
+//                if shutdown_egress {
+//                    MsgVpnReplayLogResponse::egress(message_vpn, replay_log,
+//                                                    false, &mut core, &client);
+//                }
+
+
+
+                // if file is passed, it means either provision or update.
+//                if matches.is_present("file") {
+//                    let file_name = matches.value_of("file").unwrap();
+//                    if update_item {
+//                        MsgVpnDmrBridgesResponse::update(message_vpn, file_name, "",
+//                                                        &mut core, &client);
+//                    } else {
+//                    MsgVpnDmrBridgeResponse::provision_with_file(message_vpn, "", file_name,
+//                                                                 &mut core, &client);
+//                    }
+//                }
+
+
+                // late un-shutdown anything
+//                if no_shutdown_item {
+//                    no_shutdown_egress = true;
+//                    no_shutdown_ingress = true;
+//                }
+//
+//                if no_shutdown_ingress {
+//                    MsgVpnReplayLogResponse::ingress(message_vpn, replay_log,
+//                                                     true, &mut core, &client);
+//                }
+//
+//                if no_shutdown_egress {
+//                    MsgVpnReplayLogResponse::egress(message_vpn, replay_log,
+//                                                    true, &mut core, &client);
+//                }
+
+
+                // finally if fetch is specified, we do this last."
+                while fetch {
+                    let data = DmrClustersResponse::fetch("",
+                                                         cluster_name, "dmrClusterName",cluster_name, count, &*cursor.to_string(), select,
+                                                               &mut core, &client);
+
+
+                    match data {
+                        Ok(item) => {
+
+//                            if write_fetch_files {
+//                                MsgVpnDmrBridgesResponse::save(output_dir, &item);
+//                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+
+                }
+
+//                if delete {
+//                    info!("deleting dmr-bridge");
+//                    MsgVpnReplayLogResponse::delete(message_vpn, replay_log, "", &mut core, &client);
+//                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
 
 
 
