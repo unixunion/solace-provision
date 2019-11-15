@@ -578,7 +578,7 @@ impl Provision<MsgVpnDmrBridgeResponse> for MsgVpnDmrBridgeResponse {
                 item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_dmr_bridge(in_vpn, item);
+                    .create_msg_vpn_dmr_bridge(in_vpn, item, getselect("*"));
                 match core.run(request) {
                     Ok(response) => {
                         info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
