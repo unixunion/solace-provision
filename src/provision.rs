@@ -157,7 +157,7 @@ mod tests {
 
 
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpointsResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpoint, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnBridgeRemoteSubscription, MsgVpnReplayLogResponse, MsgVpnReplayLogsResponse, MsgVpnReplayLog};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpointsResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpoint, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnBridgeRemoteSubscription, MsgVpnReplayLogResponse, MsgVpnReplayLogsResponse, MsgVpnReplayLog, MsgVpnDmrBridgeResponse, MsgVpnDmrBridge};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -566,4 +566,32 @@ impl Provision<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
         }
     }
 
+}
+
+
+impl Provision<MsgVpnDmrBridgeResponse> for MsgVpnDmrBridgeResponse {
+    fn provision(in_vpn: &str, unused_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnDmrBridgeResponse, &'static str> {
+        let file = std::fs::File::open(file_name).unwrap();
+        let deserialized: Option<MsgVpnDmrBridge> = serde_yaml::from_reader(file).unwrap();
+        match deserialized {
+            Some(mut item) => {
+                item.set_msg_vpn_name(in_vpn.to_owned());
+                let request = apiclient
+                    .default_api()
+                    .create_msg_vpn_dmr_bridge(in_vpn, item);
+                match core.run(request) {
+                    Ok(response) => {
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        Ok(response)
+                    },
+                    Err(e) => {
+                        error!("provision error: {:?}", e);
+                        exit(126);
+                        Err("provision error")
+                    }
+                }
+            }
+            _ => unimplemented!()
+        }
+    }
 }
