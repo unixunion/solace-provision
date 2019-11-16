@@ -1558,9 +1558,9 @@ fn main() -> Result<(), Box<Error>> {
                     match data {
                         Ok(item) => {
 
-//                            if write_fetch_files {
-//                                MsgVpnDmrBridgesResponse::save(output_dir, &item);
-//                            }
+                            if write_fetch_files {
+                                DmrClustersResponse::save(output_dir, &item);
+                            }
 
                             let cq = item.meta().paging();
                             match cq {

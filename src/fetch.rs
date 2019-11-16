@@ -564,7 +564,7 @@ impl Fetch<DmrClusterResponse> for DmrClusterResponse {
     }
 }
 
-// fetch all clusters by a key, wher key is one of
+// fetch all clusters by a key, where key is one of
 //
 impl Fetch<DmrClustersResponse> for DmrClustersResponse {
     fn fetch(in_vpn: &str, dmr_cluster_name: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClustersResponse, &'static str> {

@@ -1,10 +1,10 @@
 
 
-use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpoint, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgesResponse, MsgVpnBridge, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog, MsgVpnDmrBridge, MsgVpnDmrBridgesResponse};
+use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpoint, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgesResponse, MsgVpnBridge, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog, MsgVpnDmrBridge, MsgVpnDmrBridgesResponse, DmrClustersResponse, DmrCluster};
 use solace_semp_client::models::MsgVpn;
 use serde::Serialize;
 use std::path::Path;
-use std::fs;
+use std::{fs, ptr};
 use std::fs::File;
 use std::io::Write;
 use solace_semp_client::models::MsgVpnQueuesResponse;
@@ -15,11 +15,31 @@ use solace_semp_client::models::MsgVpnClientProfile;
 use solace_semp_client::models::MsgVpnClientUsername;
 use solace_semp_client::models::MsgVpnClientProfilesResponse;
 use solace_semp_client::models::MsgVpnClientUsernamesResponse;
+use std::ptr::null;
+
 extern crate sha1;
 
 pub trait Save<T> {
 
     fn save(dir: &str, data: &T) -> Result<(), &'static str> where T: Serialize;
+//    fn save(dir: &str, data: &T) -> Result<(), &'static str> where T: Serialize {
+//        match data.data() {
+//            Some(items) => {
+//                for item in items {
+//                    match T::save(dir, item) {
+//                        Ok(t) => debug!("success saving"),
+//                        Err(e) => error!("error writing: {:?}", e)
+//                    }
+//                }
+//                Ok(())
+//            },
+//            _ => {
+//                error!("nothing to save");
+//                Err("nothing to save")
+//            }
+//        }
+//    }
+
 
     fn save_in_dir(&self, dir: &str, subdir: &str, vpn_name: &Option<&String>, item_name: &Option<&String>) -> Result<(), &'static str> where Self: Serialize {
 
@@ -481,8 +501,6 @@ impl Save<MsgVpnDmrBridge> for MsgVpnDmrBridge {
         item_name.push_str("-");
         item_name.push_str(data.remote_msg_vpn_name().unwrap());
         let item_name = Some(&item_name);
-//
-//        Some(format!("{:?}-{:?}", data.msg_vpn_name(), data.remote_msg_vpn_name()));
         debug!("save dmr-bridge: {:?}, {:?}", vpn_name, item_name);
         data.save_in_dir(dir, "dmr-bridge", &vpn_name, &item_name);
         Ok(())
@@ -506,5 +524,40 @@ impl Save<MsgVpnDmrBridgesResponse> for MsgVpnDmrBridgesResponse {
                 Err("no dmr-bridges")
             }
         }
+    }
+}
+
+
+// dmr-cluster
+
+impl Save<DmrClustersResponse> for DmrClustersResponse {
+    fn save(dir: &str, data: &DmrClustersResponse) -> Result<(), &'static str> where DmrClustersResponse: Serialize {
+        match data.data() {
+            Some(items) => {
+                for item in items {
+                    match DmrCluster::save(dir, item) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no dmr-bridges");
+                Err("no dmr-bridges")
+            }
+        }
+    }
+}
+
+impl Save<DmrCluster> for DmrCluster {
+    fn save(dir: &str, data: &DmrCluster) -> Result<(), &'static str> where DmrCluster: Serialize {
+        let name = &String::from("global");
+        let node_name =  Some(name);  //data.node_name();
+        let mut item_name =  data.dmr_cluster_name().unwrap().clone();
+        let item_name = Some(&item_name);
+        debug!("save dmr-cluster: {:?}, {:?}", node_name, item_name);
+        data.save_in_dir(dir, "dmr-cluster", &node_name, &item_name);
+        Ok(())
     }
 }
