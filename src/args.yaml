@@ -196,7 +196,15 @@ subcommands:
             takes_value: true
         - acl-profile:
             long: acl-profile
-            help: acl-profile to reference, if specified overrides specified aclName in spec file.
+            help: acl-profile to reference for fetch operations.
+            takes_value: true
+        - topic-syntax:
+            long: topic-syntax
+            help: the syntax for the topic, e.g. smf
+            takes_value: true
+        - topic:
+            long: topic
+            help: the topic name, used for delete operations
             takes_value: true
         - update:
             long: update
@@ -215,6 +223,8 @@ subcommands:
             requires:
               - message-vpn
               - acl-profile
+              - topic-syntax
+              - topic
             help: delete acl publish exception
   - acl-profile-subscribe-exception:
       about: acl subscribe exception management
@@ -232,7 +242,15 @@ subcommands:
             takes_value: true
         - acl-profile:
             long: acl-profile
-            help: acl-profile to reference, if specified overrides specified aclName in spec file.
+            help: acl-profile to reference for fetch operations.
+            takes_value: true
+        - topic-syntax:
+            long: topic-syntax
+            help: the syntax for the topic, e.g. smf
+            takes_value: true
+        - topic:
+            long: topic
+            help: the topic name, used for delete operations
             takes_value: true
         - update:
             long: update
@@ -251,6 +269,8 @@ subcommands:
             requires:
               - message-vpn
               - acl-profile
+              - topic-syntax
+              - topic
             help: delete acl subscribe exception
   - client-profile:
       about: client-profile management

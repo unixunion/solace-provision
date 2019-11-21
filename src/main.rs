@@ -538,6 +538,8 @@ fn main() -> Result<(), Box<Error>> {
             // get all args within the subcommand
             let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
             let acl = matches.value_of("acl-profile").unwrap_or("undefined");
+            let topic_syntax = matches.value_of("topic-syntax").unwrap_or("undefined");
+            let topic = matches.value_of("topic").unwrap_or("undefined");
             let update_item = matches.is_present("update");
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
@@ -599,10 +601,10 @@ fn main() -> Result<(), Box<Error>> {
                     }
                 }
 
-//                if delete {
-//                    info!("deleting acl");
-//                    MsgVpnAclProfileResponse::delete(message_vpn, acl, "", &mut core, &client);
-//                }
+                if delete {
+                    info!("deleting acl publish exception");
+                    MsgVpnAclProfilePublishExceptionResponse::delete_by_sub_item(message_vpn, acl, topic_syntax, topic , &mut core, &client);
+                }
             } else {
                 error!("No operation was specified, see --help")
             }
@@ -622,6 +624,8 @@ fn main() -> Result<(), Box<Error>> {
             // get all args within the subcommand
             let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
             let acl = matches.value_of("acl-profile").unwrap_or("undefined");
+            let topic_syntax = matches.value_of("topic-syntax").unwrap_or("undefined");
+            let topic = matches.value_of("topic").unwrap_or("undefined");
             let update_item = matches.is_present("update");
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
@@ -683,10 +687,10 @@ fn main() -> Result<(), Box<Error>> {
                     }
                 }
 
-//                if delete {
-//                    info!("deleting acl");
-//                    MsgVpnAclProfileResponse::delete(message_vpn, acl, "", &mut core, &client);
-//                }
+                if delete {
+                    info!("deleting acl subscribe exception");
+                    MsgVpnAclProfileSubscribeExceptionResponse::delete_by_sub_item(message_vpn, acl, topic_syntax, topic, &mut core, &client);
+                }
             } else {
                 error!("No operation was specified, see --help")
             }

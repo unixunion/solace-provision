@@ -12,7 +12,7 @@ mod tests {
 
 use std::process;
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgeResponse, MsgVpnBridgesResponse, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnReplayLogResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgeResponse, MsgVpnBridgesResponse, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnReplayLogResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfileSubscribeException, MsgVpnAclProfilePublishExceptionResponse, MsgVpnAclProfileSubscribeExceptionResponse};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -48,15 +48,31 @@ use crate::helpers::getselect;
 // shared base trait for all solace update-able objects
 pub trait Update<T> {
     // update a object, shutting it down first if shutdown is true
-    fn update(msg_vpn: &str, sub_item: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str>;
+    fn update(msg_vpn: &str, sub_item: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
     // change the enabled state fo a object
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str>;
+    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
     // ingress
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str>;
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str>;
+    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
+    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
     // delete object
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str>;
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
+    fn delete_by_sub_item(msg_vpn: &str, item_name: &str, sub_identifier: &str, sub_sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        unimplemented!()
+    }
 }
+
+
+// VPN
 
 impl Update<MsgVpnResponse> for MsgVpnResponse {
 
@@ -116,14 +132,6 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
 
     }
 
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
     fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str,  core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         let t = apiclient.default_api().delete_msg_vpn(item_name);
         match core.run(t) {
@@ -140,6 +148,8 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
     }
 
 }
+
+// Queue
 
 impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
 
@@ -168,10 +178,6 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
             }
             _ => unimplemented!()
         }
-    }
-
-    fn enabled(vpn_name: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
     }
 
     fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
@@ -242,6 +248,8 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
     }
 }
 
+// ACL profile
+
 impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
 
     fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
@@ -271,18 +279,6 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
         }
     }
 
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
     fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         let t = apiclient.default_api().delete_msg_vpn_acl_profile(msg_vpn, item_name);
         match core.run(t) {
@@ -299,6 +295,44 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
     }
 }
 
+
+// ACL publish exception
+
+impl Update<MsgVpnAclProfilePublishExceptionResponse> for MsgVpnAclProfilePublishExceptionResponse {
+
+    fn delete_by_sub_item(msg_vpn: &str, acl_profile_name: &str, topic_syntax: &str, publish_exception_topic: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        let t = apiclient.default_api().delete_msg_vpn_acl_profile_publish_exception(msg_vpn, acl_profile_name, topic_syntax, publish_exception_topic);
+        match core.run(t) {
+            Ok(vpn) => {
+                info!("acl-publish-exception deleted");
+                Ok(())
+            },
+            Err(e) => {
+                error!("unable to delete acl-publish-exception: {:?}", e);
+                Err("unable to delete acl-publish-exception")
+            }
+        }
+    }
+}
+
+// ACL subscribe exception
+
+impl Update<MsgVpnAclProfileSubscribeExceptionResponse> for MsgVpnAclProfileSubscribeExceptionResponse {
+
+    fn delete_by_sub_item(msg_vpn: &str, acl_profile_name: &str, topic_syntax: &str, subscribe_exception_topic: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+        let t = apiclient.default_api().delete_msg_vpn_acl_profile_subscribe_exception(msg_vpn, acl_profile_name, topic_syntax, subscribe_exception_topic);
+        match core.run(t) {
+            Ok(vpn) => {
+                info!("acl-subscribe-exception deleted");
+                Ok(())
+            },
+            Err(e) => {
+                error!("unable to delete acl-subscribe-exception: {:?}", e);
+                Err("unable to delete acl-subscribe-exception")
+            }
+        }
+    }
+}
 
 // client-profile
 
@@ -331,18 +365,6 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
         }
     }
 
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
     fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         let t = apiclient.default_api().delete_msg_vpn_client_profile(msg_vpn, item_name);
         match core.run(t) {
@@ -360,6 +382,7 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
 }
 
 
+// Client Username
 
 impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
@@ -419,14 +442,6 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
         Ok(())
     }
 
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
     fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         let t = apiclient.default_api().delete_msg_vpn_client_username(msg_vpn, item_name);
         match core.run(t) {
@@ -446,22 +461,6 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 // queue subscription
 
 impl Update<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse {
-
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
 
     fn delete(msg_vpn: &str, queue_name: &str, subscription_topic: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("deleting: {}", subscription_topic);
@@ -483,21 +482,6 @@ impl Update<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse
 
 
 impl Update<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
 
     fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("deleting: {}", sub_identifier);
@@ -520,14 +504,6 @@ impl Update<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
 // topic endpoint
 
 impl Update<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
-
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
 
     fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("retrieving current topic endpoint from appliance");
@@ -657,14 +633,6 @@ impl Update<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupRespon
         Ok(())
     }
 
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
     fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         let t = apiclient.default_api().delete_msg_vpn_authorization_group(msg_vpn, item_name);
         match core.run(t) {
@@ -757,14 +725,6 @@ impl Update<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
         }
 
         Ok(())
-    }
-
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
     }
 
     fn delete(msg_vpn: &str, brige_name: &str, virtual_router: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
@@ -875,14 +835,6 @@ impl Update<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnRespon
         Ok(())
     }
 
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
     fn delete(msg_vpn: &str, bridge_name: &str, virtual_router: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
 
         let mut item = MsgVpnBridgeRemoteMsgVpnsResponse::fetch(msg_vpn,
@@ -934,14 +886,6 @@ impl Update<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnRespon
 // replay log
 
 impl Update<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
-
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
-
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        unimplemented!()
-    }
 
     fn ingress(msg_vpn: &str, replay_log_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
         info!("retrieving current replay-log from appliance");
