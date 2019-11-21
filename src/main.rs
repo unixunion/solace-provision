@@ -13,7 +13,7 @@ use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
 use std::borrow::Cow;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpnsResponse, AboutApiResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog, MsgVpnDmrBridgesResponse, MsgVpnDmrBridgeResponse, MsgVpnDmrBridge, DmrClusterResponse, DmrClustersResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpnsResponse, AboutApiResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog, MsgVpnDmrBridgesResponse, MsgVpnDmrBridgeResponse, MsgVpnDmrBridge, DmrClusterResponse, DmrClustersResponse, DmrClusterLinksResponse, DmrClusterLinkRemoteAddressesResponse, MsgVpnAclProfilePublishExceptionsResponse, MsgVpnAclProfileSubscribeExceptionsResponse, MsgVpnAclProfilePublishExceptionResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfileSubscribeException, MsgVpnAclProfileSubscribeExceptionResponse};
 use solace_semp_client::models::MsgVpnQueue;
 use solace_semp_client::models::MsgVpnResponse;
 use solace_semp_client::models::MsgVpnAclProfile;
@@ -528,6 +528,174 @@ fn main() -> Result<(), Box<Error>> {
     }
 
 
+    // ACL profile publish exceptions
+
+    if matches.is_present("acl-profile-publish-exception") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("acl-profile-publish-exception") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let acl = matches.value_of("acl-profile").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if update_item || fetch || delete || matches.is_present("file") {
+
+                // if file is passed, it means either provision or update.
+                let file_name = matches.value_of("file");
+                match file_name {
+                    Some(file_name) => {
+                        info!("using file: {:?}", file_name);
+
+                        // provision / update from file
+                        let file = std::fs::File::open(file_name).unwrap();
+                        let deserialized: Option<MsgVpnAclProfilePublishException> = serde_yaml::from_reader(file).unwrap();
+
+                        match deserialized {
+                            Some(mut item) => {
+//                                if update_item {
+//                                    MsgVpnAclProfileResponse::update(message_vpn, file_name, "",
+//                                                                     &mut core, &client);
+//                                } else {
+                                    MsgVpnAclProfilePublishExceptionResponse::provision_with_file(message_vpn, "", file_name,
+                                                                                  &mut core, &client);
+//                                }
+                            },
+                            _ => unimplemented!()
+                        }
+                    },
+                    None => {}
+                }
+
+                // finally if fetch is specified
+                while fetch {
+                    info!("fetching acl-profile-publish-exception");
+                    let data = MsgVpnAclProfilePublishExceptionsResponse::fetch(message_vpn,
+                                                                acl, "aclProfileName",acl, count,
+                                                                &*cursor.to_string(), select, &mut core, &client);
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
+                                MsgVpnAclProfilePublishExceptionsResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+                }
+
+//                if delete {
+//                    info!("deleting acl");
+//                    MsgVpnAclProfileResponse::delete(message_vpn, acl, "", &mut core, &client);
+//                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
+
+
+    // ACL profile subscribe exceptions
+
+    if matches.is_present("acl-profile-subscribe-exception") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("acl-profile-subscribe-exception") {
+
+            // get all args within the subcommand
+            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
+            let acl = matches.value_of("acl-profile").unwrap_or("undefined");
+            let update_item = matches.is_present("update");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if update_item || fetch || delete || matches.is_present("file") {
+
+                // if file is passed, it means either provision or update.
+                let file_name = matches.value_of("file");
+                match file_name {
+                    Some(file_name) => {
+                        info!("using file: {:?}", file_name);
+
+                        // provision / update from file
+                        let file = std::fs::File::open(file_name).unwrap();
+                        let deserialized: Option<MsgVpnAclProfileSubscribeException> = serde_yaml::from_reader(file).unwrap();
+//
+                        match deserialized {
+                            Some(mut item) => {
+//                                if update_item {
+//                                    MsgVpnAclProfileResponse::update(message_vpn, file_name, "",
+//                                                                     &mut core, &client);
+//                                } else {
+                                MsgVpnAclProfileSubscribeExceptionResponse::provision_with_file(message_vpn, "", file_name,
+                                                                                  &mut core, &client);
+//                                }
+                            },
+                            _ => unimplemented!()
+                        }
+                    },
+                    None => {}
+                }
+
+                // finally if fetch is specified
+                while fetch {
+                    info!("fetching acl-profile-subscribe-exception");
+                    let data = MsgVpnAclProfileSubscribeExceptionsResponse::fetch(message_vpn,
+                                                                                acl, "aclProfileName",acl, count,
+                                                                                &*cursor.to_string(), select, &mut core, &client);
+                    match data {
+                        Ok(item) => {
+                            if write_fetch_files {
+                                MsgVpnAclProfileSubscribeExceptionsResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+                }
+
+//                if delete {
+//                    info!("deleting acl");
+//                    MsgVpnAclProfileResponse::delete(message_vpn, acl, "", &mut core, &client);
+//                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
+
+
     //
     // CLIENT-PROFILE
     //
@@ -612,6 +780,8 @@ fn main() -> Result<(), Box<Error>> {
         }
 
     }
+
+
 
 
 
@@ -1487,7 +1657,7 @@ fn main() -> Result<(), Box<Error>> {
         if let Some(matches) = matches.subcommand_matches("dmr-cluster") {
 
             // get all args within the subcommand
-            let cluster_name = matches.value_of("cluster-name").unwrap();
+            let cluster_name = matches.value_of("cluster-name").unwrap_or("*");
             let update_item = matches.is_present("update");
             let shutdown_item = matches.is_present("shutdown");
             let no_shutdown_item = matches.is_present("no-shutdown");
@@ -1519,16 +1689,16 @@ fn main() -> Result<(), Box<Error>> {
 
 
                 // if file is passed, it means either provision or update.
-//                if matches.is_present("file") {
-//                    let file_name = matches.value_of("file").unwrap();
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file").unwrap();
 //                    if update_item {
-//                        MsgVpnDmrBridgesResponse::update(message_vpn, file_name, "",
+//                        DmrClusterResponse::update(message_vpn, file_name, "",
 //                                                        &mut core, &client);
 //                    } else {
-//                    MsgVpnDmrBridgeResponse::provision_with_file(message_vpn, "", file_name,
-//                                                                 &mut core, &client);
+                    DmrClusterResponse::provision_with_file("", "", file_name,
+                                                                 &mut core, &client);
 //                    }
-//                }
+                }
 
 
                 // late un-shutdown anything
@@ -1594,6 +1764,233 @@ fn main() -> Result<(), Box<Error>> {
     }
 
 
+    // DMR Cluster Link
+    if matches.is_present("dmr-cluster-link") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("dmr-cluster-link") {
+
+            // get all args within the subcommand
+            let cluster_name = matches.value_of("cluster-name").unwrap_or("*");
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let mut shutdown_ingress = matches.is_present("shutdown-ingress");
+            let mut no_shutdown_ingress = matches.is_present("no-shutdown-ingress");
+            let mut shutdown_egress = matches.is_present("shutdown-egress");
+            let mut no_shutdown_egress = matches.is_present("no-shutdown-egress");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if update_item || shutdown_item || no_shutdown_item || shutdown_egress || no_shutdown_egress || shutdown_ingress || no_shutdown_ingress || fetch || delete || matches.is_present("file") {
+
+                // early shutdown if not provisioning new
+//                if shutdown_item {
+//                    shutdown_ingress = true;
+//                    shutdown_egress = true;
+//                }
+
+//                if shutdown_ingress {
+//                    MsgVpnReplayLogResponse::ingress(message_vpn, replay_log,
+//                                                     false, &mut core, &client);
+//                }
+//
+//                if shutdown_egress {
+//                    MsgVpnReplayLogResponse::egress(message_vpn, replay_log,
+//                                                    false, &mut core, &client);
+//                }
+
+
+
+                // if file is passed, it means either provision or update.
+//                if matches.is_present("file") {
+//                    let file_name = matches.value_of("file").unwrap();
+////                    if update_item {
+////                        DmrClusterResponse::update(message_vpn, file_name, "",
+////                                                        &mut core, &client);
+////                    } else {
+//                    DmrClusterResponse::provision_with_file("", "", file_name,
+//                                                            &mut core, &client);
+////                    }
+//                }
+
+
+                // late un-shutdown anything
+//                if no_shutdown_item {
+//                    no_shutdown_egress = true;
+//                    no_shutdown_ingress = true;
+//                }
+//
+//                if no_shutdown_ingress {
+//                    MsgVpnReplayLogResponse::ingress(message_vpn, replay_log,
+//                                                     true, &mut core, &client);
+//                }
+//
+//                if no_shutdown_egress {
+//                    MsgVpnReplayLogResponse::egress(message_vpn, replay_log,
+//                                                    true, &mut core, &client);
+//                }
+
+
+                // finally if fetch is specified, we do this last."
+                while fetch {
+                    let data = DmrClusterLinksResponse::fetch(cluster_name,
+                                                          cluster_name, "dmrClusterName",cluster_name, count, &*cursor.to_string(), select,
+                                                          &mut core, &client);
+
+
+                    match data {
+                        Ok(item) => {
+
+                            if write_fetch_files {
+                                DmrClusterLinksResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+
+                }
+
+//                if delete {
+//                    info!("deleting dmr-bridge");
+//                    MsgVpnReplayLogResponse::delete(message_vpn, replay_log, "", &mut core, &client);
+//                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
+
+
+    // DMR Cluster Link Remote
+    if matches.is_present("dmr-cluster-link-remote") {
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("dmr-cluster-link-remote") {
+
+            // get all args within the subcommand
+            let cluster_name = matches.value_of("cluster-name").unwrap_or("*");
+            let remote_node_name = matches.value_of("remote-node-name").unwrap_or("*");
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let mut shutdown_ingress = matches.is_present("shutdown-ingress");
+            let mut no_shutdown_ingress = matches.is_present("no-shutdown-ingress");
+            let mut shutdown_egress = matches.is_present("shutdown-egress");
+            let mut no_shutdown_egress = matches.is_present("no-shutdown-egress");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if update_item || shutdown_item || no_shutdown_item || shutdown_egress || no_shutdown_egress || shutdown_ingress || no_shutdown_ingress || fetch || delete || matches.is_present("file") {
+
+                // early shutdown if not provisioning new
+//                if shutdown_item {
+//                    shutdown_ingress = true;
+//                    shutdown_egress = true;
+//                }
+
+//                if shutdown_ingress {
+//                    MsgVpnReplayLogResponse::ingress(message_vpn, replay_log,
+//                                                     false, &mut core, &client);
+//                }
+//
+//                if shutdown_egress {
+//                    MsgVpnReplayLogResponse::egress(message_vpn, replay_log,
+//                                                    false, &mut core, &client);
+//                }
+
+
+
+                // if file is passed, it means either provision or update.
+//                if matches.is_present("file") {
+//                    let file_name = matches.value_of("file").unwrap();
+////                    if update_item {
+////                        DmrClusterResponse::update(message_vpn, file_name, "",
+////                                                        &mut core, &client);
+////                    } else {
+//                    DmrClusterResponse::provision_with_file("", "", file_name,
+//                                                            &mut core, &client);
+////                    }
+//                }
+
+
+                // late un-shutdown anything
+//                if no_shutdown_item {
+//                    no_shutdown_egress = true;
+//                    no_shutdown_ingress = true;
+//                }
+//
+//                if no_shutdown_ingress {
+//                    MsgVpnReplayLogResponse::ingress(message_vpn, replay_log,
+//                                                     true, &mut core, &client);
+//                }
+//
+//                if no_shutdown_egress {
+//                    MsgVpnReplayLogResponse::egress(message_vpn, replay_log,
+//                                                    true, &mut core, &client);
+//                }
+
+
+                // finally if fetch is specified, we do this last."
+                while fetch {
+                    let data = DmrClusterLinkRemoteAddressesResponse::fetch(cluster_name,
+                                                                            remote_node_name, "dmrClusterName",cluster_name, count, &*cursor.to_string(), select,
+                                                              &mut core, &client);
+
+
+                    match data {
+                        Ok(item) => {
+
+                            if write_fetch_files {
+                                DmrClusterLinkRemoteAddressesResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+
+                }
+
+//                if delete {
+//                    info!("deleting dmr-bridge");
+//                    MsgVpnReplayLogResponse::delete(message_vpn, replay_log, "", &mut core, &client);
+//                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+
+    }
 
     // other
     match matches.subcommand_name() {

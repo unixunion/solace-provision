@@ -1,6 +1,6 @@
 
 
-use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpoint, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgesResponse, MsgVpnBridge, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog, MsgVpnDmrBridge, MsgVpnDmrBridgesResponse, DmrClustersResponse, DmrCluster};
+use solace_semp_client::models::{MsgVpnsResponse, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpoint, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroup, MsgVpnAuthorizationGroupsResponse, MsgVpnBridgesResponse, MsgVpnBridge, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog, MsgVpnDmrBridge, MsgVpnDmrBridgesResponse, DmrClustersResponse, DmrCluster, DmrClusterLinksResponse, DmrClusterLink, DmrClusterLinkRemoteAddressesResponse, DmrClusterLinkRemoteAddress, MsgVpnAclProfilePublishException, MsgVpnAclProfilePublishExceptionsResponse, MsgVpnAclProfileSubscribeException, MsgVpnAclProfileSubscribeExceptionsResponse};
 use solace_semp_client::models::MsgVpn;
 use serde::Serialize;
 use std::path::Path;
@@ -119,6 +119,8 @@ impl Save<MsgVpnQueue> for MsgVpnQueue {
     }
 }
 
+// ACL
+
 impl Save<MsgVpnAclProfile> for MsgVpnAclProfile {
     fn save(dir: &str, data: &MsgVpnAclProfile) -> Result<(), &'static str> where MsgVpnAclProfile: Serialize {
         let vpn_name = data.msg_vpn_name();
@@ -128,6 +130,86 @@ impl Save<MsgVpnAclProfile> for MsgVpnAclProfile {
         Ok(())
     }
 }
+
+// ACL publish exception
+
+impl Save<MsgVpnAclProfilePublishException> for MsgVpnAclProfilePublishException {
+    fn save(dir: &str, data: &MsgVpnAclProfilePublishException) -> Result<(), &'static str> where MsgVpnAclProfilePublishException: Serialize {
+        let mut hasher = sha1::Sha1::new();
+        hasher.update(data.publish_exception_topic().unwrap().as_bytes());
+        let s = hasher.digest().to_string();
+        let topic_hash = Option::from(&s);
+        let vpn_name = data.msg_vpn_name();
+        let acl_profile_name = data.acl_profile_name();
+        debug!("save acl-publish exception: {:?}, {:?}", vpn_name, acl_profile_name);
+        data.save_in_dir(dir, &format!("acl/{}/publish-exceptions", &acl_profile_name.unwrap()), &vpn_name, &topic_hash);
+        Ok(())
+    }
+}
+
+// ACL publish exceptions response
+
+impl Save<MsgVpnAclProfilePublishExceptionsResponse> for MsgVpnAclProfilePublishExceptionsResponse {
+    fn save(dir: &str, data: &MsgVpnAclProfilePublishExceptionsResponse) -> Result<(), &'static str> where MsgVpnAclProfilePublishExceptionsResponse: Serialize {
+        match data.data() {
+            Some(acls) => {
+                for acl in acls {
+                    match MsgVpnAclProfilePublishException::save(dir, acl) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no acls");
+                Err("no acls")
+            }
+        }
+    }
+}
+
+// ACL subscribe exception
+
+impl Save<MsgVpnAclProfileSubscribeException> for MsgVpnAclProfileSubscribeException {
+    fn save(dir: &str, data: &MsgVpnAclProfileSubscribeException) -> Result<(), &'static str> where MsgVpnAclProfileSubscribeException: Serialize {
+        let mut hasher = sha1::Sha1::new();
+        hasher.update(data.subscribe_exception_topic().unwrap().as_bytes());
+        let s = hasher.digest().to_string();
+        let topic_hash = Option::from(&s);
+        let vpn_name = data.msg_vpn_name();
+        let acl_profile_name = data.acl_profile_name();
+        debug!("save acl-publish exception: {:?}, {:?}", vpn_name, acl_profile_name);
+        data.save_in_dir(dir, &format!("acl/{}/subscribe-exceptions", &acl_profile_name.unwrap()), &vpn_name, &topic_hash);
+        Ok(())
+    }
+}
+
+// ACL publish exceptions response
+
+impl Save<MsgVpnAclProfileSubscribeExceptionsResponse> for MsgVpnAclProfileSubscribeExceptionsResponse {
+    fn save(dir: &str, data: &MsgVpnAclProfileSubscribeExceptionsResponse) -> Result<(), &'static str> where MsgVpnAclProfileSubscribeExceptionsResponse: Serialize {
+        match data.data() {
+            Some(acls) => {
+                for acl in acls {
+                    match MsgVpnAclProfileSubscribeException::save(dir, acl) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no acls");
+                Err("no acls")
+            }
+        }
+    }
+}
+
+// Client Profile
 
 impl Save<MsgVpnClientProfile> for MsgVpnClientProfile {
     fn save(dir: &str, data: &MsgVpnClientProfile) -> Result<(), &'static str> where MsgVpnClientProfile: Serialize {
@@ -553,11 +635,80 @@ impl Save<DmrClustersResponse> for DmrClustersResponse {
 impl Save<DmrCluster> for DmrCluster {
     fn save(dir: &str, data: &DmrCluster) -> Result<(), &'static str> where DmrCluster: Serialize {
         let name = &String::from("global");
-        let node_name =  Some(name);  //data.node_name();
+        let node_name =  Some(name);
         let mut item_name =  data.dmr_cluster_name().unwrap().clone();
         let item_name = Some(&item_name);
         debug!("save dmr-cluster: {:?}, {:?}", node_name, item_name);
         data.save_in_dir(dir, "dmr-cluster", &node_name, &item_name);
+        Ok(())
+    }
+}
+
+// dmr cluster link
+
+impl Save<DmrClusterLinksResponse> for DmrClusterLinksResponse {
+    fn save(dir: &str, data: &DmrClusterLinksResponse) -> Result<(), &'static str> where DmrClusterLinksResponse: Serialize {
+        match data.data() {
+            Some(items) => {
+                for item in items {
+                    match DmrClusterLink::save(dir, item) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no dmr cluster links");
+                Err("no dmr cluster links")
+            }
+        }
+    }
+}
+
+impl Save<DmrClusterLink> for DmrClusterLink {
+    fn save(dir: &str, data: &DmrClusterLink) -> Result<(), &'static str> where DmrClusterLink: Serialize {
+        let name = &String::from("global");
+        let node_name =  Some(name);
+        let mut item_name =  data.remote_node_name().unwrap().clone();
+        let item_name = Some(&item_name);
+        debug!("save dmr-cluster-link: {:?}, {:?}", node_name, item_name);
+        data.save_in_dir(dir, "dmr-cluster-link", &node_name, &item_name);
+        Ok(())
+    }
+}
+
+
+// dmr cluster link remotes
+
+impl Save<DmrClusterLinkRemoteAddressesResponse> for DmrClusterLinkRemoteAddressesResponse {
+    fn save(dir: &str, data: &DmrClusterLinkRemoteAddressesResponse) -> Result<(), &'static str> where DmrClusterLinkRemoteAddressesResponse: Serialize {
+        match data.data() {
+            Some(items) => {
+                for item in items {
+                    match DmrClusterLinkRemoteAddress::save(dir, item) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no dmr cluster link remotes");
+                Err("no dmr cluster link remotes")
+            }
+        }
+    }
+}
+
+impl Save<DmrClusterLinkRemoteAddress> for DmrClusterLinkRemoteAddress {
+    fn save(dir: &str, data: &DmrClusterLinkRemoteAddress) -> Result<(), &'static str> where DmrClusterLinkRemoteAddress: Serialize {
+        let name = &String::from("global");
+        let node_name =  Some(name);
+        let mut item_name =  data.remote_node_name().unwrap().clone();
+        let item_name = Some(&item_name);
+        debug!("save dmr-cluster-link-remote: {:?}, {:?}", node_name, item_name);
+        data.save_in_dir(dir, "dmr-cluster-link-remote", &node_name, &item_name);
         Ok(())
     }
 }

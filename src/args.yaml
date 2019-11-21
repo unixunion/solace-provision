@@ -180,6 +180,78 @@ subcommands:
               - message-vpn
               - acl-profile
             help: delete acl-profile
+  - acl-profile-publish-exception:
+      about: acl publish exception management
+      version: 9.1.0-201
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference, if specified overrides specified msgVpnName in spec file.
+            required: true
+            takes_value: true
+        - acl-profile:
+            long: acl-profile
+            help: acl-profile to reference, if specified overrides specified aclName in spec file.
+            takes_value: true
+        - update:
+            long: update
+            requires:
+              - message-vpn
+              - acl-profile
+            help: update an existing acl profile publish exception, using file if provided, or via other args.
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - acl-profile
+            help: fetch an existing acl publish exception from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - acl-profile
+            help: delete acl publish exception
+  - acl-profile-subscribe-exception:
+      about: acl subscribe exception management
+      version: 9.1.0-201
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+        - message-vpn:
+            long: message-vpn
+            help: vpn to reference, if specified overrides specified msgVpnName in spec file.
+            required: true
+            takes_value: true
+        - acl-profile:
+            long: acl-profile
+            help: acl-profile to reference, if specified overrides specified aclName in spec file.
+            takes_value: true
+        - update:
+            long: update
+            requires:
+              - message-vpn
+              - acl-profile
+            help: update an existing acl profile subscribe exceptions, using file if provided, or via other args.
+        - fetch:
+            long: fetch
+            requires:
+              - message-vpn
+              - acl-profile
+            help: fetch an existing acl subscribe exception from the appliance
+        - delete:
+            long: delete
+            requires:
+              - message-vpn
+              - acl-profile
+            help: delete acl subscribe exception
   - client-profile:
       about: client-profile management
       version: 9.1.0-201
@@ -742,12 +814,9 @@ subcommands:
             long: file
             help: file to use
             takes_value: true
-            requires:
-              - cluster-name
         - cluster-name:
             long: cluster-name
-            help: the cluster name
-            required: true
+            help: the cluster name for queries. ignored at provision time.
             takes_value: true
         - shutdown:
             long: shutdown
@@ -775,4 +844,92 @@ subcommands:
             long: update
             requires:
               - cluster-name
+              - file
             help: update an existing dmr cluster
+  - dmr-cluster-link:
+      about: dmr cluster link management
+      version: 9.1.0-201
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+        - cluster-name:
+            long: cluster-name
+            help: the cluster name for queries. ignored at provision time.
+            takes_value: true
+        - shutdown:
+            long: shutdown
+            requires:
+              - cluster-name
+              - update
+            help: shutdown an dmr cluster link
+        - no-shutdown:
+            long: no-shutdown
+            requires:
+              - cluster-name
+              - update
+            help: enable dmr cluster link
+        - fetch:
+            long: fetch
+            requires:
+              - cluster-name
+            help: fetch an existing dmr cluster link from the appliance
+        - delete:
+            long: delete
+            requires:
+              - cluster-name
+            help: delete a specified dmr cluster link
+        - update:
+            long: update
+            requires:
+              - cluster-name
+              - file
+            help: update an existing dmr cluster link
+  - dmr-cluster-link-remote:
+      about: dmr cluster link remote management
+      version: 9.1.0-201
+      author: Kegan Holtzhausen <marzubus@gmail.com>
+      args:
+        - file:
+            long: file
+            help: file to use
+            takes_value: true
+        - cluster-name:
+            long: cluster-name
+            help: the cluster name for queries. ignored at provision time.
+            takes_value: true
+        - remote-node-name:
+            long: remote-node-name
+            help: the remotee node name for queries. ignored at provision time.
+            takes_value: true
+        - shutdown:
+            long: shutdown
+            requires:
+              - cluster-name
+              - update
+            help: shutdown an dmr cluster link
+        - no-shutdown:
+            long: no-shutdown
+            requires:
+              - cluster-name
+              - update
+            help: enable dmr cluster link
+        - fetch:
+            long: fetch
+            requires:
+              - cluster-name
+              - remote-node-name
+            help: fetch an existing dmr cluster link from the appliance
+        - delete:
+            long: delete
+            requires:
+              - cluster-name
+            help: delete a specified dmr cluster link
+        - update:
+            long: update
+            requires:
+              - cluster-name
+              - file
+            help: update an existing dmr cluster link

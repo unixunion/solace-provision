@@ -1,0 +1,5 @@
+---
+aclProfileName: myacl
+msgVpnName: us_nj_domainevent
+publishExceptionTopic: T/T1
+topicSyntax: smf

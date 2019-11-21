@@ -932,6 +932,7 @@ impl Update<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnRespon
 }
 
 // replay log
+
 impl Update<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
 
     fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {

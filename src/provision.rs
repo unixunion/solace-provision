@@ -1,7 +1,7 @@
 
 mod tests {
 
-    use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnQueueResponse, MsgVpnAclProfileResponse, MsgVpnClientProfileResponse, MsgVpnClientUsernameResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnAuthorizationGroupResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnReplayLog, MsgVpnReplayLogResponse};
+    use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnQueueResponse, MsgVpnAclProfileResponse, MsgVpnClientProfileResponse, MsgVpnClientUsernameResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnAuthorizationGroupResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnReplayLog, MsgVpnReplayLogResponse, MsgVpnAclProfilePublishException};
     use crate::provision::Provision;
     use solace_semp_client::models::MsgVpnQueue;
     use tokio_core::reactor::Core;
@@ -66,6 +66,15 @@ mod tests {
                                                               "myacl",
                                                               "examples/acl.yaml", &mut core,
                                                               &client);
+
+        println!("create acl publish exception");
+        let ape = MsgVpnAclProfilePublishException::provision_with_file("testvpn",
+                                                              "myacl",
+                                                              "examples/acl-pub-exception.yaml", &mut core,
+                                                              &client);
+
+
+
 
         println!("create client profile");
 
@@ -157,7 +166,7 @@ mod tests {
 
 
 use solace_semp_client::apis::client::APIClient;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpointsResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpoint, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnBridgeRemoteSubscription, MsgVpnReplayLogResponse, MsgVpnReplayLogsResponse, MsgVpnReplayLog, MsgVpnDmrBridgeResponse, MsgVpnDmrBridge};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionsResponse, MsgVpnQueueSubscriptionResponse, MsgVpnSequencedTopicResponse, MsgVpnSequencedTopic, MsgVpnTopicEndpointsResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpoint, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroup, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpn, MsgVpnBridgeRemoteSubscriptionResponse, MsgVpnBridgeRemoteSubscription, MsgVpnReplayLogResponse, MsgVpnReplayLogsResponse, MsgVpnReplayLog, MsgVpnDmrBridgeResponse, MsgVpnDmrBridge, DmrClusterResponse, DmrCluster, DmrClusterLinkResponse, DmrClusterLink, MsgVpnAclProfilePublishExceptionResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfileSubscribeExceptionResponse, MsgVpnAclProfileSubscribeException};
 use tokio_core::reactor::Core;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
@@ -188,6 +197,11 @@ use crate::helpers::getselect;
 pub trait Provision<T> {
     fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<T, &'static str>;
     fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<T, &'static str>;
+//    fn deserialize_file(file_name: &str) -> Result<Option<T>,&'static str> where T:Deserialize {
+//        let file = std::fs::File::open(file_name).unwrap();
+//        let deserialized: Option<T> = serde_yaml::from_reader(file).unwrap();
+//        return Ok(deserialized);
+//    }
 }
 
 impl Provision<MsgVpnResponse> for MsgVpnResponse {
@@ -222,6 +236,8 @@ impl Provision<MsgVpnResponse> for MsgVpnResponse {
     }
 }
 
+// queue
+
 impl Provision<MsgVpnQueueResponse> for MsgVpnQueueResponse {
 
     fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueResponse, &'static str> {
@@ -253,6 +269,8 @@ impl Provision<MsgVpnQueueResponse> for MsgVpnQueueResponse {
         unimplemented!()
     }
 }
+
+// acl
 
 impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
 
@@ -286,6 +304,77 @@ impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
     }
 }
 
+
+// ACL publish exception
+
+impl Provision<MsgVpnAclProfilePublishExceptionResponse> for MsgVpnAclProfilePublishExceptionResponse {
+    fn provision_with_file(msg_vpn_name: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfilePublishExceptionResponse, &'static str> {
+        let file = std::fs::File::open(file_name).unwrap();
+        let deserialized: Option<MsgVpnAclProfilePublishException> = serde_yaml::from_reader(file).unwrap();
+        match deserialized {
+            Some(mut item) => {
+                item.set_msg_vpn_name(msg_vpn_name.to_owned());
+                let acl_profile_name = &*item.acl_profile_name().cloned().unwrap();
+                let request = apiclient
+                    .default_api()
+                    .create_msg_vpn_acl_profile_publish_exception(msg_vpn_name, acl_profile_name, item, getselect("*"));
+                match core.run(request) {
+                    Ok(response) => {
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        Ok(response)
+                    },
+                    Err(e) => {
+                        println!("provision error: {:?}", e);
+                        exit(126);
+                        Err("provision error")
+                    }
+                }
+            }
+            _ => unimplemented!()
+        }
+    }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfilePublishExceptionResponse, &'static str> {
+        unimplemented!()
+    }
+}
+
+
+// ACL subscribe exception
+
+impl Provision<MsgVpnAclProfileSubscribeExceptionResponse> for MsgVpnAclProfileSubscribeExceptionResponse {
+    fn provision_with_file(msg_vpn_name: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileSubscribeExceptionResponse, &'static str> {
+        let file = std::fs::File::open(file_name).unwrap();
+        let deserialized: Option<MsgVpnAclProfileSubscribeException> = serde_yaml::from_reader(file).unwrap();
+        match deserialized {
+            Some(mut item) => {
+                item.set_msg_vpn_name(msg_vpn_name.to_owned());
+                let acl_profile_name = &*item.acl_profile_name().cloned().unwrap();
+                let request = apiclient
+                    .default_api()
+                    .create_msg_vpn_acl_profile_subscribe_exception(msg_vpn_name, acl_profile_name, item, getselect("*"));
+                match core.run(request) {
+                    Ok(response) => {
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        Ok(response)
+                    },
+                    Err(e) => {
+                        println!("provision error: {:?}", e);
+                        exit(126);
+                        Err("provision error")
+                    }
+                }
+            }
+            _ => unimplemented!()
+        }
+    }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileSubscribeExceptionResponse, &'static str> {
+        unimplemented!()
+    }
+}
+
+// client profile
 impl Provision<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
 
     fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientProfileResponse, &'static str> {
@@ -653,3 +742,68 @@ impl Provision<MsgVpnDmrBridgeResponse> for MsgVpnDmrBridgeResponse {
     }
 }
 
+// DMR cluster
+
+impl Provision<DmrClusterResponse> for DmrClusterResponse {
+    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterResponse, &'static str> {
+        let file = std::fs::File::open(file_name).unwrap();
+        let deserialized: Option<DmrCluster> = serde_yaml::from_reader(file).unwrap();
+        match deserialized {
+            Some(mut item) => {
+//                item.set_dmr_cluster_name(item_name.to_owned());
+                let request = apiclient
+                    .default_api()
+                    .create_dmr_cluster(item, getselect("*"));
+                match core.run(request) {
+                    Ok(response) => {
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        Ok(response)
+                    },
+                    Err(e) => {
+                        error!("provision error: {:?}", e);
+                        exit(126);
+                        Err("provision error")
+                    }
+                }
+            }
+            _ => unimplemented!()
+        }
+    }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterResponse, &'static str> {
+        unimplemented!()
+    }
+}
+
+// DMR cluster link
+
+impl Provision<DmrClusterLinkResponse> for DmrClusterLinkResponse {
+    fn provision_with_file(cluster_name: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterLinkResponse, &'static str> {
+        let file = std::fs::File::open(file_name).unwrap();
+        let deserialized: Option<DmrClusterLink> = serde_yaml::from_reader(file).unwrap();
+        match deserialized {
+            Some(mut item) => {
+//                item.set_dmr_cluster_name(item_name.to_owned());
+                let request = apiclient
+                    .default_api()
+                    .create_dmr_cluster_link(cluster_name, item, getselect("*"));
+                match core.run(request) {
+                    Ok(response) => {
+                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
+                        Ok(response)
+                    },
+                    Err(e) => {
+                        error!("provision error: {:?}", e);
+                        exit(126);
+                        Err("provision error")
+                    }
+                }
+            }
+            _ => unimplemented!()
+        }
+    }
+
+    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterLinkResponse, &'static str> {
+        unimplemented!()
+    }
+}
