@@ -25,12 +25,15 @@ Objects that can be managed
     * Topic Endpoints
     * Sequenced Topic
     * ACL Profile
+    * ACL Publish Exception
+    * ACL Subscribe Exception
     * Client Profile
     * Client Username
     * Authorization Groups
     * Bridge
     * Remote Bridge VPN
     * Replay Log
+    * DMR Cluster
     
 This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 
