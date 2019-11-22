@@ -1,4 +1,3 @@
-
 use solace_semp_client::apis::configuration::BasicAuth;
 use solace_semp_client::models::MsgVpn;
 use solace_semp_client::models::MsgVpnQueue;
@@ -38,4 +37,7 @@ pub fn getselect(select: &str) -> Vec<String> {
     selectvec.push(String::from(select));
     selectvec
 }
+
+
+
 

@@ -885,6 +885,10 @@ subcommands:
               - cluster-name
               - update
             help: shutdown an dmr cluster link
+        - remote-node-name:
+            long: remote-node-name
+            takes_value: true
+            help: remote node name e.g for shutdown
         - no-shutdown:
             long: no-shutdown
             requires:
@@ -905,7 +909,7 @@ subcommands:
             long: update
             requires:
               - cluster-name
-              - file
+#              - file
             help: update an existing dmr cluster link
   - dmr-cluster-link-remote:
       about: dmr cluster link remote management

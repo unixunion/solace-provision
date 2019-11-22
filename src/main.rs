@@ -3,6 +3,9 @@ extern crate log;
 extern crate env_logger;
 extern crate tokio_request;
 
+#[macro_use]
+mod macros;
+
 use solace_semp_client::apis::client::APIClient;
 use solace_semp_client::apis::configuration::Configuration;
 use hyper::{Client, Body};
@@ -13,7 +16,7 @@ use futures::{Future};
 use clap::{Arg, App, load_yaml};
 use serde_yaml;
 use std::borrow::Cow;
-use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpnsResponse, AboutApiResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog, MsgVpnDmrBridgesResponse, MsgVpnDmrBridgeResponse, MsgVpnDmrBridge, DmrClusterResponse, DmrClustersResponse, DmrClusterLinksResponse, DmrClusterLinkRemoteAddressesResponse, MsgVpnAclProfilePublishExceptionsResponse, MsgVpnAclProfileSubscribeExceptionsResponse, MsgVpnAclProfilePublishExceptionResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfileSubscribeException, MsgVpnAclProfileSubscribeExceptionResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnQueueSubscription, MsgVpnQueueSubscriptionResponse, MsgVpnQueueSubscriptionsResponse, MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpointsResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridgeRemoteMsgVpnResponse, MsgVpnBridgeRemoteMsgVpnsResponse, AboutApiResponse, MsgVpnReplayLogResponse, MsgVpnReplayLog, MsgVpnDmrBridgesResponse, MsgVpnDmrBridgeResponse, MsgVpnDmrBridge, DmrClusterResponse, DmrClustersResponse, DmrClusterLinksResponse, DmrClusterLinkRemoteAddressesResponse, MsgVpnAclProfilePublishExceptionsResponse, MsgVpnAclProfileSubscribeExceptionsResponse, MsgVpnAclProfilePublishExceptionResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfileSubscribeException, MsgVpnAclProfileSubscribeExceptionResponse, DmrClusterLinkResponse, DmrClusterLinkRemoteAddressResponse};
 use solace_semp_client::models::MsgVpnQueue;
 use solace_semp_client::models::MsgVpnResponse;
 use solace_semp_client::models::MsgVpnAclProfile;
@@ -58,6 +61,7 @@ mod update;
 mod fetch;
 mod save;
 mod clientconnection;
+mod objects;
 
 mod test {
     use solace_semp_client::models::MsgVpn;
@@ -1693,7 +1697,7 @@ fn main() -> Result<(), Box<Error>> {
 
 
                 // if file is passed, it means either provision or update.
-                if matches.is_present("file") {
+                if matches.is_present("file") && !delete {
                     let file_name = matches.value_of("file").unwrap();
 //                    if update_item {
 //                        DmrClusterResponse::update(message_vpn, file_name, "",
@@ -1755,10 +1759,10 @@ fn main() -> Result<(), Box<Error>> {
 
                 }
 
-//                if delete {
-//                    info!("deleting dmr-bridge");
-//                    MsgVpnReplayLogResponse::delete(message_vpn, replay_log, "", &mut core, &client);
-//                }
+                if delete {
+                    info!("deleting dmr-bridge");
+                    DmrClusterResponse::delete(cluster_name, "", "", &mut core, &client);
+                }
             } else {
                 error!("No operation was specified, see --help")
             }
@@ -1775,18 +1779,14 @@ fn main() -> Result<(), Box<Error>> {
         if let Some(matches) = matches.subcommand_matches("dmr-cluster-link") {
 
             // get all args within the subcommand
-            let cluster_name = matches.value_of("cluster-name").unwrap_or("*");
+            let cluster_name = matches.value_of("cluster-name").unwrap_or("undefined");
             let update_item = matches.is_present("update");
             let shutdown_item = matches.is_present("shutdown");
             let no_shutdown_item = matches.is_present("no-shutdown");
-            let mut shutdown_ingress = matches.is_present("shutdown-ingress");
-            let mut no_shutdown_ingress = matches.is_present("no-shutdown-ingress");
-            let mut shutdown_egress = matches.is_present("shutdown-egress");
-            let mut no_shutdown_egress = matches.is_present("no-shutdown-egress");
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
 
-            if update_item || shutdown_item || no_shutdown_item || shutdown_egress || no_shutdown_egress || shutdown_ingress || no_shutdown_ingress || fetch || delete || matches.is_present("file") {
+            if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
 
                 // early shutdown if not provisioning new
 //                if shutdown_item {
@@ -1804,19 +1804,23 @@ fn main() -> Result<(), Box<Error>> {
 //                                                    false, &mut core, &client);
 //                }
 
+                if shutdown_item && update_item && matches.is_present("cluster-name") {
+                    DmrClusterLinkResponse::enabled(cluster_name, matches.value_of("remote-node-name").unwrap_or(""), vec![],
+                                            false, &mut core, &client)?;
+                }
 
 
                 // if file is passed, it means either provision or update.
-//                if matches.is_present("file") {
-//                    let file_name = matches.value_of("file").unwrap();
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file").unwrap();
 ////                    if update_item {
 ////                        DmrClusterResponse::update(message_vpn, file_name, "",
 ////                                                        &mut core, &client);
 ////                    } else {
-//                    DmrClusterResponse::provision_with_file("", "", file_name,
-//                                                            &mut core, &client);
-////                    }
-//                }
+                    DmrClusterLinkResponse::provision_with_file(cluster_name, "", file_name,
+                                                            &mut core, &client);
+//                    }
+                }
 
 
                 // late un-shutdown anything
@@ -1869,6 +1873,11 @@ fn main() -> Result<(), Box<Error>> {
 
                 }
 
+                if no_shutdown_item && update_item && matches.is_present("cluster_name") {
+                    DmrClusterLinkResponse::enabled(cluster_name, "", vec![],
+                                                    true, &mut core, &client)?;
+                }
+
 //                if delete {
 //                    info!("deleting dmr-bridge");
 //                    MsgVpnReplayLogResponse::delete(message_vpn, replay_log, "", &mut core, &client);
@@ -1889,8 +1898,8 @@ fn main() -> Result<(), Box<Error>> {
         if let Some(matches) = matches.subcommand_matches("dmr-cluster-link-remote") {
 
             // get all args within the subcommand
-            let cluster_name = matches.value_of("cluster-name").unwrap_or("*");
-            let remote_node_name = matches.value_of("remote-node-name").unwrap_or("*");
+            let cluster_name = matches.value_of("cluster-name").unwrap_or("undefined");
+            let remote_node_name = matches.value_of("remote-node-name").unwrap_or("undefined");
             let update_item = matches.is_present("update");
             let shutdown_item = matches.is_present("shutdown");
             let no_shutdown_item = matches.is_present("no-shutdown");
@@ -1922,16 +1931,16 @@ fn main() -> Result<(), Box<Error>> {
 
 
                 // if file is passed, it means either provision or update.
-//                if matches.is_present("file") {
-//                    let file_name = matches.value_of("file").unwrap();
+                if matches.is_present("file") {
+                    let file_name = matches.value_of("file").unwrap();
 ////                    if update_item {
 ////                        DmrClusterResponse::update(message_vpn, file_name, "",
 ////                                                        &mut core, &client);
 ////                    } else {
-//                    DmrClusterResponse::provision_with_file("", "", file_name,
-//                                                            &mut core, &client);
+                    DmrClusterLinkRemoteAddressResponse::provision_with_file("", "", file_name,
+                                                            &mut core, &client);
 ////                    }
-//                }
+                }
 
 
                 // late un-shutdown anything
