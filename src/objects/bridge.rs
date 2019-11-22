@@ -11,7 +11,7 @@ use crate::save::Save;
 use serde::Serialize;
 use crate::update::Update;
 use std::process;
-use solace_semp_client::models::{MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridge};
+use solace_semp_client::models::{MsgVpnBridgesResponse, MsgVpnBridgeResponse, MsgVpnBridge, SempMetaOnlyResponse};
 
 
 impl Fetch<MsgVpnBridgesResponse> for MsgVpnBridgesResponse {
@@ -27,17 +27,8 @@ impl Fetch<MsgVpnBridgesResponse> for MsgVpnBridgesResponse {
                 futures::future::ok(item)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
+
     }
 }
 
@@ -53,17 +44,8 @@ impl Provision<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_bridge(in_vpn, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
@@ -107,7 +89,7 @@ impl Save<MsgVpnBridgesResponse> for MsgVpnBridgesResponse {
 
 impl Update<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
 
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnBridge> = serde_yaml::from_reader(file).unwrap();
@@ -124,23 +106,14 @@ impl Update<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
                                            &*bridge_virtual_router.unwrap(),
                                            item,
                                            helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(())
-                    },
-                    Err(e) => {
-                        error!("update error: {:?}", e);
-                        process::exit(126);
-                        Err("update error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
     }
 
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
         println!("retrieving current bridge from appliance");
         let mut item = MsgVpnBridgesResponse::fetch(msg_vpn,
                                                     item_name,
@@ -158,40 +131,26 @@ impl Update<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
             let mut x = titem.pop().unwrap();
             let virtual_router = &*x.bridge_virtual_router().cloned().unwrap();
             x.set_enabled(state);
-            let r = core.run(apiclient.default_api().update_msg_vpn_bridge(msg_vpn,
-                                                                           item_name,
-                                                                           virtual_router,
-                                                                           x,
-                                                                           helpers::getselect("*")));
-            match r {
-                Ok(t) => info!("state successfully changed to {:?}", state),
-                Err(e) => {
-                    error!("error changing enabled state for authorization-group: {}, {:?}", item_name, e);
-                    exit(126);
-                }
-            }
+            let request = apiclient.default_api().update_msg_vpn_bridge(msg_vpn,
+                                                                        item_name,
+                                                                        virtual_router,
+                                                                        x,
+                                                                        helpers::getselect("*"));
+
+            core_run!(request, core)
 
         } else {
             error!("error, did not find exactly one item matching query");
             process::exit(126);
         }
 
-        Ok(())
+//        Ok(())
     }
 
-    fn delete(msg_vpn: &str, brige_name: &str, virtual_router: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn delete(msg_vpn: &str, brige_name: &str, virtual_router: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
 
-        let t = apiclient.default_api().delete_msg_vpn_bridge(msg_vpn, brige_name, virtual_router);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("bridge deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete bridge: {:?}", e);
-                process::exit(126);
-                Err("unable to delete bridge")
-            }
-        }
+        let request = apiclient.default_api().delete_msg_vpn_bridge(msg_vpn, brige_name, virtual_router);
+        core_run_meta!(request, core)
+
     }
 }

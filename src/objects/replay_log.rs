@@ -11,7 +11,7 @@ use crate::save::Save;
 use serde::Serialize;
 use crate::update::Update;
 use std::process;
-use solace_semp_client::models::{MsgVpnReplayLogResponse, MsgVpnReplayLog};
+use solace_semp_client::models::{MsgVpnReplayLogResponse, MsgVpnReplayLog, SempMetaOnlyResponse};
 
 impl Fetch<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
     fn fetch(in_vpn: &str, replay_log_name: &str, unused_1: &str, unused_2: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
@@ -22,18 +22,8 @@ impl Fetch<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
             .and_then(|item| {
                 futures::future::ok(item)
             });
+        core_run!(request, core)
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
     }
 }
 
@@ -49,17 +39,8 @@ impl Provision<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_replay_log(in_vpn, item,  helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
@@ -81,57 +62,36 @@ impl Save<MsgVpnReplayLog> for MsgVpnReplayLog {
 
 impl Update<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
 
-    fn ingress(msg_vpn: &str, replay_log_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn ingress(msg_vpn: &str, replay_log_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
         info!("retrieving current replay-log from appliance");
         let mut item = MsgVpnReplayLogResponse::fetch(msg_vpn, replay_log_name, "x","x", 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         info!("changing ingress state to: {}", state.to_string());
         titem.set_ingress_enabled(state);
-        let r = core.run(apiclient.default_api().update_msg_vpn_replay_log(msg_vpn, replay_log_name, titem, helpers::getselect("*")));
-        match r {
-            Ok(t) => info!("ingress successfully changed to {:?}", state),
-            Err(e) => {
-                error!("error changing ingress state for replay-log: {}, {:?}", replay_log_name, e);
-                exit(126);
-            }
-        }
+        let request = apiclient.default_api().update_msg_vpn_replay_log(msg_vpn, replay_log_name, titem, helpers::getselect("*"));
+        core_run!(request, core)
 
-        Ok(())
     }
 
-    fn egress(msg_vpn: &str, replay_log_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn egress(msg_vpn: &str, replay_log_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
         info!("retrieving current queue from appliance");
         let mut item = MsgVpnReplayLogResponse::fetch(msg_vpn, replay_log_name, "x","x", 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
 
         info!("changing egress state to: {}", state.to_string());
         titem.set_egress_enabled(state);
-        let r = core.run(apiclient.default_api().update_msg_vpn_replay_log(msg_vpn, replay_log_name, titem, helpers::getselect("*")));
-        match r {
-            Ok(t) => info!("egress successfully changed to {:?}", state),
-            Err(e) => {
-                error!("error changing egress state for vpn: {}, {:?}", replay_log_name, e);
-                exit(126);
-            }
-        }
 
-        Ok(())
+        let request = apiclient.default_api().update_msg_vpn_replay_log(msg_vpn, replay_log_name, titem, helpers::getselect("*"));
+        core_run!(request, core)
+
     }
 
-    fn delete(msg_vpn: &str, replay_log_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn delete(msg_vpn: &str, replay_log_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
         info!("deleting replay-log: {}", replay_log_name);
-        let t = apiclient.default_api().delete_msg_vpn_replay_log(msg_vpn, replay_log_name);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("replay-log deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete replay-log: {:?}", e);
-                Err("unable to delete replay-log")
-            }
-        }
+        let request = apiclient.default_api().delete_msg_vpn_replay_log(msg_vpn, replay_log_name);
+        core_run_meta!(request, core)
+
     }
 }
 

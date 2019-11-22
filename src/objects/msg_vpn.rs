@@ -4,7 +4,7 @@ use solace_semp_client::apis::client::APIClient;
 use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
 use futures::future::Future;
-use solace_semp_client::models::{MsgVpnsResponse, MsgVpn, MsgVpnResponse};
+use solace_semp_client::models::{MsgVpnsResponse, MsgVpn, MsgVpnResponse, SempMetaOnlyResponse};
 use crate::helpers;
 use crate::provision::Provision;
 use std::process::exit;
@@ -25,18 +25,7 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
                 futures::future::ok(vpn)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                let t = format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap());
-                println!("{}", &t);
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
 
     }
 
@@ -55,25 +44,13 @@ impl Provision<MsgVpnResponse> for MsgVpnResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn(item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
     }
 
-    fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
-        unimplemented!()
-    }
 }
 
 
@@ -113,7 +90,7 @@ impl Save<MsgVpn> for MsgVpn {
 // update vpn
 impl Update<MsgVpnResponse> for MsgVpnResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
         info!("updating message-vpn: {} from file", msg_vpn);
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
@@ -124,23 +101,14 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
                 let request = apiclient
                     .default_api()
                     .update_msg_vpn(msg_vpn, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(())
-                    },
-                    Err(e) => {
-                        error!("update error: {:?}", e);
-                        exit(126);
-                        Err("update error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
     }
 
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
         info!("changing enabled state to: {:?} for message-vpn: {}", state, msg_vpn);
         let mut vpn = MsgVpnsResponse::fetch(item_name, item_name, "msgVpnName",item_name, 10, "", "", core, apiclient)?;
 
@@ -149,36 +117,23 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
             info!("changing enabled state to: {}", state.to_string());
             let mut x = tvpn.pop().unwrap();
             x.set_enabled(state);
-            let r = core.run(apiclient.default_api().update_msg_vpn(msg_vpn, x, helpers::getselect("*")));
-            match r {
-                Ok(t) => info!("state successfully changed to {:?}", state),
-                Err(e) => {
-                    error!("error changing enabled state for vpn: {}, {:?}", item_name, e);
-                    exit(126);
-                }
-            }
+            let request = apiclient.default_api().update_msg_vpn(msg_vpn, x, helpers::getselect("*"));
+            core_run!(request, core)
+
         } else {
             error!("error, did not find exactly one item matching query");
             exit(126);
         }
 
 
-        Ok(())
+//        Ok(())
 
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str,  core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn(item_name);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("vpn deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete vpn: {:?}", e);
-                Err("unable to delete vpn")
-            }
-        }
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str,  core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient.default_api().delete_msg_vpn(item_name);
+        core_run_meta!(request, core)
+
     }
 
 }

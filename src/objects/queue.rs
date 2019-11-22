@@ -1,5 +1,5 @@
 use crate::fetch::Fetch;
-use solace_semp_client::models::{MsgVpnQueuesResponse, MsgVpnQueueResponse, MsgVpnQueue};
+use solace_semp_client::models::{MsgVpnQueuesResponse, MsgVpnQueueResponse, MsgVpnQueue, SempMetaOnlyResponse};
 use crate::helpers;
 use tokio_core::reactor::Core;
 use solace_semp_client::apis::client::APIClient;
@@ -25,17 +25,7 @@ impl Fetch<MsgVpnQueuesResponse> for MsgVpnQueuesResponse {
                 futures::future::ok(vpn)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
 
     }
 }
@@ -53,17 +43,8 @@ impl Provision<MsgVpnQueueResponse> for MsgVpnQueueResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_queue(in_vpn, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
@@ -108,7 +89,7 @@ impl Save<MsgVpnQueuesResponse> for MsgVpnQueuesResponse {
 
 impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
 
-    fn update(vpn_name: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn update(vpn_name: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
 
@@ -119,23 +100,14 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
                 let request = apiclient
                     .default_api()
                     .update_msg_vpn_queue(vpn_name, &*item_name.unwrap(), item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(())
-                    },
-                    Err(e) => {
-                        error!("update error: {:?}", e);
-                        exit(126);
-                        Err("update error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
     }
 
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueResponse, &'static str> {
         info!("retrieving current queue from appliance");
         let mut item = MsgVpnQueuesResponse::fetch(msg_vpn, item_name, "queueName",item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
@@ -144,24 +116,18 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
             info!("changing ingress state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
             x.set_ingress_enabled(state);
-            let r = core.run(apiclient.default_api().update_msg_vpn_queue(msg_vpn, item_name, x, helpers::getselect("*")));
-            match r {
-                Ok(t) => info!("ingress successfully changed to {:?}", state),
-                Err(e) => {
-                    error!("error changing ingress state for vpn: {}, {:?}", item_name, e);
-                    exit(126);
-                }
-            }
+            let request = apiclient.default_api().update_msg_vpn_queue(msg_vpn, item_name, x, helpers::getselect("*"));
+            core_run!(request, core)
 
         } else {
             error!("error, did not find exactly one item matching query");
             exit(126);
         }
 
-        Ok(())
+//        Ok(())
     }
 
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueResponse, &'static str> {
         info!("retrieving current queue from appliance");
         let mut item = MsgVpnQueuesResponse::fetch(msg_vpn, item_name, "queueName",item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
@@ -170,34 +136,22 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
             info!("changing egress state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
             x.set_egress_enabled(state);
-            let r = core.run(apiclient.default_api().update_msg_vpn_queue(msg_vpn, item_name, x, helpers::getselect("*")));
-            match r {
-                Ok(t) => info!("egress successfully changed to {:?}", state),
-                Err(e) => {
-                    error!("error changing egress state for vpn: {}, {:?}", item_name, e);
-                    exit(126);
-                }
-            }
+            let request = apiclient.default_api().update_msg_vpn_queue(msg_vpn, item_name, x, helpers::getselect("*"));
+            core_run!(request, core)
 
         } else {
             error!("error, did not find exactly one item matching query");
             exit(126);
         }
 
-        Ok(())
+//        Ok(())
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn_queue(msg_vpn, item_name);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("queue deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete queue: {:?}", e);
-                Err("unable to delete queue")
-            }
-        }
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient
+            .default_api()
+            .delete_msg_vpn_queue(msg_vpn, item_name);
+        core_run_meta!(request, core)
+
     }
 }

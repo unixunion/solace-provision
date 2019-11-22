@@ -35,17 +35,8 @@ impl Fetch<MsgVpnDmrBridgesResponse> for MsgVpnDmrBridgesResponse {
                 futures::future::ok(item)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
+
     }
 }
 
@@ -61,17 +52,8 @@ impl Provision<MsgVpnDmrBridgeResponse> for MsgVpnDmrBridgeResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_dmr_bridge(in_vpn, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        error!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }

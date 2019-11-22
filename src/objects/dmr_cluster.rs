@@ -11,7 +11,7 @@ use crate::save::Save;
 use serde::Serialize;
 use crate::update::Update;
 use std::process;
-use solace_semp_client::models::{DmrClusterResponse, DmrClustersResponse, DmrCluster};
+use solace_semp_client::models::{DmrClusterResponse, DmrClustersResponse, DmrCluster, SempMetaOnlyResponse};
 
 impl Fetch<DmrClusterResponse> for DmrClusterResponse {
     fn fetch(in_vpn: &str, dmr_cluster_name: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterResponse, &'static str> {
@@ -23,17 +23,8 @@ impl Fetch<DmrClusterResponse> for DmrClusterResponse {
                 futures::future::ok(item)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
+
     }
 }
 
@@ -50,17 +41,8 @@ impl Fetch<DmrClustersResponse> for DmrClustersResponse {
                 futures::future::ok(item)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
+
     }
 }
 
@@ -74,17 +56,8 @@ impl Provision<DmrClusterResponse> for DmrClusterResponse {
                 let request = apiclient
                     .default_api()
                     .create_dmr_cluster(item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        error!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
@@ -124,17 +97,11 @@ impl Save<DmrCluster> for DmrCluster {
 }
 
 impl Update<DmrClusterResponse> for DmrClusterResponse {
-    fn delete(cluster_name: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_dmr_cluster(cluster_name);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("dmr cluster deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete dmr cluster: {:?}", e);
-                Err("unable to delete dmr cluster")
-            }
-        }
+    fn delete(cluster_name: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient
+            .default_api()
+            .delete_dmr_cluster(cluster_name);
+        core_run_meta!(request, core)
+
     }
 }

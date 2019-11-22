@@ -26,16 +26,5 @@ impl Fetch<MsgVpnAclProfileClientConnectExceptionsResponse> for MsgVpnAclProfile
             });
 
         core_run!(request, core)
-//        match core.run(request) {
-//            Ok(response) => {
-//                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-//                Ok(response)
-//            },
-//            Err(e) => {
-//                error!("error fetching: {:?}", e);
-//                panic!("fetch error: {:?}", e);
-//                Err("fetch error")
-//            }
-//        }
     }
 }

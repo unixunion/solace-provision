@@ -11,7 +11,7 @@ use crate::save::Save;
 use serde::Serialize;
 use crate::update::Update;
 use std::process;
-use solace_semp_client::models::{MsgVpnAclProfilePublishExceptionsResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfilePublishExceptionResponse};
+use solace_semp_client::models::{MsgVpnAclProfilePublishExceptionsResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfilePublishExceptionResponse, SempMetaOnlyResponse};
 
 // FETCH ACL publish exceptions
 
@@ -24,18 +24,7 @@ impl Fetch<MsgVpnAclProfilePublishExceptionsResponse> for MsgVpnAclProfilePublis
             .and_then(|acl| {
                 futures::future::ok(acl)
             });
-
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
     }
 }
 
@@ -52,17 +41,7 @@ impl Provision<MsgVpnAclProfilePublishExceptionResponse> for MsgVpnAclProfilePub
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_acl_profile_publish_exception(msg_vpn_name, acl_profile_name, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
             }
             _ => unimplemented!()
         }
@@ -113,17 +92,8 @@ impl Save<MsgVpnAclProfilePublishExceptionsResponse> for MsgVpnAclProfilePublish
 // update ACL publish exception
 impl Update<MsgVpnAclProfilePublishExceptionResponse> for MsgVpnAclProfilePublishExceptionResponse {
 
-    fn delete_by_sub_item(msg_vpn: &str, acl_profile_name: &str, topic_syntax: &str, publish_exception_topic: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn_acl_profile_publish_exception(msg_vpn, acl_profile_name, topic_syntax, publish_exception_topic);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("acl-publish-exception deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete acl-publish-exception: {:?}", e);
-                Err("unable to delete acl-publish-exception")
-            }
-        }
+    fn delete_by_sub_item(msg_vpn: &str, acl_profile_name: &str, topic_syntax: &str, publish_exception_topic: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient.default_api().delete_msg_vpn_acl_profile_publish_exception(msg_vpn, acl_profile_name, topic_syntax, publish_exception_topic);
+        core_run_meta!(request, core)
     }
 }

@@ -10,7 +10,7 @@ use std::process::exit;
 use crate::save::Save;
 use serde::Serialize;
 use crate::update::Update;
-use solace_semp_client::models::{MsgVpnAclProfilesResponse, MsgVpnAclProfileResponse, MsgVpnAclProfile};
+use solace_semp_client::models::{MsgVpnAclProfilesResponse, MsgVpnAclProfileResponse, MsgVpnAclProfile, SempMetaOnlyResponse};
 use std::process;
 
 // Fetch ACL
@@ -26,17 +26,6 @@ impl Fetch<MsgVpnAclProfilesResponse> for MsgVpnAclProfilesResponse {
             });
 
         core_run!(request, core)
-//        match core.run(request) {
-//            Ok(response) => {
-//                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-//                Ok(response)
-//            },
-//            Err(e) => {
-//                error!("error fetching: {:?}", e);
-//                panic!("fetch error: {:?}", e);
-//                Err("fetch error")
-//            }
-//        }
 
     }
 }
@@ -54,18 +43,9 @@ impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_acl_profile(in_vpn, item, helpers::getselect("*"));
+
                 core_run!(request, core)
-//                match core.run(request) {
-//                    Ok(response) => {
-//                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-//                        Ok(response)
-//                    },
-//                    Err(e) => {
-//                        println!("provision error: {:?}", e);
-//                        exit(126);
-//                        Err("provision error")
-//                    }
-//                }
+
             }
             _ => unimplemented!()
         }
@@ -110,7 +90,7 @@ impl Save<MsgVpnAclProfile> for MsgVpnAclProfile {
 
 impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnAclProfile> = serde_yaml::from_reader(file).unwrap();
 
@@ -121,34 +101,14 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
                 let request = apiclient
                     .default_api()
                     .update_msg_vpn_acl_profile(msg_vpn, &*item_name.unwrap(), item, helpers::getselect("*"));
-//                core_run!(request, core)
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(())
-                    },
-                    Err(e) => {
-                        error!("update error: {:?}", e);
-                        process::exit(126);
-                        Err("update error")
-                    }
-                }
+                core_run!(request, core)
             }
             _ => unimplemented!()
         }
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn_acl_profile(msg_vpn, item_name);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("acl deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete acl: {:?}", e);
-                Err("unable to delete acl")
-            }
-        }
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient.default_api().delete_msg_vpn_acl_profile(msg_vpn, item_name);
+        core_run_meta!(request, core)
     }
 }

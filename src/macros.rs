@@ -9,6 +9,24 @@ macro_rules! core_run {
             Err(e) => {
                 error!("error fetching: {:?}", e);
                 panic!("fetch error: {:?}", e);
+//                if ($panic) {
+//                    system::exit(126);
+//                }
+                Err("fetch error")
+            }
+        }
+    }
+}
+
+macro_rules! core_run_meta {
+    ($request: expr, $core: expr) => {
+        match $core.run($request) {
+            Ok(response) => {
+                Ok(response)
+            },
+            Err(e) => {
+                error!("error fetching: {:?}", e);
+                panic!("fetch error: {:?}", e);
                 Err("fetch error")
             }
         }

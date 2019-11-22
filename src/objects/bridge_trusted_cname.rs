@@ -24,16 +24,7 @@ impl Fetch<MsgVpnBridgeTlsTrustedCommonNamesResponse> for MsgVpnBridgeTlsTrusted
                 futures::future::ok(item)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
+
     }
 }

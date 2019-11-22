@@ -11,7 +11,7 @@ use crate::save::Save;
 use serde::Serialize;
 use crate::update::Update;
 use std::process;
-use solace_semp_client::models::{MsgVpnAclProfileSubscribeExceptionsResponse, MsgVpnAclProfileSubscribeExceptionResponse, MsgVpnAclProfileSubscribeException};
+use solace_semp_client::models::{MsgVpnAclProfileSubscribeExceptionsResponse, MsgVpnAclProfileSubscribeExceptionResponse, MsgVpnAclProfileSubscribeException, SempMetaOnlyResponse};
 
 // fetch ACL subscribe exceptions
 
@@ -25,17 +25,7 @@ impl Fetch<MsgVpnAclProfileSubscribeExceptionsResponse> for MsgVpnAclProfileSubs
                 futures::future::ok(acl)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
     }
 }
 
@@ -52,17 +42,7 @@ impl Provision<MsgVpnAclProfileSubscribeExceptionResponse> for MsgVpnAclProfileS
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_acl_profile_subscribe_exception(msg_vpn_name, acl_profile_name, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
             }
             _ => unimplemented!()
         }
@@ -113,17 +93,8 @@ impl Save<MsgVpnAclProfileSubscribeExceptionsResponse> for MsgVpnAclProfileSubsc
 
 impl Update<MsgVpnAclProfileSubscribeExceptionResponse> for MsgVpnAclProfileSubscribeExceptionResponse {
 
-    fn delete_by_sub_item(msg_vpn: &str, acl_profile_name: &str, topic_syntax: &str, subscribe_exception_topic: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn_acl_profile_subscribe_exception(msg_vpn, acl_profile_name, topic_syntax, subscribe_exception_topic);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("acl-subscribe-exception deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete acl-subscribe-exception: {:?}", e);
-                Err("unable to delete acl-subscribe-exception")
-            }
-        }
+    fn delete_by_sub_item(msg_vpn: &str, acl_profile_name: &str, topic_syntax: &str, subscribe_exception_topic: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient.default_api().delete_msg_vpn_acl_profile_subscribe_exception(msg_vpn, acl_profile_name, topic_syntax, subscribe_exception_topic);
+        core_run_meta!(request, core)
     }
 }

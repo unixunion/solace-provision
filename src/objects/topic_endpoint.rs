@@ -10,7 +10,7 @@ use std::process::exit;
 use crate::save::Save;
 use serde::Serialize;
 use crate::update::Update;
-use solace_semp_client::models::{MsgVpnTopicEndpointsResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpoint};
+use solace_semp_client::models::{MsgVpnTopicEndpointsResponse, MsgVpnTopicEndpointResponse, MsgVpnTopicEndpoint, SempMetaOnlyResponse};
 use std::process;
 
 // fetch topic endpoint
@@ -25,17 +25,8 @@ impl Fetch<MsgVpnTopicEndpointsResponse> for MsgVpnTopicEndpointsResponse {
                 futures::future::ok(item)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
+
     }
 }
 
@@ -52,17 +43,8 @@ impl Provision<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_topic_endpoint(in_vpn, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
@@ -110,7 +92,7 @@ impl Save<MsgVpnTopicEndpointsResponse> for MsgVpnTopicEndpointsResponse {
 
 impl Update<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
 
-    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointResponse, &'static str> {
         info!("retrieving current topic endpoint from appliance");
         let mut item = MsgVpnTopicEndpointsResponse::fetch(msg_vpn, item_name, "topicEndpointName",item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
@@ -119,24 +101,19 @@ impl Update<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
             info!("changing ingress state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
             x.set_ingress_enabled(state);
-            let r = core.run(apiclient.default_api().update_msg_vpn_topic_endpoint(msg_vpn, item_name, x, helpers::getselect("*")));
-            match r {
-                Ok(t) => info!("ingress successfully changed to {:?}", state),
-                Err(e) => {
-                    error!("error changing ingress state for vpn: {}, {:?}", item_name, e);
-                    exit(126);
-                }
-            }
+            let request = apiclient.default_api().update_msg_vpn_topic_endpoint(msg_vpn, item_name, x, helpers::getselect("*"));
+            core_run!(request, core)
+
 
         } else {
             error!("error, did not find exactly one item matching query");
             process::exit(126);
         }
 
-        Ok(())
+//        Ok(())
     }
 
-    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointResponse, &'static str> {
         info!("retrieving current queue from appliance");
         let mut item = MsgVpnTopicEndpointsResponse::fetch(msg_vpn, item_name, "topicEndpointName",item_name, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
@@ -145,35 +122,22 @@ impl Update<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
             info!("changing egress state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
             x.set_egress_enabled(state);
-            let r = core.run(apiclient.default_api().update_msg_vpn_topic_endpoint(msg_vpn, item_name, x, helpers::getselect("*")));
-            match r {
-                Ok(t) => info!("egress successfully changed to {:?}", state),
-                Err(e) => {
-                    error!("error changing egress state for vpn: {}, {:?}", item_name, e);
-                    exit(126);
-                }
-            }
+            let request = apiclient.default_api().update_msg_vpn_topic_endpoint(msg_vpn, item_name, x, helpers::getselect("*"));
+            core_run!(request, core)
+
 
         } else {
             error!("error, did not find exactly one item matching query");
             process::exit(126);
         }
 
-        Ok(())
+//        Ok(())
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
         info!("deleting: {}", sub_identifier);
-        let t = apiclient.default_api().delete_msg_vpn_topic_endpoint(msg_vpn, item_name);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("topic-endpoint deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete topic-endpoint: {:?}", e);
-                Err("unable to delete topic-endpoint")
-            }
-        }
+        let request = apiclient.default_api().delete_msg_vpn_topic_endpoint(msg_vpn, item_name);
+        core_run_meta!(request, core)
+
     }
 }
