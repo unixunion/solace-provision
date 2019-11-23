@@ -64,9 +64,7 @@ mod tests {
         let mut vpn = MsgVpn::new();
         vpn.set_msg_vpn_name("tmpvpn".to_owned());
         MsgVpn::save("tmp", &vpn);
-//        let file = std::fs::File::open("tmp/tmpvpn/vpn/tmpvpn.yaml").unwrap();
-//        let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
-        let deserialized = deserialize_solace_file!("tmp/tmpvpn/vpn/tmpvpn.yaml", MsgVpn);
+        let deserialized = deserialize_file_into_type!("tmp/tmpvpn/vpn/tmpvpn.yaml", MsgVpn);
         match deserialized {
             Some(vpn) => {
                 assert_eq!(vpn.msg_vpn_name().unwrap(), "tmpvpn");
@@ -81,8 +79,8 @@ mod tests {
         match f {
             Ok(vpns) => {
                 MsgVpnsResponse::save("tmp", &vpns);
-                let default_vpn = deserialize_solace_file!("tmp/default/vpn/default.yaml", MsgVpn);
-                let testvpn_vpn = deserialize_solace_file!("tmp/testvpn/vpn/testvpn.yaml", MsgVpn);
+                let default_vpn = deserialize_file_into_type!("tmp/default/vpn/default.yaml", MsgVpn);
+                let testvpn_vpn = deserialize_file_into_type!("tmp/testvpn/vpn/testvpn.yaml", MsgVpn);
                 assert_eq!(default_vpn.unwrap().msg_vpn_name().unwrap(), "default");
                 assert_eq!(testvpn_vpn.unwrap().msg_vpn_name().unwrap(), "testvpn");
             },
@@ -145,12 +143,13 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
 // provision a vpn
 impl Provision<MsgVpnResponse> for MsgVpnResponse {
 
-    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
-        let file = std::fs::File::open(file_name).unwrap();
-        let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
+    fn provision_with_file(vpn_name: &str, unused_1: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpn);
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(in_vpn.to_owned());
+                if (&vpn_name != &"") {
+                    &item.set_msg_vpn_name(vpn_name.to_owned());
+                }
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn(item, helpers::getselect("*"));
@@ -202,8 +201,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
 
     fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
         info!("updating message-vpn: {} from file", msg_vpn);
-        let file = std::fs::File::open(file_name).unwrap();
-        let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpn);
 
         match deserialized {
             Some(mut item) => {
@@ -234,9 +232,6 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
             error!("error, did not find exactly one item matching query");
             exit(126);
         }
-
-
-//        Ok(())
 
     }
 

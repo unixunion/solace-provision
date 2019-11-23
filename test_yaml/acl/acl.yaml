@@ -1,0 +1,6 @@
+---
+aclProfileName: myacl
+clientConnectDefaultAction: allow
+msgVpnName: overridden_at_provision_time
+publishTopicDefaultAction: allow
+subscribeTopicDefaultAction: allow

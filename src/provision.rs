@@ -201,18 +201,4 @@ pub trait Provision<T> {
     fn provision_item_subittem(in_vpn: &str, item_name: &str, second_item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<T, &'static str> {
         unimplemented!()
     }
-//    fn deserialize_file(file_name: &str) -> Result<Option<T>,&'static str> where T:Deserialize {
-//        let file = std::fs::File::open(file_name).unwrap();
-//        let deserialized: Option<T> = serde_yaml::from_reader(file).unwrap();
-//        return Ok(deserialized);
-//    }
 }
-
-
-
-// DMR cluster
-
-
-
-// DMR cluster link
-

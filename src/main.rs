@@ -2,6 +2,7 @@
 extern crate log;
 extern crate env_logger;
 extern crate tokio_request;
+//extern crate rand;
 
 #[macro_use]
 mod macros;
@@ -148,7 +149,6 @@ fn main() -> Result<(), Box<Error>> {
     let hyperclient = Client::configure()
         .connector(hyper_tls::HttpsConnector::from((http, tls.build()?))).build(&handle);
 
-
     // auth
     let auth = helpers::gencred("admin".to_owned(), "admin".to_owned());
 
@@ -176,7 +176,7 @@ fn main() -> Result<(), Box<Error>> {
     }
 
 
-    let about_url = &configuration.base_path.clone();
+//    let about_url = &configuration.base_path.clone();
 
     // the API Client from swagger spec
     let client = APIClient::new(configuration);
@@ -225,7 +225,6 @@ fn main() -> Result<(), Box<Error>> {
 
 
             if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
-
 
                 // early shutdown if not provisioning new
                 if shutdown_item && update_item && matches.is_present("message-vpn") {
