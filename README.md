@@ -49,7 +49,7 @@ This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-A
 * TLS enabled SEMP service *( otherwise some types of secrets cannot be provisioned )*
 * CA certificate in either:
     * System certificate chain
-    * Appliance [config.yaml](examples/config.yaml) file
+    * Appliance [config.yaml](examples/config_solace1.yaml) file
 
 ### Compiling Requirements
 
@@ -104,7 +104,7 @@ certs:
 
 ```
 
-See [examples/config.yaml](examples/config.yaml) 
+See [examples/config.yaml](examples/config_solace1.yaml) 
 
 ### Spec Files
 

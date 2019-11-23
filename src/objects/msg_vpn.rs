@@ -1,3 +1,113 @@
+mod tests {
+    use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnsResponse};
+    use crate::provision::Provision;
+    use solace_semp_client::models::MsgVpnQueue;
+    use tokio_core::reactor::Core;
+    use hyper::client::HttpConnector;
+    use native_tls::TlsConnector;
+    use hyper::Client;
+    use crate::helpers;
+    use solace_semp_client::apis::configuration::Configuration;
+    use solace_semp_client::apis::client::APIClient;
+    use std::error::Error;
+    use crate::update::Update;
+    use crate::fetch::Fetch;
+    use crate::save::Save;
+
+    //-> Result<(), Box<Error>>
+    #[test]
+    fn provision() {
+        println!("vpn tests");
+
+        let (mut core, mut client) = solace_connect!();
+
+        println!("delete testvpn");
+        let d = MsgVpnResponse::delete("testvpn", "", "", &mut core, &client);
+
+        println!("create vpn");
+        let v = MsgVpnResponse::provision_with_file("testvpn",
+                                                    "testvpn",
+                                                    "test_yaml/msg_vpn/vpn.yaml", &mut core,
+                                                    &client);
+        match v {
+            Ok(vpn) => {
+                assert_eq!(vpn.data().unwrap().msg_vpn_name().unwrap(), "testvpn");
+            },
+            Err(e) => {
+                error!("cannot test");
+            }
+        }
+
+        println!("fetch vpn");
+        let f = MsgVpnsResponse::fetch("testvpn", "testvpn", "msgVpnName", "testvpn", 10, "", "*", &mut core, &client);
+        match f {
+            Ok(vpn) => {
+                assert_eq!(vpn.data().unwrap().len(), 1);
+            },
+            Err(e) => {
+                error!("cannot test")
+            }
+        }
+
+        println!("update vpn");
+        let u = MsgVpnResponse::update("testvpn", "test_yaml/msg_vpn/update.yaml", "", &mut core, &client);
+        match u {
+            Ok(vpn) => {
+                assert_eq!(vpn.data().unwrap().max_connection_count().unwrap(), &1000);
+            },
+            Err(e) => {
+                error!("cannot test");
+            }
+        }
+
+        println!("save vpn");
+        let mut vpn = MsgVpn::new();
+        vpn.set_msg_vpn_name("tmpvpn".to_owned());
+        MsgVpn::save("tmp", &vpn);
+//        let file = std::fs::File::open("tmp/tmpvpn/vpn/tmpvpn.yaml").unwrap();
+//        let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
+        let deserialized = deserialize_solace_file!("tmp/tmpvpn/vpn/tmpvpn.yaml", MsgVpn);
+        match deserialized {
+            Some(vpn) => {
+                assert_eq!(vpn.msg_vpn_name().unwrap(), "tmpvpn");
+            },
+            _ => {
+                error!("cannot save vpn");
+            }
+        }
+
+        println!("save vpns response");
+        let f = MsgVpnsResponse::fetch("testvpn", "testvpn", "msgVpnName", "*", 10, "", "*", &mut core, &client);
+        match f {
+            Ok(vpns) => {
+                MsgVpnsResponse::save("tmp", &vpns);
+                let default_vpn = deserialize_solace_file!("tmp/default/vpn/default.yaml", MsgVpn);
+                let testvpn_vpn = deserialize_solace_file!("tmp/testvpn/vpn/testvpn.yaml", MsgVpn);
+                assert_eq!(default_vpn.unwrap().msg_vpn_name().unwrap(), "default");
+                assert_eq!(testvpn_vpn.unwrap().msg_vpn_name().unwrap(), "testvpn");
+            },
+            Err(e) => {
+                error!("unable to save vpns response");
+            }
+        }
+
+        println!("disable vpn");
+        let d = MsgVpnResponse::enabled("testvpn", "", vec![], false, &mut core, &client);
+        match d {
+            Ok(vpn) => {
+                assert_eq!(vpn.data().unwrap().enabled().unwrap(), &false);
+            },
+            Err(e) => {
+                error!("error in disable test");
+            }
+        }
+
+        println!("delete vpn");
+        let d = MsgVpnResponse::delete("testvpn", "", "", &mut core, &client);
+
+    }
+}
+
 use crate::fetch::Fetch;
 use tokio_core::reactor::Core;
 use solace_semp_client::apis::client::APIClient;
@@ -15,7 +125,7 @@ use crate::update::Update;
 // fetch multple msgvpnsresponse
 impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
 
-    fn fetch(in_vpn: &str, name: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnsResponse, &'static str> {
+    fn fetch(unused_1: &str, unused_2: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnsResponse, &'static str> {
         let (wherev, selectv) = helpers::getwhere(select_key, select_value, selector);
         let request = apiclient
             .msg_vpn_api()
@@ -110,7 +220,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
 
     fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
         info!("changing enabled state to: {:?} for message-vpn: {}", state, msg_vpn);
-        let mut vpn = MsgVpnsResponse::fetch(item_name, item_name, "msgVpnName",item_name, 10, "", "", core, apiclient)?;
+        let mut vpn = MsgVpnsResponse::fetch(msg_vpn, msg_vpn, "msgVpnName",msg_vpn, 10, "", "", core, apiclient)?;
 
         let mut tvpn = vpn.data().unwrap().clone();
         if tvpn.len() == 1 {
@@ -131,9 +241,8 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
     }
 
     fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str,  core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
-        let request = apiclient.default_api().delete_msg_vpn(item_name);
+        let request = apiclient.default_api().delete_msg_vpn(msg_vpn);
         core_run_meta!(request, core)
-
     }
 
 }
