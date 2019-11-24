@@ -113,6 +113,14 @@ macro_rules! deserialize_file_into_type {
     }}
 }
 
+//macro_rules! maybe_set_vpn_name {
+//    ($item: expr, $vpn_name) = {
+//        if (&vpn_name != &"") {
+//            &item.set_msg_vpn_name(vpn_name.to_owned());
+//        }
+//    }
+//}
+
 // example
 macro_rules! call_on_self {
     ($self:ident, $F:ident) => {

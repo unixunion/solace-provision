@@ -1,0 +1,4 @@
+---
+aclProfileName: myacl
+clientConnectExceptionAddress: 1.2.3.4/32
+msgVpnName: irrelevant

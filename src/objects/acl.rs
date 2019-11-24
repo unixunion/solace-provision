@@ -34,14 +34,17 @@ impl Fetch<MsgVpnAclProfilesResponse> for MsgVpnAclProfilesResponse {
 
 impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
 
-    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
+    fn provision_with_file(msg_vpn_name: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
         let deserialized = deserialize_file_into_type!(file_name, MsgVpnAclProfile);
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(in_vpn.to_owned());
+//                item.set_msg_vpn_name(in_vpn.to_owned());
+                if (&msg_vpn_name != &"") {
+                    &item.set_msg_vpn_name(msg_vpn_name.to_owned());
+                }
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_acl_profile(in_vpn, item, helpers::getselect("*"));
+                    .create_msg_vpn_acl_profile(msg_vpn_name, item, helpers::getselect("*"));
 
                 core_run!(request, core)
 
@@ -128,7 +131,6 @@ mod tests {
     use crate::save::Save;
     use rand::Rng;
 
-    //-> Result<(), Box<Error>>
     #[test]
     fn provision() {
         let mut rng = rand::thread_rng();
@@ -257,69 +259,6 @@ mod tests {
             }
         }
 
-
-
-//        println!("fetch vpn");
-//        let f = MsgVpnsResponse::fetch("testvpn", "testvpn", "msgVpnName", "testvpn", 10, "", "*", &mut core, &client);
-//        match f {
-//            Ok(vpn) => {
-//                assert_eq!(vpn.data().unwrap().len(), 1);
-//            },
-//            Err(e) => {
-//                error!("cannot test")
-//            }
-//        }
-//
-//        println!("update vpn");
-//        let u = MsgVpnResponse::update("testvpn", "test_yaml/msg_vpn/update.yaml", "", &mut core, &client);
-//        match u {
-//            Ok(vpn) => {
-//                assert_eq!(vpn.data().unwrap().max_connection_count().unwrap(), &1000);
-//            },
-//            Err(e) => {
-//                error!("cannot test");
-//            }
-//        }
-//
-//        println!("save vpn");
-//        let mut vpn = MsgVpn::new();
-//        vpn.set_msg_vpn_name("tmpvpn".to_owned());
-//        MsgVpn::save("tmp", &vpn);
-//        let deserialized = deserialize_file_into_type!("tmp/tmpvpn/vpn/tmpvpn.yaml", MsgVpn);
-//        match deserialized {
-//            Some(vpn) => {
-//                assert_eq!(vpn.msg_vpn_name().unwrap(), "tmpvpn");
-//            },
-//            _ => {
-//                error!("cannot save vpn");
-//            }
-//        }
-//
-//        println!("save vpns response");
-//        let f = MsgVpnsResponse::fetch("testvpn", "testvpn", "msgVpnName", "*", 10, "", "*", &mut core, &client);
-//        match f {
-//            Ok(vpns) => {
-//                MsgVpnsResponse::save("tmp", &vpns);
-//                let default_vpn = deserialize_file_into_type!("tmp/default/vpn/default.yaml", MsgVpn);
-//                let testvpn_vpn = deserialize_file_into_type!("tmp/testvpn/vpn/testvpn.yaml", MsgVpn);
-//                assert_eq!(default_vpn.unwrap().msg_vpn_name().unwrap(), "default");
-//                assert_eq!(testvpn_vpn.unwrap().msg_vpn_name().unwrap(), "testvpn");
-//            },
-//            Err(e) => {
-//                error!("unable to save vpns response");
-//            }
-//        }
-//
-//        println!("disable vpn");
-//        let d = MsgVpnResponse::enabled("testvpn", "", vec![], false, &mut core, &client);
-//        match d {
-//            Ok(vpn) => {
-//                assert_eq!(vpn.data().unwrap().enabled().unwrap(), &false);
-//            },
-//            Err(e) => {
-//                error!("error in disable test");
-//            }
-//        }
 
         println!("acl delete");
         let da = MsgVpnAclProfileResponse::delete(&random_vpn, "myacl", "", &mut core, &client);
