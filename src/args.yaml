@@ -884,6 +884,7 @@ subcommands:
             requires:
               - cluster-name
               - update
+              - remote-node-name
             help: shutdown an dmr cluster link
         - remote-node-name:
             long: remote-node-name

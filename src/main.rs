@@ -1872,8 +1872,8 @@ fn main() -> Result<(), Box<Error>> {
 
                 }
 
-                if no_shutdown_item && update_item && matches.is_present("cluster_name") {
-                    DmrClusterLinkResponse::enabled(cluster_name, "", vec![],
+                if no_shutdown_item && update_item && matches.is_present("cluster-name") {
+                    DmrClusterLinkResponse::enabled(cluster_name, matches.value_of("remote-node-name").unwrap_or(""), vec![],
                                                     true, &mut core, &client)?;
                 }
 

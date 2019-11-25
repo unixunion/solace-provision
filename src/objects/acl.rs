@@ -34,7 +34,7 @@ impl Fetch<MsgVpnAclProfilesResponse> for MsgVpnAclProfilesResponse {
 
 impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
 
-    fn provision_with_file(msg_vpn_name: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
+    fn provision_with_file(msg_vpn_name: &str, override_acl_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
         let deserialized = deserialize_file_into_type!(file_name, MsgVpnAclProfile);
         match deserialized {
             Some(mut item) => {
@@ -42,6 +42,11 @@ impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
                 if (&msg_vpn_name != &"") {
                     &item.set_msg_vpn_name(msg_vpn_name.to_owned());
                 }
+                if (&override_acl_name != &"") {
+                    info!("overriding acl name to: {}", &override_acl_name);
+                    &item.set_acl_profile_name(override_acl_name.to_owned());
+                }
+
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_acl_profile(msg_vpn_name, item, helpers::getselect("*"));

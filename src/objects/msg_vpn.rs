@@ -83,7 +83,7 @@ impl Save<MsgVpn> for MsgVpn {
         let vpn_name = data.msg_vpn_name();
         let item_name = data.msg_vpn_name();
         debug!("save vpn: {:?}, {:?}", vpn_name, item_name);
-        data.save_in_dir(dir, "vpn", &vpn_name, &item_name);
+        data.save_in_dir(dir, "vpn", &vpn_name, &Some(&"vpn".to_owned()));
         Ok(())
     }
 }

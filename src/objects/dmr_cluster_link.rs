@@ -76,8 +76,9 @@ impl Save<DmrClusterLink> for DmrClusterLink {
         let node_name =  Some(name);
         let mut item_name =  data.remote_node_name().unwrap().clone();
         let item_name = Some(&item_name);
+        let cluster_name = data.dmr_cluster_name().unwrap().clone();
         debug!("save dmr-cluster-link: {:?}, {:?}", node_name, item_name);
-        data.save_in_dir(dir, "dmr-cluster-link", &node_name, &item_name);
+        data.save_in_dir(dir, &format!("dmr-cluster/{}/dmr-cluster-link", cluster_name), &node_name, &item_name);
         Ok(())
     }
 }

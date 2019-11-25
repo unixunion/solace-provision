@@ -113,6 +113,24 @@ macro_rules! deserialize_file_into_type {
     }}
 }
 
+
+macro_rules! maybe_override_msg_vpn_name {
+    ($passed_value: expr, $body_value: expr, $parameter_setter: tt) => {{
+        let mut output = $item;
+        let object_parameter = $parameter_getter;
+
+        if (&output != &"") {
+            info!("overriding parameter to: {}", output);
+            &$parameter_setter(output.to_owned());
+        } else {
+            info!("using parameter from file");
+            output = &*object_parameter;
+        }
+        output
+    }}
+}
+
+
 //macro_rules! maybe_set_vpn_name {
 //    ($item: expr, $vpn_name) = {
 //        if (&vpn_name != &"") {
