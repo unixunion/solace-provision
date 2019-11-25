@@ -61,7 +61,7 @@ rust 1.33 *or* docker
 docker-compose up -d
 (Wait for solace to be ready)
 sh clean.sh examples/config.yaml testvpn
-RUST_BACKTRACE=full cargo test -- --nocapture
+RUST_BACKTRACE=full  RUST_LOG=solace_provision  cargo test --  --test-threads=1
 docker-compose down
 ```
 

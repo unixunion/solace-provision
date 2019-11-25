@@ -11,9 +11,6 @@ macro_rules! core_run {
             Err(e) => {
                 error!("error in response: {:?}", e);
                 panic!("response error: {:?}", e);
-//                if ($panic) {
-//                    system::exit(126);
-//                }
                 Err("error")
             }
         }

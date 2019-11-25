@@ -12,27 +12,29 @@ use serde::Serialize;
 use crate::update::Update;
 use std::process;
 use solace_semp_client::models::{DmrClusterResponse, DmrClustersResponse, DmrCluster, SempMetaOnlyResponse};
+use clap::ArgMatches;
+use std::borrow::Cow;
+use crate::commandlineparser::CommandLineParser;
 
-impl Fetch<DmrClusterResponse> for DmrClusterResponse {
-    fn fetch(in_vpn: &str, dmr_cluster_name: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterResponse, &'static str> {
-        let (wherev, mut selectv) = helpers::getwhere(select_key, select_value, selector);
-        let request = apiclient
-            .default_api()
-            .get_dmr_cluster(dmr_cluster_name, selectv)
-            .and_then(|item| {
-                futures::future::ok(item)
-            });
-
-        core_run!(request, core)
-
-    }
-}
-
+//impl Fetch<DmrClusterResponse> for DmrClusterResponse {
+//    fn fetch(unused_1: &str, dmr_cluster_name: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterResponse, &'static str> {
+//        let (wherev, mut selectv) = helpers::getwhere(select_key, select_value, selector);
+//        let request = apiclient
+//            .default_api()
+//            .get_dmr_cluster(dmr_cluster_name, selectv)
+//            .and_then(|item| {
+//                futures::future::ok(item)
+//            });
+//
+//        core_run!(request, core)
+//
+//    }
+//}
 
 // fetch all clusters by a key, where key is one of
 //
 impl Fetch<DmrClustersResponse> for DmrClustersResponse {
-    fn fetch(in_vpn: &str, dmr_cluster_name: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClustersResponse, &'static str> {
+    fn fetch(unused_1: &str, unused_2: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClustersResponse, &'static str> {
         let (wherev, mut selectv) = helpers::getwhere(select_key, select_value, selector);
         let request = apiclient
             .dmr_cluster_api()
@@ -99,7 +101,7 @@ impl Save<DmrCluster> for DmrCluster {
 
 impl Update<DmrClusterResponse> for DmrClusterResponse {
 
-    fn update(dmr_cluster_name: &str, sub_item: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterResponse, &'static str> {
+    fn update(dmr_cluster_name: &str, unused_1: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterResponse, &'static str> {
         info!("updating dmr-cluster: {} from file", dmr_cluster_name);
         let deserialized = deserialize_file_into_type!(file_name, DmrCluster);
 
@@ -107,6 +109,7 @@ impl Update<DmrClusterResponse> for DmrClusterResponse {
             Some(mut item) => {
 
                 // TODO FIXME macro this override mechanism
+
                 let mut referenced_dmr_cluster_name = dmr_cluster_name;
                 let file_referenced_dmr_cluster_name = item.dmr_cluster_name().unwrap().clone();
 
@@ -131,11 +134,246 @@ impl Update<DmrClusterResponse> for DmrClusterResponse {
     }
 
 
-    fn delete(cluster_name: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+    fn delete(cluster_name: &str, unused_1: &str, unused_2: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
         let request = apiclient
             .default_api()
             .delete_dmr_cluster(cluster_name);
         core_run_meta!(request, core)
+
+    }
+}
+
+
+/// command line parser for this object
+impl CommandLineParser<DmrCluster> for DmrCluster {
+
+    fn parse(matches: ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>) {
+
+        // cursor holder
+        let mut cursor = Cow::Borrowed("");
+        let count = matches.value_of("count").unwrap().parse::<i32>().unwrap();
+        let output_dir = matches.value_of("output").unwrap();
+        let select = matches.value_of("select").unwrap();
+        let mut write_fetch_files = matches.value_of("save").unwrap().parse::<bool>().unwrap();
+
+        // source subcommand args into matches
+        if let Some(matches) = matches.subcommand_matches("dmr-cluster") {
+
+            // get the boolean args
+            let update_item = matches.is_present("update");
+            let shutdown_item = matches.is_present("shutdown");
+            let no_shutdown_item = matches.is_present("no-shutdown");
+            let fetch = matches.is_present("fetch");
+            let delete = matches.is_present("delete");
+
+            if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
+
+                // if file is passed, it means either provision or update.
+                if matches.is_present("file") && !delete {
+                    let file_name = matches.value_of("file").unwrap();
+                    if update_item {
+                        DmrClusterResponse::update(
+                            matches.value_of("cluster-name").unwrap(),
+                            "",
+                            file_name,
+                            core,
+                            &client
+                        );
+                    } else {
+                        DmrClusterResponse::provision_with_file(
+                            "",
+                            "",
+                            file_name,
+                            core,
+                            &client
+                        );
+                    }
+                }
+
+
+                // finally if fetch is specified, we do this last."
+                while fetch {
+                    let data = DmrClustersResponse::fetch("",
+                                                          "",
+                                                          "dmrClusterName",
+                                                          matches.value_of("cluster-name").unwrap(),
+                                                          count,
+                                                          &*cursor.to_string(),
+                                                          select,
+                                                          core,
+                                                          &client
+                    );
+
+
+                    match data {
+                        Ok(item) => {
+
+                            if write_fetch_files {
+                                DmrClustersResponse::save(output_dir, &item);
+                            }
+
+                            let cq = item.meta().paging();
+                            match cq {
+                                Some(paging) => {
+                                    info!("cq: {:?}", paging.cursor_query());
+                                    cursor = Cow::Owned(paging.cursor_query().clone());
+                                },
+                                _ => {
+                                    break
+                                }
+                            }
+                        },
+                        Err(e) => {
+                            error!("error: {}", e)
+                        }
+                    }
+
+
+                }
+
+                if delete {
+                    info!("deleting dmr-bridge");
+                    DmrClusterResponse::delete(matches.value_of("cluster-name").unwrap(), "", "", core, &client);
+                }
+            } else {
+                error!("No operation was specified, see --help")
+            }
+
+        }
+    }
+}
+
+
+mod tests {
+    use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnsResponse, DmrClusterResponse, DmrCluster, DmrClustersResponse};
+    use crate::provision::Provision;
+    use solace_semp_client::models::MsgVpnQueue;
+    use tokio_core::reactor::Core;
+    use hyper::client::HttpConnector;
+    use native_tls::TlsConnector;
+    use hyper::Client;
+    use crate::helpers;
+    use solace_semp_client::apis::configuration::Configuration;
+    use solace_semp_client::apis::client::APIClient;
+    use std::error::Error;
+    use crate::update::Update;
+    use crate::fetch::Fetch;
+    use crate::save::Save;
+
+    //-> Result<(), Box<Error>>
+    #[test]
+    fn provision() {
+        println!("dmr-cluster tests");
+
+        let (mut core, mut client) = solace_connect!();
+
+        println!("delete dmr-cluster");
+        let d = DmrClusterResponse::delete("testdmr", "", "", &mut core, &client);
+
+        println!("create dmr-cluster");
+        let v = DmrClusterResponse::provision_with_file(
+            "",
+            "",
+            "test_yaml/dmr_cluster/dmr-cluster.yaml", &mut core,
+            &client
+        );
+        match v {
+            Ok(vpn) => {
+                assert_eq!(vpn.data().unwrap().dmr_cluster_name().unwrap(), "testdmr");
+            },
+            Err(e) => {
+                error!("cannot test");
+            }
+        }
+
+        println!("fetch dmr-cluster");
+        let f = DmrClustersResponse::fetch(
+            "",
+            "",
+            "dmrClusterName",
+            "testdmr",
+            10, "",
+            "*",
+            &mut core,
+            &client
+        );
+        match f {
+            Ok(dmr) => {
+                assert_eq!(dmr.data().unwrap().len(), 1);
+            }
+            Err(e) => {
+                error!("cannot test")
+            }
+        }
+
+        println!("update dmr");
+        let u = DmrClusterResponse::update(
+            "testdmr",
+            "",
+            "test_yaml/dmr_cluster/update.yaml",
+            &mut core,
+            &client
+        );
+        match u {
+            Ok(dmr) => {
+                assert_eq!(dmr.data().unwrap().authentication_client_cert_enabled().unwrap(), &false);
+            }
+            Err(e) => {
+                error!("cannot test");
+            }
+        }
+
+        println!("save dmr");
+        let mut dmr = DmrCluster::new();
+        dmr.set_dmr_cluster_name("foo".to_owned());
+        DmrCluster::save("tmp", &dmr);
+        let deserialized = deserialize_file_into_type!("tmp/global/dmr-cluster/foo/dmr-cluster.yaml", DmrCluster);
+        match deserialized {
+            Some(vpn) => {
+                assert_eq!(vpn.dmr_cluster_name().unwrap(), "foo");
+            },
+            _ => {
+                error!("cannot save dmr");
+            }
+        }
+
+        println!("save dmr response");
+        let f = DmrClustersResponse::fetch(
+            "",
+            "",
+            "dmrClusterName",
+            "testdmr",
+            10,
+            "",
+            "*",
+            &mut core,
+            &client
+        );
+
+        match f {
+            Ok(dmrs) => {
+                DmrClustersResponse::save("tmp", &dmrs);
+                let dmr_ff = deserialize_file_into_type!("tmp/global/dmr-cluster/testdmr/dmr-cluster.yaml", DmrCluster);
+                assert_eq!(dmr_ff.unwrap().dmr_cluster_name().unwrap(), "testdmr");
+            },
+            Err(e) => {
+                error!("unable to save dmrs response");
+            }
+        }
+//
+//        println!("disable vpn");
+//        let d = MsgVpnResponse::enabled("testvpn", "", vec![], false, &mut core, &client);
+//        match d {
+//            Ok(vpn) => {
+//                assert_eq!(vpn.data().unwrap().enabled().unwrap(), &false);
+//            },
+//            Err(e) => {
+//                error!("error in disable test");
+//            }
+//        }
+
+        println!("delete dmr");
+        let d = DmrClusterResponse::delete("testdmr", "", "", &mut core, &client);
 
     }
 }

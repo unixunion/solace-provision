@@ -1,0 +1,13 @@
+---
+authenticationBasicEnabled: true
+authenticationBasicType: internal
+authenticationClientCertEnabled: true
+authenticationBasicPassword: password
+directOnlyEnabled: false
+dmrClusterName: testdmr
+enabled: true
+# if nodeName is uncommented, it uses the appliance name
+# nodeName: pondering-mouse-solace-0
+tlsServerCertEnforceTrustedCommonNameEnabled: true
+tlsServerCertMaxChainDepth: 3
+tlsServerCertValidateDateEnabled: true

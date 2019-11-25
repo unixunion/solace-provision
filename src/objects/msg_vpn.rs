@@ -15,6 +15,22 @@ use crate::update::Update;
 // fetch multple msgvpnsresponse
 impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
 
+    /// Returns a message vpn
+    ///
+    /// # Arguments
+    ///
+    /// * `select_key` - the key to fetch with, e.g: msgVpnName
+    /// * `select_value` - the value to filter on e.g: myvpn
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// // Test for vpn fetch
+    /// use fetch::Fetch;
+    /// use solace_semp_client::models::MsgVpnsResponse;
+    /// let (mut core, mut client) = solace_connect!();
+    /// let result = MsgVpnsResponse::fetch("", "", "msgVpnName", "default", 10, "", "*", &mut core, &client);
+    /// ```
     fn fetch(unused_1: &str, unused_2: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnsResponse, &'static str> {
         let (wherev, selectv) = helpers::getwhere(select_key, select_value, selector);
         let request = apiclient
@@ -35,13 +51,13 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
 // provision a vpn
 impl Provision<MsgVpnResponse> for MsgVpnResponse {
 
-    fn provision_with_file(vpn_name: &str, unused_1: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
+    fn provision_with_file(unused_0: &str, unused_1: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
         let deserialized = deserialize_file_into_type!(file_name, MsgVpn);
         match deserialized {
             Some(mut item) => {
-                if (&vpn_name != &"") {
-                    &item.set_msg_vpn_name(vpn_name.to_owned());
-                }
+//                if (&unused_0 != &"") {
+//                    &item.set_msg_vpn_name(unused_0.to_owned());
+//                }
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn(item, helpers::getselect("*"));
@@ -108,9 +124,9 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
         }
     }
 
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
+    fn enabled(msg_vpn: &str, unused_1: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
         info!("changing enabled state to: {:?} for message-vpn: {}", state, msg_vpn);
-        let mut vpn = MsgVpnsResponse::fetch(msg_vpn, msg_vpn, "msgVpnName",msg_vpn, 10, "", "", core, apiclient)?;
+        let mut vpn = MsgVpnsResponse::fetch("", "", "msgVpnName",msg_vpn, 10, "", "", core, apiclient)?;
 
         let mut tvpn = vpn.data().unwrap().clone();
         if tvpn.len() == 1 {
@@ -127,7 +143,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
 
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str,  core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+    fn delete(msg_vpn: &str, unused_1: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
         let request = apiclient.default_api().delete_msg_vpn(msg_vpn);
         core_run_meta!(request, core)
     }
@@ -161,8 +177,8 @@ mod tests {
         let d = MsgVpnResponse::delete("testvpn", "", "", &mut core, &client);
 
         println!("create vpn");
-        let v = MsgVpnResponse::provision_with_file("testvpn",
-                                                    "testvpn",
+        let v = MsgVpnResponse::provision_with_file("",
+                                                    "",
                                                     "test_yaml/msg_vpn/vpn.yaml", &mut core,
                                                     &client);
         match v {
@@ -175,7 +191,7 @@ mod tests {
         }
 
         println!("fetch vpn");
-        let f = MsgVpnsResponse::fetch("testvpn", "testvpn", "msgVpnName", "testvpn", 10, "", "*", &mut core, &client);
+        let f = MsgVpnsResponse::fetch("", "", "msgVpnName", "testvpn", 10, "", "*", &mut core, &client);
         match f {
             Ok(vpn) => {
                 assert_eq!(vpn.data().unwrap().len(), 1);
@@ -200,7 +216,7 @@ mod tests {
         let mut vpn = MsgVpn::new();
         vpn.set_msg_vpn_name("tmpvpn".to_owned());
         MsgVpn::save("tmp", &vpn);
-        let deserialized = deserialize_file_into_type!("tmp/tmpvpn/vpn/tmpvpn.yaml", MsgVpn);
+        let deserialized = deserialize_file_into_type!("tmp/tmpvpn/vpn/vpn.yaml", MsgVpn);
         match deserialized {
             Some(vpn) => {
                 assert_eq!(vpn.msg_vpn_name().unwrap(), "tmpvpn");
@@ -215,8 +231,8 @@ mod tests {
         match f {
             Ok(vpns) => {
                 MsgVpnsResponse::save("tmp", &vpns);
-                let default_vpn = deserialize_file_into_type!("tmp/default/vpn/default.yaml", MsgVpn);
-                let testvpn_vpn = deserialize_file_into_type!("tmp/testvpn/vpn/testvpn.yaml", MsgVpn);
+                let default_vpn = deserialize_file_into_type!("tmp/default/vpn/vpn.yaml", MsgVpn);
+                let testvpn_vpn = deserialize_file_into_type!("tmp/testvpn/vpn/vpn.yaml", MsgVpn);
                 assert_eq!(default_vpn.unwrap().msg_vpn_name().unwrap(), "default");
                 assert_eq!(testvpn_vpn.unwrap().msg_vpn_name().unwrap(), "testvpn");
             },

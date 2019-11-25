@@ -11,12 +11,25 @@ args:
       required: true
   - count:
       long: count
+      default_value: "10"
       help: number of items to return for fetch queries
       takes_value: true
       required: false
   - output:
       long: output
+      default_value: output
       help: output directory to dump fetched objects in.
+      takes_value: true
+      required: false
+  - save:
+      long: save
+      default_value: "false"
+      help: save responses to output dir
+      required: false
+  - select:
+      long: select
+      default_value: "*"
+      help: the keys to select for responses, default is "*"
       takes_value: true
       required: false
 
@@ -37,7 +50,6 @@ subcommands:
             long: message-vpn
             help: vpn to reference, if specified, overrides specified msgVpnName in spec file.
             takes_value: true
-            required: true
         - update:
             long: update
             requires:

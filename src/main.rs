@@ -55,6 +55,7 @@ use core::fmt;
 use std::process::exit;
 use tokio_request::str::get;
 
+mod commandlineparser;
 mod provision;
 mod clientconfig;
 mod helpers;
@@ -98,21 +99,23 @@ fn main() -> Result<(), Box<Error>> {
     let config_file_name = matches.value_of("config").unwrap_or("default.yaml");
     info!("config_file: {:?}", config_file_name);
 
-    let count = matches.value_of("count").unwrap_or("10");
-    let count = count.parse::<i32>().unwrap();
+//    let count = matches.value_of("count").unwrap();
+    let count = matches.value_of("count").unwrap().parse::<i32>().unwrap();
     debug!("count: {:?}", count);
 
-    let mut output_dir = "output";
-    let mut write_fetch_files = false;
-    if matches.is_present("output") {
-        output_dir = matches.value_of("output").unwrap();
-        write_fetch_files = true;
-        debug!("output_dir: {}", output_dir);
-    }
+    let mut output_dir  = matches.value_of("output").unwrap();
+    let mut write_fetch_files = matches.value_of("save").unwrap().parse::<bool>().unwrap();
+
+
+//    if matches.is_present("output") {
+//        output_dir = matches.value_of("output").unwrap();
+//        write_fetch_files = true;
+//        debug!("output_dir: {}", output_dir);
+//    }
 
     // future impl might use this.
     let mut cursor = Cow::Borrowed("");
-    let mut select = "*";
+    let mut select = matches.value_of("select").unwrap();
 
     // default emoji for OK / Error logging
     let mut ok_emoji = Cow::Borrowed("👍");
@@ -216,7 +219,7 @@ fn main() -> Result<(), Box<Error>> {
         // source subcommand args into matches
         if let Some(matches) = matches.subcommand_matches("vpn") {
 
-            let message_vpn = matches.value_of("message-vpn").unwrap();
+//            let message_vpn = matches.value_of("message-vpn").unwrap();
             let update_item = matches.is_present("update");
             let shutdown_item = matches.is_present("shutdown");
             let no_shutdown_item = matches.is_present("no-shutdown");
@@ -227,8 +230,8 @@ fn main() -> Result<(), Box<Error>> {
             if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
 
                 // early shutdown if not provisioning new
-                if shutdown_item && update_item && matches.is_present("message-vpn") {
-                    MsgVpnResponse::enabled(message_vpn, message_vpn, vec![],
+                if shutdown_item && update_item {
+                    MsgVpnResponse::enabled(matches.value_of("message-vpn").unwrap(), "", vec![],
                                             false, &mut core, &client)?;
                 }
 
@@ -239,16 +242,17 @@ fn main() -> Result<(), Box<Error>> {
                         info!("using file: {:?}", file_name);
 
                         // provision / update from file
-                        let file = std::fs::File::open(file_name).unwrap();
-                        let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
+//                        let file = std::fs::File::open(file_name).unwrap();
+//                        let deserialized: Option<MsgVpn> = serde_yaml::from_reader(file).unwrap();
+                        let deserialized = deserialize_file_into_type!(file_name, MsgVpn);
 
                         match deserialized {
                             Some(mut item) => {
                                 if update_item {
-                                    MsgVpnResponse::update(message_vpn, file_name, "",
+                                    MsgVpnResponse::update(matches.value_of("message-vpn").unwrap(), file_name, "",
                                                            &mut core, &client);
                                 } else {
-                                    MsgVpnResponse::provision_with_file(message_vpn, "",
+                                    MsgVpnResponse::provision_with_file("", "",
                                                                         file_name, &mut core,
                                                                         &client);
                                 }
@@ -261,13 +265,13 @@ fn main() -> Result<(), Box<Error>> {
 
                 // late un-shutdown anything
                 if no_shutdown_item {
-                    MsgVpnResponse::enabled(message_vpn, message_vpn, vec![],
+                    MsgVpnResponse::enabled(matches.value_of("message-vpn").unwrap(), "", vec![],
                                             true, &mut core, &client);
                 }
 
                 // finally if fetch is specified, we do this last.
                 while fetch {
-                    let data = MsgVpnsResponse::fetch(message_vpn, message_vpn, "msgVpnName", message_vpn, count, &*cursor.to_string(), select, &mut core, &client);
+                    let data = MsgVpnsResponse::fetch("", "", "msgVpnName", matches.value_of("message-vpn").unwrap(), count, &*cursor.to_string(), select, &mut core, &client);
 
                     match data {
                         Ok(item) => {
@@ -296,7 +300,7 @@ fn main() -> Result<(), Box<Error>> {
 
                 if delete {
                     info!("deleting message vpn");
-                    MsgVpnResponse::delete(message_vpn, message_vpn, "", &mut core, &client);
+                    MsgVpnResponse::delete(matches.value_of("message-vpn").unwrap(), "", "", &mut core, &client);
                 }
             } else {
                 error!("No operation was specified, see --help")
@@ -1664,7 +1668,7 @@ fn main() -> Result<(), Box<Error>> {
         if let Some(matches) = matches.subcommand_matches("dmr-cluster") {
 
             // get all args within the subcommand
-            let cluster_name = matches.value_of("cluster-name").unwrap_or("*");
+//            let cluster_name = matches.value_of("cluster-name").unwrap_or("*");
             let update_item = matches.is_present("update");
             let shutdown_item = matches.is_present("shutdown");
             let no_shutdown_item = matches.is_present("no-shutdown");
@@ -1702,8 +1706,12 @@ fn main() -> Result<(), Box<Error>> {
 //                        DmrClusterResponse::update(message_vpn, file_name, "",
 //                                                        &mut core, &client);
 //                    } else {
-                    DmrClusterResponse::provision_with_file("", "", file_name,
-                                                                 &mut core, &client);
+                    DmrClusterResponse::provision_with_file("",
+                                                            "",
+                                                            file_name,
+                                                            &mut core,
+                                                            &client
+                    );
 //                    }
                 }
 
@@ -1728,8 +1736,15 @@ fn main() -> Result<(), Box<Error>> {
                 // finally if fetch is specified, we do this last."
                 while fetch {
                     let data = DmrClustersResponse::fetch("",
-                                                         cluster_name, "dmrClusterName",cluster_name, count, &*cursor.to_string(), select,
-                                                               &mut core, &client);
+                                                          "",
+                                                          "dmrClusterName",
+                                                          matches.value_of("cluster-name").unwrap(),
+                                                          count,
+                                                          &*cursor.to_string(),
+                                                          select,
+                                                           &mut core,
+                                                          &client
+                    );
 
 
                     match data {
@@ -1760,7 +1775,7 @@ fn main() -> Result<(), Box<Error>> {
 
                 if delete {
                     info!("deleting dmr-bridge");
-                    DmrClusterResponse::delete(cluster_name, "", "", &mut core, &client);
+                    DmrClusterResponse::delete(matches.value_of("cluster-name").unwrap(), "", "", &mut core, &client);
                 }
             } else {
                 error!("No operation was specified, see --help")

@@ -111,7 +111,7 @@ maxMsgSpoolUsage: 128
 maxSubscriptionCount: 100
 maxTransactedSessionCount: 10
 maxTransactionCount: 10
-msgVpnName: overridden_at_provision_time
+msgVpnName: testvpn
 #preferIpVersion: 6
 replicationAckPropagationIntervalMsgCount: 20
 replicationBridgeAuthenticationBasicClientUsername: ""

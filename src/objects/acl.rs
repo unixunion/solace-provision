@@ -139,7 +139,7 @@ mod tests {
     #[test]
     fn provision() {
         let mut rng = rand::thread_rng();
-        let random_vpn = format!("acl_testvpn_{}", rng.gen_range(0, 10));
+        let random_vpn = "testvpn"; //format!("acl_testvpn_{}", rng.gen_range(0, 10));
         println!("acl tests in tmp vpn: {}", &random_vpn);
 
         let (mut core, mut client) = solace_connect!();
@@ -148,7 +148,7 @@ mod tests {
         let d = MsgVpnResponse::delete(&random_vpn, "", "", &mut core, &client);
 
         println!("acl create vpn");
-        let v = MsgVpnResponse::provision_with_file(&random_vpn,
+        let v = MsgVpnResponse::provision_with_file("",
                                                     "",
                                                     "test_yaml/acl/vpn.yaml", &mut core,
                                                     &client);
@@ -206,7 +206,7 @@ mod tests {
         println!("acl save");
         let mut acl = MsgVpnAclProfile::new();
         acl.set_acl_profile_name("tmpacl".to_owned());
-        acl.set_msg_vpn_name(random_vpn.clone());
+        acl.set_msg_vpn_name(random_vpn.to_owned());
         MsgVpnAclProfile::save("tmp", &acl);
         let deserialized = deserialize_file_into_type!(format!("tmp/{}/acl/tmpacl.yaml", random_vpn), MsgVpnAclProfile);
         match deserialized {
