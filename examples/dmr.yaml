@@ -1,0 +1,11 @@
+---
+authenticationBasicEnabled: true
+authenticationBasicType: internal
+authenticationClientCertEnabled: true
+directOnlyEnabled: false
+dmrClusterName: mydmr
+enabled: true
+#nodeName: solace-d2
+tlsServerCertEnforceTrustedCommonNameEnabled: true
+tlsServerCertMaxChainDepth: 3
+tlsServerCertValidateDateEnabled: true

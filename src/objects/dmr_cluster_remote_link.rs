@@ -23,17 +23,8 @@ impl Fetch<DmrClusterLinkRemoteAddressesResponse> for DmrClusterLinkRemoteAddres
                 futures::future::ok(item)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
+
     }
 }
 
@@ -50,17 +41,8 @@ impl Provision<DmrClusterLinkRemoteAddressResponse> for DmrClusterLinkRemoteAddr
                 let request = apiclient
                     .default_api()
                     .create_dmr_cluster_link_remote_address(cluster_name_file, remote_node_name, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        error!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }

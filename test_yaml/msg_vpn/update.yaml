@@ -1,0 +1,170 @@
+---
+authenticationBasicEnabled: true
+authenticationBasicProfileName: default
+authenticationBasicRadiusDomain: ""
+authenticationBasicType: internal
+authenticationClientCertAllowApiProvidedUsernameEnabled: false
+authenticationClientCertEnabled: false
+authenticationClientCertMaxChainDepth: 3
+#authenticationClientCertRevocationCheckMode: allow-valid
+#authenticationClientCertUsernameSource: common-name
+authenticationClientCertValidateDateEnabled: true
+authenticationKerberosAllowApiProvidedUsernameEnabled: false
+authenticationKerberosEnabled: false
+authorizationLdapGroupMembershipAttributeName: memberOf
+authorizationProfileName: ""
+authorizationType: internal
+bridgingTlsServerCertEnforceTrustedCommonNameEnabled: true
+bridgingTlsServerCertMaxChainDepth: 3
+bridgingTlsServerCertValidateDateEnabled: true
+distributedCacheManagementEnabled: true
+enabled: true
+eventConnectionCountThreshold:
+  clearPercent: 40
+  #clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventEgressFlowCountThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventEgressMsgRateThreshold:
+#  clearPercent: 40
+  clearValue: 10
+#  setPercent: 60
+  setValue: 40
+eventEndpointCountThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventIngressFlowCountThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventIngressMsgRateThreshold:
+#  clearPercent: 40
+  clearValue: 10
+#  setPercent: 60
+  setValue: 40
+eventLargeMsgThreshold: 1000
+eventLogTag: myvpnlog
+eventMsgSpoolUsageThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventPublishClientEnabled: false
+eventPublishSubscriptionMode: off
+eventPublishTopicFormatMqttEnabled: false
+eventPublishTopicFormatSmfEnabled: true
+eventPublishMsgVpnEnabled: false
+#eventServiceAmqpConnectionCountThreshold:
+#  clearPercent: 40
+#  clearValue: 0
+#  setPercent: 60
+#  setValue: 0
+eventServiceMqttConnectionCountThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventServiceRestIncomingConnectionCountThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventServiceSmfConnectionCountThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventServiceWebConnectionCountThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventSubscriptionCountThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventTransactedSessionCountThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+eventTransactionCountThreshold:
+  clearPercent: 40
+#  clearValue: 0
+  setPercent: 60
+#  setValue: 0
+exportSubscriptionsEnabled: false
+jndiEnabled: false
+maxConnectionCount: 1000
+maxEgressFlowCount: 16000
+maxEndpointCount: 16000
+maxIngressFlowCount: 16000
+maxMsgSpoolUsage: 128
+maxSubscriptionCount: 100
+maxTransactedSessionCount: 10
+maxTransactionCount: 10
+msgVpnName: myvpn
+#preferIpVersion: 6
+replicationAckPropagationIntervalMsgCount: 20
+replicationBridgeAuthenticationBasicClientUsername: ""
+replicationBridgeAuthenticationBasicPassword: ""
+#replicationBridgeAuthenticationClientCertContent: ""
+#replicationBridgeAuthenticationClientCertPassword: ""
+replicationBridgeAuthenticationScheme: basic
+replicationBridgeCompressedDataEnabled: false
+replicationBridgeEgressFlowWindowSize: 255
+replicationBridgeRetryDelay: 3
+replicationBridgeTlsEnabled: false
+replicationBridgeUnidirectionalClientProfileName: "#client-profile"
+replicationEnabled: false
+#replicationEnabledQueueBehavior:
+replicationQueueMaxMsgSpoolUsage: 64
+replicationQueueRejectMsgToSenderOnDiscardEnabled: true
+replicationRejectMsgWhenSyncIneligibleEnabled: false
+replicationRole: standby
+replicationTransactionMode: async
+restTlsServerCertEnforceTrustedCommonNameEnabled: true
+restTlsServerCertMaxChainDepth: 3
+restTlsServerCertValidateDateEnabled: true
+sempOverMsgBusAdminClientEnabled: false
+sempOverMsgBusAdminDistributedCacheEnabled: false
+sempOverMsgBusAdminEnabled: false
+sempOverMsgBusEnabled: true
+#sempOverMsgBusLegacyShowClearEnabled: false
+sempOverMsgBusShowEnabled: false
+#serviceAmqpMaxConnectionCount: 20
+#serviceAmqpPlainTextEnabled: false
+#serviceAmqpPlainTextListenPort: 0
+#serviceAmqpTlsEnabled: false
+#serviceAmqpTlsListenPort: 0
+serviceMqttMaxConnectionCount: 20
+serviceMqttPlainTextEnabled: false
+serviceMqttPlainTextListenPort: 0
+serviceMqttTlsEnabled: false
+serviceMqttTlsListenPort: 0
+serviceMqttTlsWebSocketEnabled: false
+serviceMqttTlsWebSocketListenPort: 0
+serviceMqttWebSocketEnabled: false
+serviceMqttWebSocketListenPort: 0
+serviceRestIncomingMaxConnectionCount: 20
+serviceRestIncomingPlainTextEnabled: false
+serviceRestIncomingPlainTextListenPort: 0
+serviceRestIncomingTlsEnabled: false
+serviceRestIncomingTlsListenPort: 0
+#serviceRestMode: messaging
+serviceRestOutgoingMaxConnectionCount: 100
+serviceSmfMaxConnectionCount: 100
+serviceSmfPlainTextEnabled: true
+serviceSmfTlsEnabled: true
+serviceWebMaxConnectionCount: 100
+serviceWebPlainTextEnabled: true
+serviceWebTlsEnabled: true
+tlsAllowDowngradeToPlainTextEnabled: false

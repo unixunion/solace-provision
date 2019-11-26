@@ -10,7 +10,7 @@ use std::process::exit;
 use crate::save::Save;
 use serde::Serialize;
 use crate::update::Update;
-use solace_semp_client::models::{MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse};
+use solace_semp_client::models::{MsgVpnSequencedTopicsResponse, MsgVpnSequencedTopic, MsgVpnSequencedTopicResponse, SempMetaOnlyResponse};
 
 // fetch sequenced topic
 impl Fetch<MsgVpnSequencedTopicsResponse> for MsgVpnSequencedTopicsResponse {
@@ -24,17 +24,8 @@ impl Fetch<MsgVpnSequencedTopicsResponse> for MsgVpnSequencedTopicsResponse {
                 futures::future::ok(item)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
+
     }
 }
 
@@ -50,17 +41,8 @@ impl Provision<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_sequenced_topic(in_vpn, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
@@ -116,19 +98,10 @@ impl Save<MsgVpnSequencedTopicsResponse> for MsgVpnSequencedTopicsResponse {
 
 impl Update<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
         info!("deleting: {}", sub_identifier);
-        let t = apiclient.default_api().delete_msg_vpn_sequenced_topic(msg_vpn, item_name);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("sequence-topic deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete sequence-topic: {:?}", e);
-//                process::exit(126);
-                Err("unable to delete sequence-topic")
-            }
-        }
+        let request = apiclient.default_api().delete_msg_vpn_sequenced_topic(msg_vpn, item_name);
+        core_run_meta!(request, core)
+
     }
 }

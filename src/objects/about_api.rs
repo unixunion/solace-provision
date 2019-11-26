@@ -18,17 +18,6 @@ impl Fetch<AboutApiResponse> for AboutApiResponse {
             });
 
         core_run!(request, core)
-//        match core.run(request) {
-//            Ok(response) => {
-//                let t = format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap());
-//                println!("{}", &t);
-//                Ok(response)
-//            },
-//            Err(e) => {
-//                error!("error fetching: {:?}", e);
-//                panic!("fetch error: {:?}", e);
-//                Err("fetch error")
-//            }
-//        }
+
     }
 }

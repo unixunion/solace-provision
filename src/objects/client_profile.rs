@@ -12,7 +12,7 @@ use serde::Serialize;
 use crate::update::Update;
 use std::process;
 use std::borrow::ToOwned;
-use solace_semp_client::models::{MsgVpnClientProfilesResponse, MsgVpnClientProfileResponse, MsgVpnClientProfile};
+use solace_semp_client::models::{MsgVpnClientProfilesResponse, MsgVpnClientProfileResponse, MsgVpnClientProfile, SempMetaOnlyResponse};
 
 // fetch Client Profile
 impl Fetch<MsgVpnClientProfilesResponse> for MsgVpnClientProfilesResponse {
@@ -26,17 +26,7 @@ impl Fetch<MsgVpnClientProfilesResponse> for MsgVpnClientProfilesResponse {
                 futures::future::ok(acl)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
 
     }
 }
@@ -53,17 +43,8 @@ impl Provision<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_client_profile(in_vpn, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
@@ -106,7 +87,7 @@ impl Save<MsgVpnClientProfilesResponse> for MsgVpnClientProfilesResponse {
 // update client-profile
 impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientProfileResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnClientProfile> = serde_yaml::from_reader(file).unwrap();
 
@@ -117,33 +98,16 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
                 let request = apiclient
                     .default_api()
                     .update_msg_vpn_client_profile(msg_vpn, &*item_name.unwrap(), item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(())
-                    },
-                    Err(e) => {
-                        error!("update error: {:?}", e);
-                        process::exit(126);
-                        Err("update error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn_client_profile(msg_vpn, item_name);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("client-profile deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete client-profile: {:?}", e);
-                Err("unable to delete client-profile")
-            }
-        }
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient.default_api().delete_msg_vpn_client_profile(msg_vpn, item_name);
+        core_run_meta!(request, core)
+
     }
 }

@@ -49,7 +49,7 @@ This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-A
 * TLS enabled SEMP service *( otherwise some types of secrets cannot be provisioned )*
 * CA certificate in either:
     * System certificate chain
-    * Appliance [config.yaml](examples/config.yaml) file
+    * Appliance [config.yaml](examples/config_solace1.yaml) file
 
 ### Compiling Requirements
 
@@ -61,7 +61,7 @@ rust 1.33 *or* docker
 docker-compose up -d
 (Wait for solace to be ready)
 sh clean.sh examples/config.yaml testvpn
-RUST_BACKTRACE=full cargo test -- --nocapture
+RUST_BACKTRACE=full  RUST_LOG=solace_provision  cargo test --  --test-threads=1
 docker-compose down
 ```
 
@@ -104,7 +104,7 @@ certs:
 
 ```
 
-See [examples/config.yaml](examples/config.yaml) 
+See [examples/config.yaml](examples/config_solace1.yaml) 
 
 ### Spec Files
 

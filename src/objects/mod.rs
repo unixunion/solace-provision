@@ -1,4 +1,3 @@
-//#[macro_use]
 mod about_api;
 mod msg_vpn;
 mod queue;

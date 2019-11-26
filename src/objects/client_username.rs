@@ -12,7 +12,7 @@ use serde::Serialize;
 use crate::update::Update;
 use std::process;
 use std::borrow::ToOwned;
-use solace_semp_client::models::{MsgVpnClientUsernameResponse, MsgVpnClientUsername, MsgVpnClientUsernamesResponse};
+use solace_semp_client::models::{MsgVpnClientUsernameResponse, MsgVpnClientUsername, MsgVpnClientUsernamesResponse, SempMetaOnlyResponse};
 
 // fetch for client-username
 impl Fetch<MsgVpnClientUsernamesResponse> for MsgVpnClientUsernamesResponse {
@@ -27,17 +27,7 @@ impl Fetch<MsgVpnClientUsernamesResponse> for MsgVpnClientUsernamesResponse {
                 futures::future::ok(cu)
             });
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
+        core_run!(request, core)
 
     }
 }
@@ -54,17 +44,8 @@ impl Provision<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_client_username(in_vpn, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
@@ -107,7 +88,7 @@ impl Save<MsgVpnClientUsername> for MsgVpnClientUsername {
 // update client-username
 impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientUsernameResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnClientUsername> = serde_yaml::from_reader(file).unwrap();
 
@@ -118,23 +99,14 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
                 let request = apiclient
                     .default_api()
                     .update_msg_vpn_client_username(msg_vpn, &*item_name.unwrap(), item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(())
-                    },
-                    Err(e) => {
-                        error!("update error: {:?}", e);
-                        process::exit(126);
-                        Err("update error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
     }
 
-    fn enabled(msg_vpn: &str, client_username: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
+    fn enabled(msg_vpn: &str, client_username: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientUsernameResponse, &'static str> {
         println!("retrieving current client-username from appliance");
         let mut item = MsgVpnClientUsernamesResponse::fetch(msg_vpn, client_username, "clientUsername",client_username, 10, "", "", core, apiclient)?;
         let mut titem = item.data().unwrap().clone();
@@ -146,35 +118,25 @@ impl Update<MsgVpnClientUsernameResponse> for MsgVpnClientUsernameResponse {
             x.set_enabled(state);
             // this sets the password to None, so its not sent back to the appliance
             x.reset_password();
-            let r = core.run(apiclient.default_api().update_msg_vpn_client_username(msg_vpn, client_username, x, helpers::getselect("*")));
-            match r {
-                Ok(t) => info!("state successfully changed to {:?}", state),
-                Err(e) => {
-                    error!("error changing enabled state for client-username: {}, {:?}", client_username, e);
-                    exit(126);
-                }
-            }
+            let request = apiclient
+                .default_api()
+                .update_msg_vpn_client_username(msg_vpn, client_username, x, helpers::getselect("*"));
+
+            core_run!(request, core)
 
         } else {
             error!("error, did not find exactly one item matching query");
             process::exit(126);
         }
 
-        Ok(())
+//        Ok(())
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<(), &'static str> {
-        let t = apiclient.default_api().delete_msg_vpn_client_username(msg_vpn, item_name);
-        match core.run(t) {
-            Ok(vpn) => {
-                info!("client-username deleted");
-                Ok(())
-            },
-            Err(e) => {
-                error!("unable to delete client-username: {:?}", e);
-//                process::exit(126);
-                Err("unable to delete client-username")
-            }
-        }
+    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient
+            .default_api()
+            .delete_msg_vpn_client_username(msg_vpn, item_name);
+        core_run_meta!(request, core)
+
     }
 }

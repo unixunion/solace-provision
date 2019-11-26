@@ -23,18 +23,8 @@ impl Fetch<MsgVpnBridgeRemoteSubscriptionsResponse> for MsgVpnBridgeRemoteSubscr
             .and_then(|item| {
                 futures::future::ok(item)
             });
+        core_run!(request, core)
 
-        match core.run(request) {
-            Ok(response) => {
-                println!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                Ok(response)
-            },
-            Err(e) => {
-                error!("error fetching: {:?}", e);
-                panic!("fetch error: {:?}", e);
-                Err("fetch error")
-            }
-        }
     }
 }
 
@@ -50,17 +40,8 @@ impl Provision<MsgVpnBridgeRemoteSubscriptionResponse> for MsgVpnBridgeRemoteSub
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_bridge_remote_subscription(in_vpn, bridge_name, virtual_router, item, helpers::getselect("*"));
-                match core.run(request) {
-                    Ok(response) => {
-                        info!("{}",format!("{}", serde_yaml::to_string(&response.data().unwrap()).unwrap()));
-                        Ok(response)
-                    },
-                    Err(e) => {
-                        println!("provision error: {:?}", e);
-                        exit(126);
-                        Err("provision error")
-                    }
-                }
+                core_run!(request, core)
+
             }
             _ => unimplemented!()
         }
