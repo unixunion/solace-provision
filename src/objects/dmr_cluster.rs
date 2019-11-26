@@ -147,7 +147,7 @@ impl Update<DmrClusterResponse> for DmrClusterResponse {
 /// command line parser for this object
 impl CommandLineParser<DmrCluster> for DmrCluster {
 
-    fn parse(matches: ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>) {
+    fn parse(matches: &ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>) {
 
         // cursor holder
         let mut cursor = Cow::Borrowed("");

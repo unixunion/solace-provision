@@ -90,7 +90,7 @@ subcommands:
         - message-vpn:
             long: message-vpn
             help: vpn to reference, if specified overrides specified msgVpnName in spec file.
-            required: true
+            required: false
             takes_value: true
         - queue:
             long: queue
@@ -100,7 +100,6 @@ subcommands:
             long: update
             requires:
               - message-vpn
-              - queue
             help: update an existing queue, using file if provided, or via other args.
         - shutdown:
             long: shutdown

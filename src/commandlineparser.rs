@@ -5,5 +5,5 @@ use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
 
 pub trait CommandLineParser<T> {
-    fn parse(matches: ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>);
+    fn parse(matches: &ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>);
 }

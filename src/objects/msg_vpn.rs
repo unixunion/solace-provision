@@ -11,6 +11,9 @@ use std::process::exit;
 use serde::Serialize;
 use crate::save::Save;
 use crate::update::Update;
+use crate::commandlineparser::CommandLineParser;
+use clap::ArgMatches;
+use std::borrow::Cow;
 
 // fetch multple msgvpnsresponse
 impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
@@ -149,6 +152,7 @@ impl Update<MsgVpnResponse> for MsgVpnResponse {
     }
 
 }
+
 
 mod tests {
     use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnsResponse};

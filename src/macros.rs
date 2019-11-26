@@ -128,13 +128,37 @@ macro_rules! maybe_override_msg_vpn_name {
 }
 
 
-//macro_rules! maybe_set_vpn_name {
-//    ($item: expr, $vpn_name) = {
-//        if (&vpn_name != &"") {
-//            &item.set_msg_vpn_name(vpn_name.to_owned());
-//        }
-//    }
-//}
+// moves the cursor to the paging location in a semp response
+macro_rules! move_cursor {
+    ($response: expr) => {{
+        let cq = $response.meta().paging();
+        match cq {
+            Some(paging) => {
+                info!("cq: {:?}", paging.cursor_query());
+                Cow::Owned(paging.cursor_query().clone())
+            },
+            _ => {
+                break
+            }
+        }
+    }}
+}
+
+// sets / overrides a vpn name if not "", else returns the vpn name as in the object
+// let mut vpn_name = maybe_set_vpn_name!(item: MsgVpnQueue, (&str) override_vpn_name.to_owned());
+macro_rules! maybe_set_vpn_name {
+    ($item: expr, $vpn_name: expr) => {{
+        if (&$vpn_name != &"") {
+            debug!("overriding vpn name");
+            &$item.set_msg_vpn_name($vpn_name);
+            $vpn_name
+        } else {
+            let output = $item.msg_vpn_name().unwrap();
+            debug!("not overriding: {}", output);
+            output.to_owned()
+        }
+    }}
+}
 
 // example
 macro_rules! call_on_self {
