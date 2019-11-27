@@ -221,264 +221,31 @@ fn main() -> Result<(), Box<Error>> {
     //
     // CLIENT-PROFILE
     //
-
     if matches.is_present("client-profile") {
-
-        // source subcommand args into matches
-        if let Some(matches) = matches.subcommand_matches("client-profile") {
-
-            // get all args within the subcommand
-            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
-            let client_profile = matches.value_of("client-profile").unwrap_or("undefined");
-            let update_item = matches.is_present("update");
-            let fetch = matches.is_present("fetch");
-            let delete = matches.is_present("delete");
-
-            if update_item || fetch || delete || matches.is_present("file") {
-
-                // if file is passed, it means either provision or update.
-                let file_name = matches.value_of("file");
-                match file_name {
-                    Some(file_name) => {
-                        info!("using file: {:?}", file_name);
-
-                        // provision / update from file
-                        let file = std::fs::File::open(file_name).unwrap();
-                        let deserialized: Option<MsgVpnClientProfile> = serde_yaml::from_reader(file).unwrap();
-
-                        match deserialized {
-                            Some(mut item) => {
-                                if update_item {
-                                    MsgVpnClientProfileResponse::update(message_vpn, file_name, "",
-                                                                        &mut core, &client);
-                                } else {
-                                    MsgVpnClientProfileResponse::provision_with_file(message_vpn, "", file_name,
-                                                                                     &mut core, &client);
-                                }
-                            },
-                            _ => unimplemented!()
-                        }
-                    },
-                    None => {}
-                }
-
-                // finally if fetch is specified
-                while fetch {
-                    info!("fetching client-profile");
-                    let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile,
-                                                                   "clientProfileName", client_profile, count,
-                                                                   &*cursor.to_string(), select, &mut core, &client);
-                    match data {
-                        Ok(item) => {
-                            if write_fetch_files {
-                                MsgVpnClientProfilesResponse::save(output_dir, &item);
-                            }
-
-                            let cq = item.meta().paging();
-                            match cq {
-                                Some(paging) => {
-                                    info!("cq: {:?}", paging.cursor_query());
-                                    cursor = Cow::Owned(paging.cursor_query().clone());
-                                },
-                                _ => {
-                                    break
-                                }
-                            }
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
-                }
-
-                if delete {
-                    info!("deleting client-profile");
-                    MsgVpnClientProfileResponse::delete(message_vpn, client_profile, "", &mut core, &client);
-                }
-            } else {
-                error!("No operation was specified, see --help")
-            }
-
-        }
-
+        MsgVpnClientProfile::parse(&matches, &mut core, &client);
     }
-
-
-
-
 
 
     //
     // CLIENT-USERNAME
     //
-
-
     if matches.is_present("client-username") {
-
-        // source subcommand args into matches
-        if let Some(matches) = matches.subcommand_matches("client-username") {
-
-            // get all args within the subcommand
-            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
-            let client_username = matches.value_of("client-username").unwrap_or("undefined");
-            let update_item = matches.is_present("update");
-            let shutdown_item = matches.is_present("shutdown");
-            let no_shutdown_item = matches.is_present("no-shutdown");
-            let fetch = matches.is_present("fetch");
-            let delete = matches.is_present("delete");
-
-            if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
-
-                // early shutdown if not provisioning new
-                if shutdown_item && update_item && matches.is_present("client-username") && matches.is_present("message-vpn") {
-                    MsgVpnClientUsernameResponse::enabled(message_vpn, client_username, vec![],
-                                                          false, &mut core, &client);
-                }
-
-
-                // if file is passed, it means either provision or update.
-                if matches.is_present("file") {
-                    let file_name = matches.value_of("file");
-                    if update_item {
-                        MsgVpnClientUsernameResponse::update(message_vpn, file_name.unwrap(), "",
-                                                             &mut core, &client);
-                    } else {
-                        MsgVpnClientUsernameResponse::provision_with_file(message_vpn, "", file_name.unwrap(),
-                                                                          &mut core, &client);
-                    }
-                }
-
-                // late un-shutdown anything
-                if no_shutdown_item {
-                    MsgVpnClientUsernameResponse::enabled(message_vpn, client_username, vec![],
-                                                          true, &mut core, &client);
-                }
-
-                // finally if fetch is specified, we do this last.
-                while fetch {
-                    let data = MsgVpnClientUsernamesResponse::fetch(message_vpn, client_username,
-                                                                    "clientUsername", client_username,count,
-                                                                    &*cursor.to_string(), select, &mut core, &client);
-
-                    match data {
-                        Ok(item) => {
-                            if write_fetch_files {
-                                MsgVpnClientUsernamesResponse::save(output_dir, &item);
-                            }
-
-                            let cq = item.meta().paging();
-                            match cq {
-                                Some(paging) => {
-                                    info!("cq: {:?}", paging.cursor_query());
-                                    cursor = Cow::Owned(paging.cursor_query().clone());
-                                },
-                                _ => {
-                                    break
-                                }
-                            }
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
-
-                }
-
-                if delete {
-                    info!("deleting client-username");
-                    MsgVpnClientUsernameResponse::delete(message_vpn, client_username, "", &mut core, &client);
-                }
-            } else {
-                error!("No operation was specified, see --help")
-            }
-
-        }
-
+        MsgVpnClientUsername::parse(&matches, &mut core, &client);
     }
-
 
 
     //
     // QUEUE-SUBSCRIPTION
     //
-
-
     if matches.is_present("queue-subscription") {
-
-        // source subcommand args into matches
-        if let Some(matches) = matches.subcommand_matches("queue-subscription") {
-
-            // get all args within the subcommand
-            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
-            let queue = matches.value_of("queue").unwrap_or("undefined");
-//            let queue = "undefined";
-            let delete = matches.is_present("delete");
-            let fetch = matches.is_present("fetch");
-            let mut subscription = "";
-
-            if matches.is_present("subscription") {
-                subscription = matches.value_of("subscription").expect("error interpreting subscription");
-                info!("subscription is: {}", subscription);
-            }
-
-            if fetch || delete || matches.is_present("file") {
-
-                // if file is passed, it means either provision or update.
-                if matches.is_present("file") {
-                    let file_name = matches.value_of("file");
-                    MsgVpnQueueSubscriptionResponse::provision_with_file(message_vpn, queue, file_name.unwrap(),
-                                                                         &mut core, &client);
-                }
-
-                // finally if fetch is specified, we do this last.
-                while fetch {
-                    let data = MsgVpnQueueSubscriptionsResponse::fetch(message_vpn, queue, "queueName", queue, count, &*cursor.to_string(),
-                                                                    select, &mut core, &client);
-
-                    match data {
-                        Ok(item) => {
-                            if write_fetch_files {
-                                MsgVpnQueueSubscriptionsResponse::save(output_dir, &item);
-                            }
-
-                            let cq = item.meta().paging();
-                            match cq {
-                                Some(paging) => {
-                                    info!("cq: {:?}", paging.cursor_query());
-                                    cursor = Cow::Owned(paging.cursor_query().clone());
-                                },
-                                _ => {
-                                    break
-                                }
-                            }
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
-
-                }
-
-                if delete {
-                    info!("deleting queue-subscription");
-                    MsgVpnQueueSubscriptionResponse::delete(message_vpn, queue, subscription, &mut core, &client);
-                }
-            } else {
-                error!("No operation was specified, see --help")
-            }
-
-        }
-
+        MsgVpnQueueSubscription::parse(&matches, &mut core, &client);
     }
-
 
 
 
     //
     // SEQUENCED-TOPICS
     //
-
-
     if matches.is_present("sequenced-topic") {
 
         // source subcommand args into matches

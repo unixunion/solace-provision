@@ -166,3 +166,16 @@ macro_rules! call_on_self {
         $self.$F()
     }
 }
+
+// the common matches args
+macro_rules! core_matches_args {
+    ($matches: expr) => {{
+        // cursor holder
+        let mut cursor = Cow::Borrowed("");
+        let count = $matches.value_of("count").unwrap().parse::<i32>().unwrap();
+        let output_dir = $matches.value_of("output").unwrap();
+        let select = $matches.value_of("select").unwrap();
+        let mut write_fetch_files = $matches.value_of("save").unwrap().parse::<bool>().unwrap();
+        (cursor, count, output_dir, select, write_fetch_files)
+    }}
+}

@@ -405,7 +405,7 @@ subcommands:
             long: fetch
             requires:
               - message-vpn
-#              - queue
+              - queue
             help: fetch an existing queue-subscription from the appliance
         - delete:
             long: delete

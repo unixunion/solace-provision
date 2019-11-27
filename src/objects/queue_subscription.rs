@@ -32,7 +32,7 @@ impl Fetch<MsgVpnQueueSubscriptionsResponse> for MsgVpnQueueSubscriptionsRespons
 // provision queue subscription
 impl Provision<MsgVpnQueueSubscriptionResponse> for MsgVpnQueueSubscriptionResponse {
 
-    fn provision_with_file(in_vpn: &str, mut unimplemented_queue_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionResponse, &'static str> {
+    fn provision_with_file(in_vpn: &str, mut unused_1: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueSubscriptionResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnQueueSubscription> = serde_yaml::from_reader(file).unwrap();
 
