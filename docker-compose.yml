@@ -24,26 +24,26 @@ services:
       interval: 2m00s
       timeout: 10s
       retries: 3
-  solace2:
-    container_name: solace_2
-    image: solace/solace-pubsub-standard:latest
-    shm_size: 4g
-    ulimits:
-      core: 2
-      nofile:
-        soft: 418332
-        hard: 418332
-    ports:
-      #SEMP / PubSub+ Manager
-      - '8081:8080'
-      #SMF
-      - '55556:55555'
-    environment:
-      - username_admin_globalaccesslevel=admin
-      - username_admin_password=admin
-      - system_scaling_maxconnectioncount=1000
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 2m00s
-      timeout: 10s
-      retries: 3
+#  solace2:
+#    container_name: solace_2
+#    image: solace/solace-pubsub-standard:latest
+#    shm_size: 4g
+#    ulimits:
+#      core: 2
+#      nofile:
+#        soft: 418332
+#        hard: 418332
+#    ports:
+#      #SEMP / PubSub+ Manager
+#      - '8081:8080'
+#      #SMF
+#      - '55556:55555'
+#    environment:
+#      - username_admin_globalaccesslevel=admin
+#      - username_admin_password=admin
+#      - system_scaling_maxconnectioncount=1000
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+#      interval: 2m00s
+#      timeout: 10s
+#      retries: 3

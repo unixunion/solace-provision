@@ -34,17 +34,14 @@ impl Fetch<MsgVpnQueuesResponse> for MsgVpnQueuesResponse {
 }
 
 // provision queue
-
 impl Provision<MsgVpnQueueResponse> for MsgVpnQueueResponse {
 
     fn provision_with_file(override_vpn_name: &str, unused_1: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueResponse, &'static str> {
-//        let file = std::fs::File::open(file_name).unwrap();
-//        let deserialized: Option<MsgVpnQueue> = serde_yaml::from_reader(file).unwrap();
+
         let deserialized = deserialize_file_into_type!(file_name, MsgVpnQueue);
         match deserialized {
             Some(mut item) => {
                 let mut vpn_name = maybe_set_vpn_name!(item, override_vpn_name.to_owned());
-//                item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
                     .create_msg_vpn_queue(&vpn_name, item, helpers::getselect("*"));
@@ -101,7 +98,6 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
         match deserialized {
             Some(mut item) => {
                 let mut vpn_name = maybe_set_vpn_name!(item, override_vpn_name.to_owned());
-//                item.set_msg_vpn_name(vpn_name.to_owned());
                 let item_name = item.queue_name().cloned();
                 let request = apiclient
                     .default_api()
@@ -130,7 +126,6 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
             exit(126);
         }
 
-//        Ok(())
     }
 
     fn egress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnQueueResponse, &'static str> {
@@ -149,8 +144,6 @@ impl Update<MsgVpnQueueResponse> for MsgVpnQueueResponse {
             error!("error, did not find exactly one item matching query");
             exit(126);
         }
-
-//        Ok(())
     }
 
     fn delete(msg_vpn: &str, queue_name: &str, unused_1: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
@@ -307,9 +300,6 @@ mod tests {
                 error!("cannot test");
             }
         }
-
-
-
 
 
         // cleanup

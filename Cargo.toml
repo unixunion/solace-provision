@@ -30,3 +30,9 @@ env_logger = "0.6.0"
 sha1 = "0.6.0"
 tokio-request = { git = "https://github.com/NeoLegends/tokio-request" }
 rand = "0.7.2"
+
+[profile.release]
+opt-level = 'z'  # Optimize for size.
+lto = true # remove dead code
+codegen-units = 1 # reduce paralell code units to optimize compilse sizes
+panic = 'abort' # fail faster rather than panick stacking
