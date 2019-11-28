@@ -66,18 +66,19 @@ impl CommandLineParser<MsgVpnClientUsername> for MsgVpnClientUsername {
                                                                     "clientUsername", client_username,count,
                                                                     &*cursor.to_string(), select, core, &client);
 
-                    match data {
-                        Ok(response) => {
-                            if write_fetch_files {
-                                MsgVpnClientUsernamesResponse::save(output_dir, &response);
-                            }
-
-                            cursor = move_cursor!(response);
-                        }
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
+//                    cursor = maybe_save_and_return_cursor!(MsgVpnClientUsernamesResponse, data, &matches);
+//                    match data {
+//                        Ok(response) => {
+//                            if write_fetch_files {
+//                                MsgVpnClientUsernamesResponse::save(output_dir, &response);
+//                            }
+//
+//                            cursor = move_cursor!(response);
+//                        }
+//                        Err(e) => {
+//                            error!("error: {}", e)
+//                        }
+//                    }
 
                 }
 

@@ -134,7 +134,7 @@ macro_rules! move_cursor {
         let cq = $response.meta().paging();
         match cq {
             Some(paging) => {
-                info!("cq: {:?}", paging.cursor_query());
+                debug!("cq: {:?}", paging.cursor_query());
                 Cow::Owned(paging.cursor_query().clone())
             },
             _ => {
@@ -175,7 +175,33 @@ macro_rules! core_matches_args {
         let count = $matches.value_of("count").unwrap().parse::<i32>().unwrap();
         let output_dir = $matches.value_of("output").unwrap();
         let select = $matches.value_of("select").unwrap();
-        let mut write_fetch_files = $matches.value_of("save").unwrap().parse::<bool>().unwrap();
+        let mut write_fetch_files = $matches.is_present("save");
         (cursor, count, output_dir, select, write_fetch_files)
+    }}
+}
+
+
+macro_rules! maybe_save_and_return_cursor {
+    ($type: tt, $sempresponse: expr, $write_files: expr, $output_dir: expr) => {{
+        let mut cursor = Cow::Borrowed("");
+        debug!("maybe_save: {:?}", $sempresponse);
+        match $sempresponse {
+            Ok(resp) => {
+//                if $matches.is_present("save") {
+                    if $write_files {
+                        debug!("saving response: {:?}", &resp);
+                        $type::save($output_dir, &resp);
+                    }
+//                }
+
+                cursor = move_cursor!(resp);
+
+            },
+            Err(e) => {
+                error!("error in response: {}", e)
+            }
+        }
+
+        cursor
     }}
 }

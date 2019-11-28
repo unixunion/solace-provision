@@ -15,11 +15,7 @@ impl CommandLineParser<MsgVpnAclProfileSubscribeException> for MsgVpnAclProfileS
     fn parse(matches: &ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>) {
 
         // cursor holder
-        let mut cursor = Cow::Borrowed("");
-        let count = matches.value_of("count").unwrap().parse::<i32>().unwrap();
-        let output_dir = matches.value_of("output").unwrap();
-        let select = matches.value_of("select").unwrap();
-        let mut write_fetch_files = matches.value_of("save").unwrap().parse::<bool>().unwrap();
+        let (mut cursor, count, output_dir, select, write_fetch_files) = core_matches_args!(matches);
 
         // source subcommand args into matches
         if let Some(matches) = matches.subcommand_matches("acl-profile-subscribe-exception") {
@@ -48,18 +44,19 @@ impl CommandLineParser<MsgVpnAclProfileSubscribeException> for MsgVpnAclProfileS
                     let data = MsgVpnAclProfileSubscribeExceptionsResponse::fetch(message_vpn,
                                                                                   acl, "aclProfileName",acl, count,
                                                                                   &*cursor.to_string(), select, core, &client);
-                    match data {
-                        Ok(response) => {
-                            if write_fetch_files {
-                                MsgVpnAclProfileSubscribeExceptionsResponse::save(output_dir, &response);
-                            }
-
-                            cursor = move_cursor!(response);
-                        }
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
+//                    cursor = maybe_save_and_return_cursor!(MsgVpnAclProfileSubscribeExceptionsResponse, data, &matches);
+//                    match data {
+//                        Ok(response) => {
+//                            if write_fetch_files {
+//                                MsgVpnAclProfileSubscribeExceptionsResponse::save(output_dir, &response);
+//                            }
+//
+//                            cursor = move_cursor!(response);
+//                        }
+//                        Err(e) => {
+//                            error!("error: {}", e)
+//                        }
+//                    }
                 }
 
                 if delete {

@@ -51,18 +51,19 @@ impl CommandLineParser<MsgVpnClientProfile> for MsgVpnClientProfile {
                     let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile,
                                                                    "clientProfileName", client_profile, count,
                                                                    &*cursor.to_string(), select, core, &client);
-                    match data {
-                        Ok(response) => {
-                            if write_fetch_files {
-                                MsgVpnClientProfilesResponse::save(output_dir, &response);
-                            }
-
-                            cursor = move_cursor!(response);
-                        }
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
+//                    cursor = maybe_save_and_return_cursor!(MsgVpnClientProfilesResponse, data, &matches);
+//                    match data {
+//                        Ok(response) => {
+//                            if write_fetch_files {
+//                                MsgVpnClientProfilesResponse::save(output_dir, &response);
+//                            }
+//
+//                            cursor = move_cursor!(response);
+//                        }
+//                        Err(e) => {
+//                            error!("error: {}", e)
+//                        }
+//                    }
                 }
 
                 if delete {

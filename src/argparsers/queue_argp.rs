@@ -123,18 +123,19 @@ impl CommandLineParser<MsgVpnQueue> for MsgVpnQueue {
                         &client
                     );
 
-                    match data {
-                        Ok(item) => {
-                            if write_fetch_files {
-                                MsgVpnQueuesResponse::save(output_dir, &item);
-                            }
-
-                            cursor = move_cursor!(item);
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
+//                    cursor = maybe_save_and_return_cursor!(MsgVpnQueuesResponse, data, &matches);
+//                    match data {
+//                        Ok(item) => {
+//                            if write_fetch_files {
+//                                MsgVpnQueuesResponse::save(output_dir, &item);
+//                            }
+//
+//                            cursor = move_cursor!(item);
+//                        },
+//                        Err(e) => {
+//                            error!("error: {}", e)
+//                        }
+//                    }
 
 
                 }

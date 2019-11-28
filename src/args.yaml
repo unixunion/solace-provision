@@ -23,9 +23,10 @@ args:
       required: false
   - save:
       long: save
-      default_value: "false"
+#      default_value: "false"
       help: save responses to output dir
       required: false
+#      takes_value: false
   - select:
       long: select
       default_value: "*"

@@ -40,7 +40,7 @@ impl Fetch<MsgVpnsResponse> for MsgVpnsResponse {
             .msg_vpn_api()
             .get_msg_vpns(count, cursor, wherev, selectv)
             .and_then(|vpn| {
-                debug!("{:?}", vpn);
+                debug!("fetched vpn: {:?}", vpn);
                 futures::future::ok(vpn)
             });
 

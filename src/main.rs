@@ -106,7 +106,8 @@ fn main() -> Result<(), Box<Error>> {
     debug!("count: {:?}", count);
 
     let mut output_dir  = matches.value_of("output").unwrap();
-    let mut write_fetch_files = matches.value_of("save").unwrap().parse::<bool>().unwrap();
+    let mut write_fetch_files = matches.is_present("save");
+//    let mut write_fetch_files = matches.value_of("save").unwrap().parse::<bool>().unwrap();
 
     // future impl might use this.
     let mut cursor = Cow::Borrowed("");

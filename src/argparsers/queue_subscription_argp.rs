@@ -45,18 +45,19 @@ impl CommandLineParser<MsgVpnQueueSubscription> for MsgVpnQueueSubscription {
                     let data = MsgVpnQueueSubscriptionsResponse::fetch(matches.value_of("message-vpn").unwrap(), matches.value_of("queue").unwrap(), "queueName", matches.value_of("queue").unwrap(), count, &*cursor.to_string(),
                                                                        select, core, &client);
 
-                    match data {
-                        Ok(response) => {
-                            if write_fetch_files {
-                                MsgVpnQueueSubscriptionsResponse::save(output_dir, &response);
-                            }
-
-                            cursor = move_cursor!(response);
-                        }
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
+//                    cursor = maybe_save_and_return_cursor!(MsgVpnQueueSubscriptionsResponse, data, &matches);
+//                    match data {
+//                        Ok(response) => {
+//                            if write_fetch_files {
+//                                MsgVpnQueueSubscriptionsResponse::save(output_dir, &response);
+//                            }
+//
+//                            cursor = move_cursor!(response);
+//                        }
+//                        Err(e) => {
+//                            error!("error: {}", e)
+//                        }
+//                    }
 
                 }
 
