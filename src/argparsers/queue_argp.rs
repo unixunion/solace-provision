@@ -15,11 +15,7 @@ impl CommandLineParser<MsgVpnQueue> for MsgVpnQueue {
     fn parse(matches: &ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>) {
 
         // cursor holder
-        let mut cursor = Cow::Borrowed("");
-        let count = matches.value_of("count").unwrap().parse::<i32>().unwrap();
-        let output_dir = matches.value_of("output").unwrap();
-        let select = matches.value_of("select").unwrap();
-        let mut write_fetch_files = matches.value_of("save").unwrap().parse::<bool>().unwrap();
+        let (mut cursor, count, output_dir, select, write_fetch_files) = core_matches_args!(matches);
 
         // source subcommand args into matches
         if let Some(matches) = matches.subcommand_matches("queue") {
@@ -123,20 +119,7 @@ impl CommandLineParser<MsgVpnQueue> for MsgVpnQueue {
                         &client
                     );
 
-//                    cursor = maybe_save_and_return_cursor!(MsgVpnQueuesResponse, data, &matches);
-//                    match data {
-//                        Ok(item) => {
-//                            if write_fetch_files {
-//                                MsgVpnQueuesResponse::save(output_dir, &item);
-//                            }
-//
-//                            cursor = move_cursor!(item);
-//                        },
-//                        Err(e) => {
-//                            error!("error: {}", e)
-//                        }
-//                    }
-
+                    cursor = maybe_save_and_return_cursor!(MsgVpnQueuesResponse, data, write_fetch_files, output_dir);
 
                 }
 

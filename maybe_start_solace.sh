@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-res=`docker-compose ps solace-http|grep solace_http`
+res=`docker-compose ps |grep solace_provision`
 if [ "$res" != "" ]; then
     echo "Solace is already running"
 

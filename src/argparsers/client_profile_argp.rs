@@ -13,19 +13,14 @@ use crate::commandlineparser::CommandLineParser;
 
 impl CommandLineParser<MsgVpnClientProfile> for MsgVpnClientProfile {
     fn parse(matches: &ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>) {
+
         // cursor holder
-        let mut cursor = Cow::Borrowed("");
-        let count = matches.value_of("count").unwrap().parse::<i32>().unwrap();
-        let output_dir = matches.value_of("output").unwrap();
-        let select = matches.value_of("select").unwrap();
-        let mut write_fetch_files = matches.value_of("save").unwrap().parse::<bool>().unwrap();
+        let (mut cursor, count, output_dir, select, write_fetch_files) = core_matches_args!(matches);
 
         // source subcommand args into matches
         if let Some(matches) = matches.subcommand_matches("client-profile") {
 
             // get all args within the subcommand
-            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
-            let client_profile = matches.value_of("client-profile").unwrap_or("undefined");
             let update_item = matches.is_present("update");
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
@@ -36,11 +31,19 @@ impl CommandLineParser<MsgVpnClientProfile> for MsgVpnClientProfile {
                 if matches.is_present("file") {
                     let file_name = matches.value_of("file").unwrap();
                     if update_item {
-                        MsgVpnClientProfileResponse::update(message_vpn, file_name, "",
-                                                            core, &client);
+                        MsgVpnClientProfileResponse::update(
+                            matches.value_of("message-vpn").unwrap(),
+                            file_name,
+                            "",
+                            core,
+                            &client);
                     } else {
-                        MsgVpnClientProfileResponse::provision_with_file(message_vpn, "", file_name,
-                                                                         core, &client);
+                        MsgVpnClientProfileResponse::provision_with_file(
+                            matches.value_of("message-vpn").unwrap(),
+                            "",
+                            file_name,
+                            core,
+                            &client);
                     }
                 }
 
@@ -48,27 +51,23 @@ impl CommandLineParser<MsgVpnClientProfile> for MsgVpnClientProfile {
                 // finally if fetch is specified
                 while fetch {
                     info!("fetching client-profile");
-                    let data = MsgVpnClientProfilesResponse::fetch(message_vpn, client_profile,
-                                                                   "clientProfileName", client_profile, count,
-                                                                   &*cursor.to_string(), select, core, &client);
-//                    cursor = maybe_save_and_return_cursor!(MsgVpnClientProfilesResponse, data, &matches);
-//                    match data {
-//                        Ok(response) => {
-//                            if write_fetch_files {
-//                                MsgVpnClientProfilesResponse::save(output_dir, &response);
-//                            }
-//
-//                            cursor = move_cursor!(response);
-//                        }
-//                        Err(e) => {
-//                            error!("error: {}", e)
-//                        }
-//                    }
+                    let data = MsgVpnClientProfilesResponse::fetch(
+                        matches.value_of("message-vpn").unwrap(),
+                        matches.value_of("client-profile").unwrap(),
+                        "clientProfileName", matches.value_of("client-profile").unwrap(),
+                        count,
+                        &*cursor.to_string(),
+                        select,
+                        core,
+                        &client);
+
+                    cursor = maybe_save_and_return_cursor!(MsgVpnClientProfilesResponse, data, write_fetch_files, output_dir);
+
                 }
 
                 if delete {
                     info!("deleting client-profile");
-                    MsgVpnClientProfileResponse::delete(message_vpn, client_profile, "", core, &client);
+                    MsgVpnClientProfileResponse::delete(matches.value_of("message-vpn").unwrap(), matches.value_of("client-profile").unwrap(), "", core, &client);
                 }
             } else {
                 error!("No operation was specified, see --help")

@@ -16,7 +16,6 @@ impl CommandLineParser<MsgVpn> for MsgVpn {
     fn parse(matches: &ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>) {
 
         // cursor holder
-//        let global_matches = matches.clone();
         let (mut cursor, count, output_dir, select, write_fetch_files) = core_matches_args!(matches);
 
         // source subcommand args into matches
@@ -65,7 +64,6 @@ impl CommandLineParser<MsgVpn> for MsgVpn {
                     }
                 }
 
-
                 // late un-shutdown anything
                 if no_shutdown_item {
                     MsgVpnResponse::enabled(
@@ -92,23 +90,7 @@ impl CommandLineParser<MsgVpn> for MsgVpn {
                         &client
                     );
 
-
                     cursor = maybe_save_and_return_cursor!(MsgVpnsResponse, data, write_fetch_files, output_dir);
-//                    cursor = move_cursor!(response);
-
-//                    match data {
-//                        Ok(response) => {
-//                            if write_fetch_files {
-//                                MsgVpnsResponse::save(output_dir, &response);
-//                            }
-//
-//                            cursor = move_cursor!(response);
-//
-//                        }
-//                        Err(e) => {
-//                            error!("error: {}", e)
-//                        }
-//                    }
 
                 }
 

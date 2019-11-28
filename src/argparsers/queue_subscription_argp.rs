@@ -20,8 +20,6 @@ impl CommandLineParser<MsgVpnQueueSubscription> for MsgVpnQueueSubscription {
         if let Some(matches) = matches.subcommand_matches("queue-subscription") {
 
             // get all args within the subcommand
-//            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
-//            let queue = matches.value_of("queue").unwrap_or("undefined");
             let delete = matches.is_present("delete");
             let fetch = matches.is_present("fetch");
             let mut subscription = "";
@@ -45,19 +43,7 @@ impl CommandLineParser<MsgVpnQueueSubscription> for MsgVpnQueueSubscription {
                     let data = MsgVpnQueueSubscriptionsResponse::fetch(matches.value_of("message-vpn").unwrap(), matches.value_of("queue").unwrap(), "queueName", matches.value_of("queue").unwrap(), count, &*cursor.to_string(),
                                                                        select, core, &client);
 
-//                    cursor = maybe_save_and_return_cursor!(MsgVpnQueueSubscriptionsResponse, data, &matches);
-//                    match data {
-//                        Ok(response) => {
-//                            if write_fetch_files {
-//                                MsgVpnQueueSubscriptionsResponse::save(output_dir, &response);
-//                            }
-//
-//                            cursor = move_cursor!(response);
-//                        }
-//                        Err(e) => {
-//                            error!("error: {}", e)
-//                        }
-//                    }
+                    cursor = maybe_save_and_return_cursor!(MsgVpnQueueSubscriptionsResponse, data, write_fetch_files, output_dir);
 
                 }
 

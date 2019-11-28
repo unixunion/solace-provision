@@ -248,69 +248,7 @@ fn main() -> Result<(), Box<Error>> {
     // SEQUENCED-TOPICS
     //
     if matches.is_present("sequenced-topic") {
-
-        // source subcommand args into matches
-        if let Some(matches) = matches.subcommand_matches("sequenced-topic") {
-
-            // get all args within the subcommand
-            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
-            let delete = matches.is_present("delete");
-            let fetch = matches.is_present("fetch");
-            let mut sequenced_topic = "";
-
-            if matches.is_present("sequenced-topic") {
-                sequenced_topic = matches.value_of("sequenced-topic").unwrap_or("*");
-                info!("sequenced-topic is: {}", sequenced_topic);
-            }
-
-            if fetch || delete || matches.is_present("file") {
-
-                // if file is passed, it means either provision or update.
-                if matches.is_present("file") {
-                    let file_name = matches.value_of("file");
-                    MsgVpnSequencedTopicResponse::provision_with_file(message_vpn, "", file_name.unwrap(),
-                                                                      &mut core, &client);
-                }
-
-                // finally if fetch is specified, we do this last.
-                while fetch {
-                    let data = MsgVpnSequencedTopicsResponse::fetch(message_vpn, sequenced_topic, "sequencedTopic", sequenced_topic, count, &*cursor.to_string(),
-                                                                       select, &mut core, &client);
-
-                    match data {
-                        Ok(item) => {
-                            if write_fetch_files {
-                                MsgVpnSequencedTopicsResponse::save(output_dir, &item);
-                            }
-
-                            let cq = item.meta().paging();
-                            match cq {
-                                Some(paging) => {
-                                    info!("cq: {:?}", paging.cursor_query());
-                                    cursor = Cow::Owned(paging.cursor_query().clone());
-                                },
-                                _ => {
-                                    break
-                                }
-                            }
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
-
-                }
-
-                if delete {
-                    info!("deleting sequence-topic");
-                    MsgVpnSequencedTopicResponse::delete(message_vpn, sequenced_topic, "", &mut core, &client);
-                }
-            } else {
-                error!("No operation was specified, see --help")
-            }
-
-        }
-
+        MsgVpnSequencedTopic::parse(&matches, &mut core, &client);
     }
 
 

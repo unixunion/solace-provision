@@ -14,7 +14,7 @@ use solace_semp_client::models::{MsgVpnSequencedTopicsResponse, MsgVpnSequencedT
 
 // fetch sequenced topic
 impl Fetch<MsgVpnSequencedTopicsResponse> for MsgVpnSequencedTopicsResponse {
-    fn fetch(in_vpn: &str, sub_item: &str, select_key: &str, select_value: &str ,count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnSequencedTopicsResponse, &'static str> {
+    fn fetch(in_vpn: &str, unused_1: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnSequencedTopicsResponse, &'static str> {
         let (wherev, mut selectv) = helpers::getwhere(select_key, select_value, selector);
 
         let request = apiclient
@@ -98,9 +98,9 @@ impl Save<MsgVpnSequencedTopicsResponse> for MsgVpnSequencedTopicsResponse {
 
 impl Update<MsgVpnSequencedTopicResponse> for MsgVpnSequencedTopicResponse {
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+    fn delete(msg_vpn_name: &str, sequenced_topic: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
         info!("deleting: {}", sub_identifier);
-        let request = apiclient.default_api().delete_msg_vpn_sequenced_topic(msg_vpn, item_name);
+        let request = apiclient.default_api().delete_msg_vpn_sequenced_topic(msg_vpn_name, sequenced_topic);
         core_run_meta!(request, core)
 
     }

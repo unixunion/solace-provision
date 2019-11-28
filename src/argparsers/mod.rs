@@ -6,3 +6,4 @@ mod acl_subex_argp;
 mod client_profile_argp;
 mod client_username_argp;
 mod queue_subscription_argp;
+mod sequenced_topics_argp;

@@ -1,7 +1,7 @@
 version: '3'
 services:
-  solace1:
-    container_name: solace_1
+  solace:
+    container_name: solace_provision
     image: solace/solace-pubsub-standard:latest
 #    image: solace/solace-pubsub-standard:8.13.0.30
     shm_size: 4g

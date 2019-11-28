@@ -17,18 +17,11 @@ impl CommandLineParser<MsgVpnAclProfile> for MsgVpnAclProfile {
 
         // cursor holder
         let (mut cursor, count, output_dir, select, write_fetch_files) = core_matches_args!(matches);
-//        let mut cursor = Cow::Borrowed("");
-//        let count = matches.value_of("count").unwrap().parse::<i32>().unwrap();
-//        let output_dir = matches.value_of("output").unwrap();
-//        let select = matches.value_of("select").unwrap();
-//        let mut write_fetch_files = matches.value_of("save").unwrap().parse::<bool>().unwrap();
 
         // source subcommand args into matches
         if let Some(matches) = matches.subcommand_matches("acl-profile") {
 
             // get all args within the subcommand
-            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
-            let acl = matches.value_of("acl-profile").unwrap_or("undefined");
             let update_item = matches.is_present("update");
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
@@ -39,10 +32,10 @@ impl CommandLineParser<MsgVpnAclProfile> for MsgVpnAclProfile {
                 if matches.is_present("file") {
                     let file_name = matches.value_of("file").unwrap();
                     if update_item {
-                        MsgVpnAclProfileResponse::update(message_vpn, file_name, "",
+                        MsgVpnAclProfileResponse::update(matches.value_of("message-vpn").unwrap(), file_name, "",
                                                          core, &client);
                     } else {
-                        MsgVpnAclProfileResponse::provision_with_file(message_vpn, "", file_name,
+                        MsgVpnAclProfileResponse::provision_with_file(matches.value_of("message-vpn").unwrap(), "", file_name,
                                                                       core, &client);
                     }
                 }
@@ -51,8 +44,8 @@ impl CommandLineParser<MsgVpnAclProfile> for MsgVpnAclProfile {
                 // finally if fetch is specified
                 while fetch {
                     info!("fetching acl");
-                    let data = MsgVpnAclProfilesResponse::fetch(message_vpn,
-                                                                acl, "aclProfileName",acl, count,
+                    let data = MsgVpnAclProfilesResponse::fetch(matches.value_of("message-vpn").unwrap(),
+                                                                "", "aclProfileName",matches.value_of("acl-profile").unwrap(), count,
                                                                 &*cursor.to_string(), select, core, &client);
 
                     cursor = maybe_save_and_return_cursor!(MsgVpnAclProfilesResponse, data, write_fetch_files, output_dir);
@@ -61,7 +54,7 @@ impl CommandLineParser<MsgVpnAclProfile> for MsgVpnAclProfile {
 
                 if delete {
                     info!("deleting acl");
-                    MsgVpnAclProfileResponse::delete(message_vpn, acl, "", core, &client);
+                    MsgVpnAclProfileResponse::delete(matches.value_of("message-vpn").unwrap(), matches.value_of("acl-profile").unwrap(), "", core, &client);
                 }
             } else {
                 error!("No operation was specified, see --help")
@@ -70,3 +63,4 @@ impl CommandLineParser<MsgVpnAclProfile> for MsgVpnAclProfile {
         }
     }
 }
+

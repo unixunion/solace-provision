@@ -47,6 +47,9 @@ subcommands:
             long: file
             help: file to use
             takes_value: true
+            conflicts_with:
+              - message-vpn
+              - delete
         - message-vpn:
             long: message-vpn
             help: vpn to reference, if specified, overrides specified msgVpnName in spec file.

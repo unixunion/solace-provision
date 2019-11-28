@@ -21,10 +21,6 @@ impl CommandLineParser<MsgVpnAclProfileSubscribeException> for MsgVpnAclProfileS
         if let Some(matches) = matches.subcommand_matches("acl-profile-subscribe-exception") {
 
             // get all args within the subcommand
-            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
-            let acl = matches.value_of("acl-profile").unwrap_or("undefined");
-            let topic_syntax = matches.value_of("topic-syntax").unwrap_or("undefined");
-            let topic = matches.value_of("topic").unwrap_or("undefined");
             let update_item = matches.is_present("update");
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
@@ -34,34 +30,44 @@ impl CommandLineParser<MsgVpnAclProfileSubscribeException> for MsgVpnAclProfileS
                 // if file is passed, it means either provision or update.
                 if matches.is_present("file") {
                     let file_name = matches.value_of("file").unwrap();
-                    MsgVpnAclProfileSubscribeExceptionResponse::provision_with_file(message_vpn, "", file_name,
-                                                                                    core, &client);
+
+                    MsgVpnAclProfileSubscribeExceptionResponse::provision_with_file(
+                        matches.value_of("message-vpn").unwrap(),
+                        "",
+                        file_name,
+                        core,
+                        &client);
                 }
 
                 // finally if fetch is specified
                 while fetch {
                     info!("fetching acl-profile-subscribe-exception");
-                    let data = MsgVpnAclProfileSubscribeExceptionsResponse::fetch(message_vpn,
-                                                                                  acl, "aclProfileName",acl, count,
-                                                                                  &*cursor.to_string(), select, core, &client);
-//                    cursor = maybe_save_and_return_cursor!(MsgVpnAclProfileSubscribeExceptionsResponse, data, &matches);
-//                    match data {
-//                        Ok(response) => {
-//                            if write_fetch_files {
-//                                MsgVpnAclProfileSubscribeExceptionsResponse::save(output_dir, &response);
-//                            }
-//
-//                            cursor = move_cursor!(response);
-//                        }
-//                        Err(e) => {
-//                            error!("error: {}", e)
-//                        }
-//                    }
+
+                    let data = MsgVpnAclProfileSubscribeExceptionsResponse::fetch(
+                        matches.value_of("message-vpn").unwrap(),
+                        matches.value_of("acl-profile").unwrap(),
+                        "aclProfileName",
+                        matches.value_of("acl-profile").unwrap(),
+                        count,
+                        &*cursor.to_string(),
+                        select,
+                        core,
+                        &client);
+
+                    cursor = maybe_save_and_return_cursor!(MsgVpnAclProfileSubscribeExceptionsResponse, data, write_fetch_files, output_dir);
+
                 }
 
                 if delete {
                     info!("deleting acl subscribe exception");
-                    MsgVpnAclProfileSubscribeExceptionResponse::delete_by_sub_item(message_vpn, acl, topic_syntax, topic, core, &client);
+
+                    MsgVpnAclProfileSubscribeExceptionResponse::delete_by_sub_item(
+                        matches.value_of("message-vpn").unwrap(),
+                        matches.value_of("acl-profile").unwrap(),
+                        matches.value_of("topic-syntax").unwrap(),
+                        matches.value_of("topic").unwrap(),
+                        core,
+                        &client);
                 }
             } else {
                 error!("No operation was specified, see --help")

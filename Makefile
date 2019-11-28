@@ -2,6 +2,4 @@
 
 test:
 	./maybe_start_solace.sh
-	sh clean.sh examples/config.yaml testvpn
-	cargo test
-	sh clean.sh examples/config.yaml testvpn
+	RUST_BACKTRACE=full  RUST_LOG=solace_provision  cargo test --  --test-threads=1
