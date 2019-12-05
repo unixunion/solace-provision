@@ -102,7 +102,7 @@ impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
         }
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+    fn delete(msg_vpn: &str, item_name: &str, unused_1: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
         let request = apiclient.default_api().delete_msg_vpn_acl_profile(msg_vpn, item_name);
         core_run_meta!(request, core)
     }

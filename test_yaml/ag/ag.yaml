@@ -1,0 +1,8 @@
+---
+aclProfileName: myacl
+authorizationGroupName: myauthgroup
+clientProfileName: myclientprofile
+enabled: false
+msgVpnName: testvpn
+#orderAfterAuthorizationGroupName:
+#orderBeforeAuthorizationGroupName:

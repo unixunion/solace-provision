@@ -34,15 +34,18 @@ impl Fetch<MsgVpnClientProfilesResponse> for MsgVpnClientProfilesResponse {
 // provision client profile
 impl Provision<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
 
-    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientProfileResponse, &'static str> {
-        let file = std::fs::File::open(file_name).unwrap();
-        let deserialized: Option<MsgVpnClientProfile> = serde_yaml::from_reader(file).unwrap();
+    fn provision_with_file(unused_1: &str, unused_2: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientProfileResponse, &'static str> {
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpnClientProfile);
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(in_vpn.to_owned());
+//                item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_client_profile(in_vpn, item, helpers::getselect("*"));
+                    .create_msg_vpn_client_profile(
+                        &*item.msg_vpn_name().cloned().unwrap(),
+                        item,
+                        helpers::getselect("*"));
+
                 core_run!(request, core)
 
             }
@@ -87,17 +90,17 @@ impl Save<MsgVpnClientProfilesResponse> for MsgVpnClientProfilesResponse {
 // update client-profile
 impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientProfileResponse, &'static str> {
+    fn update(unused_1: &str, file_name: &str, unused_2: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnClientProfileResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnClientProfile> = serde_yaml::from_reader(file).unwrap();
 
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(msg_vpn.to_owned());
+//                item.set_msg_vpn_name(unused_1.to_owned());
                 let item_name = item.client_profile_name().cloned();
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn_client_profile(msg_vpn, &*item_name.unwrap(), item, helpers::getselect("*"));
+                    .update_msg_vpn_client_profile(&*item.msg_vpn_name().cloned().unwrap(), &*item_name.unwrap(), item, helpers::getselect("*"));
                 core_run!(request, core)
 
             }
@@ -105,8 +108,8 @@ impl Update<MsgVpnClientProfileResponse> for MsgVpnClientProfileResponse {
         }
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
-        let request = apiclient.default_api().delete_msg_vpn_client_profile(msg_vpn, item_name);
+    fn delete(msg_vpn: &str, client_profile_name: &str, unused_1: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient.default_api().delete_msg_vpn_client_profile(msg_vpn, client_profile_name);
         core_run_meta!(request, core)
 
     }
