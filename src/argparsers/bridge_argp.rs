@@ -85,7 +85,6 @@ impl CommandLineParser<MsgVpnBridge> for MsgVpnBridge {
 
                     cursor = maybe_save_and_return_cursor!(MsgVpnBridgesResponse, data, write_fetch_files, output_dir);
 
-
                 }
 
                 if delete {

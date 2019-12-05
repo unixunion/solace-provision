@@ -206,7 +206,7 @@ mod tests {
         }
 
         println!("update vpn");
-        let u = MsgVpnResponse::update("testvpn", "test_yaml/msg_vpn/update.yaml", "", &mut core, &client);
+        let u = MsgVpnResponse::update("", "test_yaml/msg_vpn/update.yaml", "", &mut core, &client);
         match u {
             Ok(vpn) => {
                 assert_eq!(vpn.data().unwrap().max_connection_count().unwrap(), &1000);

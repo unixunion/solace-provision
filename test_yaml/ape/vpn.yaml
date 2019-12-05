@@ -103,7 +103,7 @@ eventTransactionCountThreshold:
 #  setValue: 0
 exportSubscriptionsEnabled: false
 jndiEnabled: false
-maxConnectionCount: 1000
+maxConnectionCount: 9000
 maxEgressFlowCount: 16000
 maxEndpointCount: 16000
 maxIngressFlowCount: 16000

@@ -1,0 +1,5 @@
+---
+aclProfileName: myacl
+msgVpnName: testvpn
+subscribeExceptionTopic: T/1
+topicSyntax: smf

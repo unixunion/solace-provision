@@ -14,6 +14,7 @@ solace_semp_client = { git = "https://github.com/unixunion/rust_solace_semp_clie
 #solace_semp_client = { path = "../swagger-codegen/samples/client/solace_semp_client/rust" }
 #generics_yaml_deserializer = { git = "https://github.com/unixunion/rust_generics_yaml_deserializer.git", branch="master" }
 #generics_yaml_deserializer = { path = "../generics_yaml_deserializer/" }
+percent-encoding = "2.1.0"
 hyper = "0.11.6"
 hyper-tls = "0.1.4"
 native-tls = "0.1.5"

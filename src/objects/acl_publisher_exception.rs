@@ -12,6 +12,7 @@ use serde::Serialize;
 use crate::update::Update;
 use std::process;
 use solace_semp_client::models::{MsgVpnAclProfilePublishExceptionsResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfilePublishExceptionResponse, SempMetaOnlyResponse};
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
 // FETCH ACL publish exceptions
 
@@ -98,7 +99,133 @@ impl Save<MsgVpnAclProfilePublishExceptionsResponse> for MsgVpnAclProfilePublish
 impl Update<MsgVpnAclProfilePublishExceptionResponse> for MsgVpnAclProfilePublishExceptionResponse {
 
     fn delete_by_sub_item(msg_vpn: &str, acl_profile_name: &str, topic_syntax: &str, publish_exception_topic: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
-        let request = apiclient.default_api().delete_msg_vpn_acl_profile_publish_exception(msg_vpn, acl_profile_name, topic_syntax, publish_exception_topic);
+        let request = apiclient.default_api().delete_msg_vpn_acl_profile_publish_exception(
+            msg_vpn,
+            acl_profile_name,
+            topic_syntax,
+            &*utf8_percent_encode(publish_exception_topic, NON_ALPHANUMERIC).to_string());
         core_run_meta!(request, core)
     }
+}
+
+mod test {
+    extern crate rand;
+
+    use crate::provision::Provision;
+    use solace_semp_client::models::{MsgVpnQueue, MsgVpnResponse, MsgVpnAclProfileClientConnectExceptionResponse, MsgVpnAclProfileClientConnectException, MsgVpnAclProfileClientConnectExceptionsResponse, MsgVpnAclProfileResponse, MsgVpnAclProfilePublishExceptionResponse, MsgVpnAclProfilePublishExceptionsResponse};
+    use tokio_core::reactor::Core;
+    use hyper::client::HttpConnector;
+    use native_tls::TlsConnector;
+    use hyper::Client;
+    use crate::helpers;
+    use solace_semp_client::apis::configuration::Configuration;
+    use solace_semp_client::apis::client::APIClient;
+    use std::error::Error;
+    use crate::update::Update;
+    use crate::fetch::Fetch;
+    use crate::save::Save;
+    use rand::Rng;
+
+    #[test]
+    fn provision() {
+
+        let (mut core, mut client) = solace_connect!();
+
+        let acl_name = "myacl";
+        let test_vpn = "testvpn";
+
+        println!("ape delete testvpn");
+        let d = MsgVpnResponse::delete(&test_vpn, "", "", &mut core, &client);
+
+        println!("ape create vpn");
+        let v = MsgVpnResponse::provision_with_file(
+            "",
+            "",
+            "test_yaml/ape/vpn.yaml", &mut core,
+            &client);
+
+        match v {
+            Ok(vpn) => {
+                assert_eq!(vpn.data().unwrap().msg_vpn_name().unwrap(), &test_vpn);
+            },
+            Err(e) => {
+                error!("ape cannot create testvpn");
+            }
+        }
+
+        println!("ape provision acl");
+        let a = MsgVpnAclProfileResponse::provision_with_file(
+            "",
+            "",
+            "test_yaml/ape/acl.yaml",
+            &mut core,
+            &client
+        );
+
+        println!("ape provision verify acl");
+        match a {
+            Ok(acl) => {
+                assert_eq!(acl.data().unwrap().acl_profile_name().unwrap(), "myacl");
+            },
+            Err(e) => {
+                error!("ape acl could not be provisioned");
+            }
+        }
+
+        println!("ape provision");
+        let a = MsgVpnAclProfilePublishExceptionResponse::provision_with_file(
+            "",
+            "",
+            "test_yaml/ape/ape.yaml", &mut core,
+            &client
+        );
+
+        println!("ape provision verify");
+        match a {
+            Ok(acce) => {
+                assert_eq!(acce.data().unwrap().acl_profile_name().unwrap(), "myacl");
+            }
+            Err(e) => {
+                error!("ape could not be provisioned");
+            }
+        }
+
+        println!("ape fetch");
+        let fa = MsgVpnAclProfilePublishExceptionsResponse::fetch(
+            &test_vpn,
+            acl_name,
+            "aclProfileName",
+            acl_name,
+            10,
+            "",
+            "*",
+            &mut core,
+            &client
+        );
+
+        println!("ape fetch verify");
+        match fa {
+            Ok(acls) => {
+                assert_eq!(acls.data().unwrap().len(), 1);
+            },
+            Err(e) => {
+                error!("ape fetch failed");
+            }
+        }
+
+
+        println!("ape acl delete");
+        let da = MsgVpnAclProfileResponse::delete(&test_vpn, acl_name, "", &mut core, &client);
+        match da {
+            Ok(resp) => {
+                assert_eq!(resp.meta().response_code(), &200);
+            },
+            Err(e) => {
+                error!("ape acl delete failed");
+            }
+        }
+
+
+    }
+
 }

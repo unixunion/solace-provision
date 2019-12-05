@@ -1,0 +1,5 @@
+---
+aclProfileName: myacl
+msgVpnName: testvpn
+publishExceptionTopic: T/1
+topicSyntax: smf

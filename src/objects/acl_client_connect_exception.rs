@@ -103,28 +103,7 @@ mod test {
     #[test]
     fn provision() {
 
-//        let mut rng = rand::thread_rng();
-//        let random_vpn = format!("acce_testvpn_{}", rng.gen_range(0, 10));
-//        println!("acce tests in tmp vpn: {}", &random_vpn);
-//
         let (mut core, mut client) = solace_connect!();
-//
-//        println!("acce delete testvpn");
-//        let d = MsgVpnResponse::delete(&random_vpn, "", "", &mut core, &client);
-//
-//        println!("acce create vpn");
-//        let v = MsgVpnResponse::provision_with_file(&random_vpn,
-//                                                    "",
-//                                                    "test_yaml/acce/vpn.yaml", &mut core,
-//                                                    &client);
-//        match v {
-//            Ok(vpn) => {
-//                assert_eq!(vpn.data().unwrap().msg_vpn_name().unwrap(), &random_vpn);
-//            },
-//            Err(e) => {
-//                error!("acl cannot create testvpn");
-//            }
-//        }
 
         let acl_name = "myacl";
         let random_vpn = "testvpn";
@@ -208,82 +187,18 @@ mod test {
             }
         }
 
-        // save single acl
-//        println!("acl save");
-//        let mut acl = MsgVpnAclProfile::new();
-//        acl.set_acl_profile_name("tmpacl".to_owned());
-//        acl.set_msg_vpn_name(random_vpn.clone());
-//        MsgVpnAclProfile::save("tmp", &acl);
-//        let deserialized = deserialize_file_into_type!(format!("tmp/{}/acl/tmpacl.yaml", random_vpn), MsgVpnAclProfile);
-//        match deserialized {
-//            Some(acl) => {
-//                assert_eq!(acl.acl_profile_name().unwrap(), "tmpacl");
-//            },
-//            _ => {
-//                error!("acl save error");
-//            }
-//        }
-//
-//        // save acls
-//        println!("acl save response");
-//        let acls = MsgVpnAclProfilesResponse::fetch(
-//            &random_vpn,
-//            "",
-//            "aclProfileName",
-//            "*",
-//            10,
-//            "",
-//            "*",
-//            &mut core,
-//            &client
-//        );
-//
-//        match acls {
-//            Ok(acls) => {
-//                MsgVpnAclProfilesResponse::save("tmp", &acls);
-//                let default_acl = deserialize_file_into_type!(format!("tmp/{}/acl/default.yaml", random_vpn), MsgVpnAclProfile);
-//                let myacl_acl = deserialize_file_into_type!(format!("tmp/{}/acl/myacl.yaml", random_vpn), MsgVpnAclProfile);
-//                assert_eq!(default_acl.unwrap().acl_profile_name().unwrap(), "default");
-//                assert_eq!(myacl_acl.unwrap().acl_profile_name().unwrap(), "myacl");
-//            },
-//            Err(e) => {
-//                error!("save multiple acls failed");
-//            }
-//        }
-//
-//
-//
-//        println!("acl update");
-//        let updated = MsgVpnAclProfileResponse::update(
-//            &random_vpn,
-//            "test_yaml/acl/update.yaml",
-//            "",
-//            &mut core,
-//            &client
-//        );
-//        match updated {
-//            Ok(acl) => {
-//                assert_eq!(acl.data().unwrap().client_connect_default_action().unwrap(), &"disallow");
-//            },
-//            Err(e) => {
-//                error!("acl update failed");
-//            }
-//        }
 
-
-        println!("acl delete");
+        println!("acce acl delete");
         let da = MsgVpnAclProfileResponse::delete(&random_vpn, acl_name, "", &mut core, &client);
         match da {
             Ok(resp) => {
                 assert_eq!(resp.meta().response_code(), &200);
             },
             Err(e) => {
-                error!("acl delete failed");
+                error!("acce acl delete failed");
             }
         }
 
-//        println!("acl delete test vpn");
-//        let d = MsgVpnResponse::delete(&random_vpn, "", "", &mut core, &client);
 
     }
 
