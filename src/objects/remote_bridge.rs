@@ -16,7 +16,7 @@ use solace_semp_client::models::{MsgVpnBridgeRemoteMsgVpnsResponse, MsgVpnBridge
 // remote bridge
 
 impl Fetch<MsgVpnBridgeRemoteMsgVpnsResponse> for MsgVpnBridgeRemoteMsgVpnsResponse {
-    fn fetch(in_vpn: &str, bridge_name: &str, bridge_virtual_router: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteMsgVpnsResponse, &'static str> {
+    fn fetch(in_vpn: &str, bridge_name: &str, bridge_virtual_router: &str, unused_1: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteMsgVpnsResponse, &'static str> {
         let (wherev, mut selectv) = helpers::getwhere("bridgeName", bridge_name, selector);
 
         let request = apiclient
@@ -33,16 +33,17 @@ impl Fetch<MsgVpnBridgeRemoteMsgVpnsResponse> for MsgVpnBridgeRemoteMsgVpnsRespo
 
 impl Provision<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnResponse {
 
-    fn provision_with_file(in_vpn: &str, bridge_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteMsgVpnResponse, &'static str> {
-        let file = std::fs::File::open(file_name).unwrap();
-        let deserialized: Option<MsgVpnBridgeRemoteMsgVpn> = serde_yaml::from_reader(file).unwrap();
+    fn provision_with_file(unused_1: &str, unused_2: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteMsgVpnResponse, &'static str> {
+
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpnBridgeRemoteMsgVpn);
+
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(in_vpn.to_owned());
+//                item.set_msg_vpn_name(in_vpn.to_owned());
                 let virtual_router = &*item.bridge_virtual_router().cloned().unwrap();
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_bridge_remote_msg_vpn(in_vpn, bridge_name, virtual_router, item, helpers::getselect("*"));
+                    .create_msg_vpn_bridge_remote_msg_vpn(&*item.msg_vpn_name().cloned().unwrap(), &*item.bridge_name().cloned().unwrap(), virtual_router, item, helpers::getselect("*"));
                 core_run!(request, core)
 
             }
@@ -85,14 +86,14 @@ impl Save<MsgVpnBridgeRemoteMsgVpnsResponse> for MsgVpnBridgeRemoteMsgVpnsRespon
 
 impl Update<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, remote_vpn_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteMsgVpnResponse, &'static str> {
+    fn update(unused_1: &str, file_name: &str, unused_2: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeRemoteMsgVpnResponse, &'static str> {
 
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnBridgeRemoteMsgVpn> = serde_yaml::from_reader(file).unwrap();
 
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(msg_vpn.to_owned());
+                let msg_vpn_name = item.msg_vpn_name().cloned();
                 let item_name = item.bridge_name().cloned();
                 let bridge_virtual_router = item.bridge_virtual_router().cloned();
                 let remote_vpn_name = item.remote_msg_vpn_name().cloned();
@@ -100,14 +101,15 @@ impl Update<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnRespon
                 let remote_msg_vpn_interface = item.remote_msg_vpn_interface().cloned();
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn_bridge_remote_msg_vpn(msg_vpn,
-                                                          &*item_name.unwrap(),
-                                                          &*bridge_virtual_router.unwrap(),
-                                                          &*remote_vpn_name.unwrap(),
-                                                          &*remote_vpn_location.unwrap(),
-                                                          &*remote_msg_vpn_interface.unwrap(),
-                                                          item,
-                                                          helpers::getselect("*")
+                    .update_msg_vpn_bridge_remote_msg_vpn(
+                        &*msg_vpn_name.unwrap(),
+                        &*item_name.unwrap(),
+                        &*bridge_virtual_router.unwrap(),
+                        &*remote_vpn_name.unwrap(),
+                        &*remote_vpn_location.unwrap(),
+                        &*remote_msg_vpn_interface.unwrap_or("".to_owned()),
+                        item,
+                        helpers::getselect("*")
                     );
 
                 core_run!(request, core)
@@ -136,7 +138,7 @@ impl Update<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnRespon
             let virtual_router = &*x.bridge_virtual_router().cloned().unwrap();
             let remote_msg_vpn_name = &*x.remote_msg_vpn_name().cloned().unwrap();
             let remote_location = &*x.remote_msg_vpn_location().cloned().unwrap();
-            let remote_interface = &*x.remote_msg_vpn_interface().cloned().unwrap();
+            let remote_interface = &*x.remote_msg_vpn_interface().cloned().unwrap_or("".to_owned());
             x.set_enabled(state);
 
             let request = apiclient.default_api().update_msg_vpn_bridge_remote_msg_vpn(
@@ -179,15 +181,16 @@ impl Update<MsgVpnBridgeRemoteMsgVpnResponse> for MsgVpnBridgeRemoteMsgVpnRespon
             let virtual_router = &*x.bridge_virtual_router().cloned().unwrap();
             let remote_bridge_name = &*x.remote_msg_vpn_name().cloned().unwrap();
             let remote_bridge_location = &*x.remote_msg_vpn_location().cloned().unwrap();
-            let remote_interface = &*x.remote_msg_vpn_interface().cloned().unwrap();
-            let request = apiclient.default_api().delete_msg_vpn_bridge_remote_msg_vpn(
-                msg_vpn,
-                bridge_name,
-                virtual_router,
-                remote_bridge_name,
-                remote_bridge_location,
-                remote_interface
-            );
+            let remote_interface = &*x.remote_msg_vpn_interface().cloned().unwrap_or("".to_owned());
+            let request = apiclient
+                .default_api()
+                .delete_msg_vpn_bridge_remote_msg_vpn(
+                    msg_vpn,
+                    bridge_name,
+                    virtual_router,
+                    remote_bridge_name,
+                    remote_bridge_location,
+                    remote_interface);
             core_run_meta!(request, core)
 
         } else {

@@ -35,6 +35,11 @@ Objects that can be managed
     * Replay Log
     * DMR Cluster
     
+Refactor Completed List
+    
+    * ACL
+    
+    
 This tool is subject to [SEMPv2 limitations](https://docs.solace.com/SEMP/SEMP-API-Versions.htm#SEMPv2).
 
 ## Requirements

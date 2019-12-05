@@ -15,12 +15,12 @@ use solace_semp_client::models::{MsgVpnAuthorizationGroupsResponse, MsgVpnAuthor
 
 // authorization groups
 impl Fetch<MsgVpnAuthorizationGroupsResponse> for MsgVpnAuthorizationGroupsResponse {
-    fn fetch(in_vpn: &str, sub_item: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupsResponse, &'static str> {
+    fn fetch(msg_vpn_name: &str, unused_1: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupsResponse, &'static str> {
         let (wherev, mut selectv) = helpers::getwhere(select_key, select_value, selector);
 
         let request = apiclient
             .authorization_group_api()
-            .get_msg_vpn_authorization_groups(in_vpn, count, cursor, wherev, selectv)
+            .get_msg_vpn_authorization_groups(msg_vpn_name, count, cursor, wherev, selectv)
             .and_then(|item| {
                 futures::future::ok(item)
             });
@@ -33,15 +33,18 @@ impl Fetch<MsgVpnAuthorizationGroupsResponse> for MsgVpnAuthorizationGroupsRespo
 
 impl Provision<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupResponse {
 
-    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupResponse, &'static str> {
-        let file = std::fs::File::open(file_name).unwrap();
-        let deserialized: Option<MsgVpnAuthorizationGroup> = serde_yaml::from_reader(file).unwrap();
+    fn provision_with_file(unused_1: &str, unused_2: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupResponse, &'static str> {
+
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpnAuthorizationGroup);
+
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_authorization_group(in_vpn, item, helpers::getselect("*"));
+                    .create_msg_vpn_authorization_group(
+                        &*item.msg_vpn_name().cloned().unwrap(),
+                        item,
+                        helpers::getselect("*"));
                 core_run!(request, core)
             }
             _ => unimplemented!()
@@ -88,18 +91,19 @@ impl Save<MsgVpnAuthorizationGroupsResponse> for MsgVpnAuthorizationGroupsRespon
 
 impl Update<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupResponse, &'static str> {
+    fn update(unused_1: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAuthorizationGroupResponse, &'static str> {
 
-        let file = std::fs::File::open(file_name).unwrap();
-        let deserialized: Option<MsgVpnAuthorizationGroup> = serde_yaml::from_reader(file).unwrap();
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpnAuthorizationGroup);
 
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(msg_vpn.to_owned());
-                let item_name = item.authorization_group_name().cloned();
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn_authorization_group(msg_vpn, &*item_name.unwrap(), item, helpers::getselect("*"));
+                    .update_msg_vpn_authorization_group(
+                        &*item.msg_vpn_name().cloned().unwrap(),
+                        &*item.authorization_group_name().cloned().unwrap(),
+                        item,
+                        helpers::getselect("*"));
                 core_run!(request, core)
             }
             _ => unimplemented!()
@@ -125,8 +129,8 @@ impl Update<MsgVpnAuthorizationGroupResponse> for MsgVpnAuthorizationGroupRespon
 
     }
 
-    fn delete(msg_vpn: &str, item_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
-        let request = apiclient.default_api().delete_msg_vpn_authorization_group(msg_vpn, item_name);
+    fn delete(msg_vpn_name: &str, auth_group_name: &str, unused_1: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient.default_api().delete_msg_vpn_authorization_group(msg_vpn_name, auth_group_name);
         core_run_meta!(request, core)
     }
 

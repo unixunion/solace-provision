@@ -47,29 +47,22 @@ subcommands:
             long: file
             help: file to use
             takes_value: true
-            conflicts_with:
-              - message-vpn
-              - delete
         - message-vpn:
             long: message-vpn
             help: vpn to reference, if specified, overrides specified msgVpnName in spec file.
             takes_value: true
         - update:
             long: update
-            requires:
-              - message-vpn
             help: update an existing vpn, using file if provided, or via other args, required --vpn
         - shutdown:
             long: shutdown
             requires:
               - message-vpn
-              - update
             help: shutdown an existing vpn, can be used in concert with --update to shutdown before applying changes, remember to add --no-shutdown to re-enable after applying updates
         - no-shutdown:
             long: no-shutdown
             requires:
               - message-vpn
-              - update
             help: enable an existing vpn, if used in concert with --file, --shutdown and --update, enable be performed after applying file changes
         - fetch:
             long: fetch
@@ -171,7 +164,6 @@ subcommands:
         - message-vpn:
             long: message-vpn
             help: vpn to reference, if specified overrides specified msgVpnName in spec file.
-            required: true
             takes_value: true
         - acl-profile:
             long: acl-profile
@@ -179,9 +171,7 @@ subcommands:
             takes_value: true
         - update:
             long: update
-            requires:
-              - message-vpn
-              - acl-profile
+            required: false
             help: update an existing acl-profile, using file if provided, or via other args.
         - fetch:
             long: fetch
@@ -468,12 +458,10 @@ subcommands:
             long: file
             help: file to use
             takes_value: true
-            requires:
-              - message-vpn
         - message-vpn:
             long: message-vpn
             help: vpn to reference, if specified overrides specified msgVpnName in spec file.
-            required: true
+            required: false
             takes_value: true
         - topic-endpoint:
             long: topic-endpoint
@@ -536,8 +524,7 @@ subcommands:
         - update:
             long: update
             requires:
-              - message-vpn
-              - topic-endpoint
+              - file
             help: update an existing topic-endpoint by name
   - auth-group:
       about: authorization-group management
@@ -548,12 +535,9 @@ subcommands:
             long: file
             help: file to use
             takes_value: true
-            requires:
-              - message-vpn
         - message-vpn:
             long: message-vpn
             help: vpn to reference, if specified overrides specified msgVpnName in spec file.
-            required: true
             takes_value: true
         - auth-group:
             long: auth-group
@@ -588,8 +572,7 @@ subcommands:
         - update:
             long: update
             requires:
-              - message-vpn
-              - auth-group
+              - file
             help: update an existing authorization group by name
   - bridge:
       about: bridge management
@@ -600,12 +583,10 @@ subcommands:
             long: file
             help: file to use
             takes_value: true
-            requires:
-              - message-vpn
         - message-vpn:
             long: message-vpn
             help: vpn to reference, if specified overrides specified msgVpnName in spec file.
-            required: true
+            required: false
             takes_value: true
         - bridge:
             long: bridge
@@ -616,14 +597,12 @@ subcommands:
             requires:
               - message-vpn
               - bridge
-              - update
             help: shutdown an authorization group
         - no-shutdown:
             long: no-shutdown
             requires:
               - message-vpn
               - bridge
-              - update
             help: enable authorization group
         - virtual-router:
             long: virtual-router
@@ -644,9 +623,9 @@ subcommands:
             help: delete a specified bridge
         - update:
             long: update
-            requires:
-              - message-vpn
             help: update an existing authorization group by name
+            requires:
+              - file
   - remote-bridge:
       about: remote bridge management
       version: 9.1.0-201
@@ -656,13 +635,9 @@ subcommands:
             long: file
             help: file to use
             takes_value: true
-            requires:
-              - message-vpn
-              - bridge
         - message-vpn:
             long: message-vpn
             help: vpn to reference on the local side
-            required: true
             takes_value: true
         - bridge:
             long: bridge
@@ -673,14 +648,13 @@ subcommands:
             requires:
               - message-vpn
               - bridge
-              - update
+              - virtual-router
             help: shutdown an remote-bridge
         - no-shutdown:
             long: no-shutdown
             requires:
               - message-vpn
               - bridge
-              - update
             help: enable remote-bridge
         - virtual-router:
             long: virtual-router
@@ -702,9 +676,6 @@ subcommands:
             help: delete a specified bridge
         - update:
             long: update
-            requires:
-              - message-vpn
-              - bridge
             help: update an existing remote-bridge
   - replay-log:
       about: replay log management
@@ -715,13 +686,9 @@ subcommands:
             long: file
             help: file to use
             takes_value: true
-            requires:
-              - message-vpn
-              - replay-log
         - message-vpn:
             long: message-vpn
             help: vpn to reference on the local side
-            required: true
             takes_value: true
         - replay-log:
             long: replay-log
@@ -732,42 +699,36 @@ subcommands:
             requires:
               - message-vpn
               - replay-log
-              - update
             help: shutdown an replay log
         - no-shutdown:
             long: no-shutdown
             requires:
               - message-vpn
               - replay-log
-              - update
             help: enable replay log
         - shutdown-ingress:
             long: shutdown-ingress
             requires:
               - message-vpn
               - replay-log
-              - update
             help: shutdown ingress for the replay-log
         - no-shutdown-ingress:
             long: no-shutdown-ingress
             requires:
               - message-vpn
               - replay-log
-              - update
             help: enable ingress for the replay-log
         - shutdown-egress:
             long: shutdown-egress
             requires:
               - message-vpn
               - replay-log
-              - update
             help: shutdown egress for the replay-log
         - no-shutdown-egress:
             long: no-shutdown-egress
             requires:
               - message-vpn
               - replay-log
-              - update
             help: enable egress for the replay-log
         - fetch:
             long: fetch
@@ -784,8 +745,7 @@ subcommands:
         - update:
             long: update
             requires:
-              - message-vpn
-              - replay-log
+              - file
             help: update an existing replay log
   - dmr-bridge:
       about: dmr bridge management
@@ -796,32 +756,18 @@ subcommands:
             long: file
             help: file to use
             takes_value: true
-            requires:
-              - message-vpn
-              - remote-vpn
         - message-vpn:
             long: message-vpn
             help: vpn to reference on the local side
-            required: true
             takes_value: true
         - remote-vpn:
             long: remote-message-vpn
             help: the remote vpn name
             takes_value: true
-        - shutdown:
-            long: shutdown
-            requires:
-              - message-vpn
-              - bridge
-              - update
-            help: shutdown an dmr bridge
-        - no-shutdown:
-            long: no-shutdown
-            requires:
-              - message-vpn
-              - bridge
-              - update
-            help: enable dmr bridge
+        - remote-node-name:
+            long: remote-node-name
+            help: the remote node name
+            takes_value: true
         - fetch:
             long: fetch
             requires:
@@ -832,14 +778,8 @@ subcommands:
             long: delete
             requires:
               - message-vpn
-              - remote-vpn
+              - remote-node-name
             help: delete a specified dmr bridge
-        - update:
-            long: update
-            requires:
-              - message-vpn
-              - remote-vpn
-            help: update an existing dmr bridge
   - dmr-cluster:
       about: dmr cluster management
       version: 9.1.0-201
@@ -878,7 +818,6 @@ subcommands:
         - update:
             long: update
             requires:
-              - cluster-name
               - file
             help: update an existing dmr cluster
   - dmr-cluster-link:
@@ -898,7 +837,6 @@ subcommands:
             long: shutdown
             requires:
               - cluster-name
-              - update
               - remote-node-name
             help: shutdown an dmr cluster link
         - remote-node-name:
@@ -909,7 +847,6 @@ subcommands:
             long: no-shutdown
             requires:
               - cluster-name
-              - update
             help: enable dmr cluster link
         - fetch:
             long: fetch
@@ -924,8 +861,7 @@ subcommands:
         - update:
             long: update
             requires:
-              - cluster-name
-#              - file
+              -file
             help: update an existing dmr cluster link
   - dmr-cluster-link-remote:
       about: dmr cluster link remote management
@@ -948,13 +884,11 @@ subcommands:
             long: shutdown
             requires:
               - cluster-name
-              - update
             help: shutdown an dmr cluster link
         - no-shutdown:
             long: no-shutdown
             requires:
               - cluster-name
-              - update
             help: enable dmr cluster link
         - fetch:
             long: fetch
@@ -970,6 +904,5 @@ subcommands:
         - update:
             long: update
             requires:
-              - cluster-name
               - file
             help: update an existing dmr cluster link

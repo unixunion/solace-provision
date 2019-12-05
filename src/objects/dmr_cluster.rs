@@ -101,8 +101,8 @@ impl Save<DmrCluster> for DmrCluster {
 
 impl Update<DmrClusterResponse> for DmrClusterResponse {
 
-    fn update(dmr_cluster_name: &str, unused_1: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterResponse, &'static str> {
-        info!("updating dmr-cluster: {} from file", dmr_cluster_name);
+    fn update(unused_0: &str, unused_1: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterResponse, &'static str> {
+//        info!("updating dmr-cluster: {} from file", unused_0);
         let deserialized = deserialize_file_into_type!(file_name, DmrCluster);
 
         match deserialized {
@@ -110,22 +110,22 @@ impl Update<DmrClusterResponse> for DmrClusterResponse {
 
                 // TODO FIXME macro this override mechanism
 
-                let mut referenced_dmr_cluster_name = dmr_cluster_name;
-                let file_referenced_dmr_cluster_name = item.dmr_cluster_name().unwrap().clone();
-
-                // if name is overridden, set the same in the body,
-                // else set the referenced to the one from the body
-                if (&dmr_cluster_name != &"") {
-                    info!("overriding name to :{}", dmr_cluster_name);
-                    &item.set_dmr_cluster_name(dmr_cluster_name.to_owned());
-                } else {
-                    info!("using name from file");
-                    referenced_dmr_cluster_name = &*file_referenced_dmr_cluster_name; //body.msg_vpn_name().unwrap().clone().as_str();
-                }
+//                let mut referenced_dmr_cluster_name = dmr_cluster_name;
+//                let file_referenced_dmr_cluster_name = item.dmr_cluster_name().unwrap().clone();
+//
+//                // if name is overridden, set the same in the body,
+//                // else set the referenced to the one from the body
+//                if (&dmr_cluster_name != &"") {
+//                    info!("overriding name to :{}", dmr_cluster_name);
+//                    &item.set_dmr_cluster_name(dmr_cluster_name.to_owned());
+//                } else {
+//                    info!("using name from file");
+//                    referenced_dmr_cluster_name = &*file_referenced_dmr_cluster_name; //body.msg_vpn_name().unwrap().clone().as_str();
+//                }
 
                 let request = apiclient
                     .default_api()
-                    .update_dmr_cluster(referenced_dmr_cluster_name, item, helpers::getselect("*"));
+                    .update_dmr_cluster(&*item.dmr_cluster_name().cloned().unwrap(), item, helpers::getselect("*"));
                 core_run!(request, core)
 
             }
@@ -143,105 +143,6 @@ impl Update<DmrClusterResponse> for DmrClusterResponse {
     }
 }
 
-
-/// command line parser for this object
-impl CommandLineParser<DmrCluster> for DmrCluster {
-
-    fn parse(matches: &ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>) {
-
-        // cursor holder
-        let mut cursor = Cow::Borrowed("");
-        let count = matches.value_of("count").unwrap().parse::<i32>().unwrap();
-        let output_dir = matches.value_of("output").unwrap();
-        let select = matches.value_of("select").unwrap();
-        let mut write_fetch_files = matches.value_of("save").unwrap().parse::<bool>().unwrap();
-
-        // source subcommand args into matches
-        if let Some(matches) = matches.subcommand_matches("dmr-cluster") {
-
-            // get the boolean args
-            let update_item = matches.is_present("update");
-            let shutdown_item = matches.is_present("shutdown");
-            let no_shutdown_item = matches.is_present("no-shutdown");
-            let fetch = matches.is_present("fetch");
-            let delete = matches.is_present("delete");
-
-            if update_item || shutdown_item || no_shutdown_item || fetch || delete || matches.is_present("file") {
-
-                // if file is passed, it means either provision or update.
-                if matches.is_present("file") && !delete {
-                    let file_name = matches.value_of("file").unwrap();
-                    if update_item {
-                        DmrClusterResponse::update(
-                            matches.value_of("cluster-name").unwrap(),
-                            "",
-                            file_name,
-                            core,
-                            &client
-                        );
-                    } else {
-                        DmrClusterResponse::provision_with_file(
-                            "",
-                            "",
-                            file_name,
-                            core,
-                            &client
-                        );
-                    }
-                }
-
-
-                // finally if fetch is specified, we do this last."
-                while fetch {
-                    let data = DmrClustersResponse::fetch("",
-                                                          "",
-                                                          "dmrClusterName",
-                                                          matches.value_of("cluster-name").unwrap(),
-                                                          count,
-                                                          &*cursor.to_string(),
-                                                          select,
-                                                          core,
-                                                          &client
-                    );
-
-
-                    match data {
-                        Ok(item) => {
-
-                            if write_fetch_files {
-                                DmrClustersResponse::save(output_dir, &item);
-                            }
-
-                            let cq = item.meta().paging();
-                            match cq {
-                                Some(paging) => {
-                                    info!("cq: {:?}", paging.cursor_query());
-                                    cursor = Cow::Owned(paging.cursor_query().clone());
-                                },
-                                _ => {
-                                    break
-                                }
-                            }
-                        },
-                        Err(e) => {
-                            error!("error: {}", e)
-                        }
-                    }
-
-
-                }
-
-                if delete {
-                    info!("deleting dmr-bridge");
-                    DmrClusterResponse::delete(matches.value_of("cluster-name").unwrap(), "", "", core, &client);
-                }
-            } else {
-                error!("No operation was specified, see --help")
-            }
-
-        }
-    }
-}
 
 
 mod tests {

@@ -34,15 +34,15 @@ impl Fetch<MsgVpnTopicEndpointsResponse> for MsgVpnTopicEndpointsResponse {
 // provision topic endpoint
 impl Provision<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
 
-    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointResponse, &'static str> {
+    fn provision_with_file(override_msg_vpn_name: &str, unused_1: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnTopicEndpoint> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(in_vpn.to_owned());
+//                item.set_msg_vpn_name(override_msg_vpn_name.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_topic_endpoint(in_vpn, item, helpers::getselect("*"));
+                    .create_msg_vpn_topic_endpoint(&*item.msg_vpn_name().cloned().unwrap(), item, helpers::getselect("*"));
                 core_run!(request, core)
 
             }
@@ -91,6 +91,21 @@ impl Save<MsgVpnTopicEndpointsResponse> for MsgVpnTopicEndpointsResponse {
 // topic endpoint
 
 impl Update<MsgVpnTopicEndpointResponse> for MsgVpnTopicEndpointResponse {
+
+    fn update(unused_1: &str, unused_2: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointResponse, &'static str> {
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpnTopicEndpoint);
+        match deserialized {
+            Some(mut item) => {
+                let request = apiclient
+                    .default_api()
+                    .update_msg_vpn_topic_endpoint(&*item.msg_vpn_name().cloned().unwrap(), &*item.topic_endpoint_name().cloned().unwrap(), item, helpers::getselect("*"));
+                core_run!(request, core)
+
+            }
+            _ => unimplemented!()
+        }
+    }
+
 
     fn ingress(msg_vpn: &str, item_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnTopicEndpointResponse, &'static str> {
         info!("retrieving current topic endpoint from appliance");

@@ -85,6 +85,29 @@ impl Save<DmrClusterLink> for DmrClusterLink {
 
 impl Update<DmrClusterLinkResponse> for DmrClusterLinkResponse {
 
+    fn update(unused_1: &str, unused_2: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterLinkResponse, &'static str> {
+
+        let deserialized = deserialize_file_into_type!(file_name, DmrClusterLink);
+
+        match deserialized {
+            Some(mut item) => {
+
+                let request = apiclient
+                    .default_api()
+                    .update_dmr_cluster_link(
+                        &*item.dmr_cluster_name().cloned().unwrap(),
+                        &*item.remote_node_name().cloned().unwrap(),
+                        item,
+                        helpers::getselect("*"));
+
+                core_run!(request, core)
+
+            }
+            _ => unimplemented!()
+        }
+    }
+
+
     fn enabled(cluster_name: &str, remote_node_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<DmrClusterLinkResponse, &'static str> {
 
         info!("changing enabled statet to {:?}", state);

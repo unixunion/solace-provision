@@ -1,6 +1,6 @@
 ---
 aclProfileName: myacl
 clientConnectDefaultAction: disallow
-msgVpnName: overridden_at_provision_time
+msgVpnName: testvpn
 publishTopicDefaultAction: allow
 subscribeTopicDefaultAction: allow

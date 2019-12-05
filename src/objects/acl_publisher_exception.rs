@@ -16,11 +16,11 @@ use solace_semp_client::models::{MsgVpnAclProfilePublishExceptionsResponse, MsgV
 // FETCH ACL publish exceptions
 
 impl Fetch<MsgVpnAclProfilePublishExceptionsResponse> for MsgVpnAclProfilePublishExceptionsResponse {
-    fn fetch(in_vpn: &str, acl_profile_name: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfilePublishExceptionsResponse, &'static str> {
+    fn fetch(msg_vpn_name: &str, acl_profile_name: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfilePublishExceptionsResponse, &'static str> {
         let (wherev, selectv) = helpers::getwhere(select_key, select_value, selector);
         let request = apiclient
             .default_api()
-            .get_msg_vpn_acl_profile_publish_exceptions(in_vpn, acl_profile_name, count, cursor, wherev, selectv)
+            .get_msg_vpn_acl_profile_publish_exceptions(msg_vpn_name, acl_profile_name, count, cursor, wherev, selectv)
             .and_then(|acl| {
                 futures::future::ok(acl)
             });
@@ -31,16 +31,21 @@ impl Fetch<MsgVpnAclProfilePublishExceptionsResponse> for MsgVpnAclProfilePublis
 // provision ACL publish exception
 
 impl Provision<MsgVpnAclProfilePublishExceptionResponse> for MsgVpnAclProfilePublishExceptionResponse {
-    fn provision_with_file(msg_vpn_name: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfilePublishExceptionResponse, &'static str> {
+    fn provision_with_file(unused_1: &str, unused_2: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfilePublishExceptionResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnAclProfilePublishException> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(msg_vpn_name.to_owned());
-                let acl_profile_name = &*item.acl_profile_name().cloned().unwrap();
+//                item.set_msg_vpn_name(msg_vpn_name.to_owned());
+//                let acl_profile_name = &*item.acl_profile_name().cloned().unwrap();
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_acl_profile_publish_exception(msg_vpn_name, acl_profile_name, item, helpers::getselect("*"));
+                    .create_msg_vpn_acl_profile_publish_exception(
+                        &*item.msg_vpn_name().cloned().unwrap(),
+                        &*item.acl_profile_name().cloned().unwrap(),
+                        item,
+                        helpers::getselect("*"));
+
                 core_run!(request, core)
             }
             _ => unimplemented!()

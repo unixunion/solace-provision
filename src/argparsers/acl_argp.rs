@@ -32,11 +32,19 @@ impl CommandLineParser<MsgVpnAclProfile> for MsgVpnAclProfile {
                 if matches.is_present("file") {
                     let file_name = matches.value_of("file").unwrap();
                     if update_item {
-                        MsgVpnAclProfileResponse::update(matches.value_of("message-vpn").unwrap(), file_name, "",
-                                                         core, &client);
+                        MsgVpnAclProfileResponse::update(
+                            "",
+                            file_name,
+                            "",
+                            core,
+                            &client);
                     } else {
-                        MsgVpnAclProfileResponse::provision_with_file(matches.value_of("message-vpn").unwrap(), "", file_name,
-                                                                      core, &client);
+                        MsgVpnAclProfileResponse::provision_with_file(
+                            "",
+                            "",
+                            file_name,
+                            core,
+                            &client);
                     }
                 }
 
@@ -44,9 +52,16 @@ impl CommandLineParser<MsgVpnAclProfile> for MsgVpnAclProfile {
                 // finally if fetch is specified
                 while fetch {
                     info!("fetching acl");
-                    let data = MsgVpnAclProfilesResponse::fetch(matches.value_of("message-vpn").unwrap(),
-                                                                "", "aclProfileName",matches.value_of("acl-profile").unwrap(), count,
-                                                                &*cursor.to_string(), select, core, &client);
+                    let data = MsgVpnAclProfilesResponse::fetch(
+                        matches.value_of("message-vpn").unwrap(),
+                        "",
+                        "aclProfileName",
+                        matches.value_of("acl-profile").unwrap(),
+                        count,
+                        &*cursor.to_string(),
+                        select,
+                        core,
+                        &client);
 
                     cursor = maybe_save_and_return_cursor!(MsgVpnAclProfilesResponse, data, write_fetch_files, output_dir);
 

@@ -35,15 +35,18 @@ impl Fetch<MsgVpnBridgesResponse> for MsgVpnBridgesResponse {
 
 impl Provision<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
 
-    fn provision_with_file(in_vpn: &str, item_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
+    fn provision_with_file(unused_1: &str, unused_2: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
         let file = std::fs::File::open(file_name).unwrap();
         let deserialized: Option<MsgVpnBridge> = serde_yaml::from_reader(file).unwrap();
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(in_vpn.to_owned());
+//                item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_bridge(in_vpn, item, helpers::getselect("*"));
+                    .create_msg_vpn_bridge(
+                        &*item.msg_vpn_name().cloned().unwrap(),
+                        item,
+                        helpers::getselect("*"));
                 core_run!(request, core)
 
             }
@@ -89,19 +92,19 @@ impl Save<MsgVpnBridgesResponse> for MsgVpnBridgesResponse {
 
 impl Update<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
+    fn update(unused_1: &str, file_name: &str, unused_2: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
 
-        let file = std::fs::File::open(file_name).unwrap();
-        let deserialized: Option<MsgVpnBridge> = serde_yaml::from_reader(file).unwrap();
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpnBridge);
 
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(msg_vpn.to_owned());
+//                item.set_msg_vpn_name(msg_vpn.to_owned());
+                let msg_vpn_name = item.msg_vpn_name().cloned();
                 let item_name = item.bridge_name().cloned();
                 let bridge_virtual_router = item.bridge_virtual_router().cloned();
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn_bridge(msg_vpn,
+                    .update_msg_vpn_bridge(&*msg_vpn_name.unwrap(),
                                            &*item_name.unwrap(),
                                            &*bridge_virtual_router.unwrap(),
                                            item,
@@ -113,26 +116,30 @@ impl Update<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
         }
     }
 
-    fn enabled(msg_vpn: &str, item_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
+    fn enabled(msg_vpn_name: &str, bridge_name: &str, selector: Vec<&str>, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnBridgeResponse, &'static str> {
         println!("retrieving current bridge from appliance");
-        let mut item = MsgVpnBridgesResponse::fetch(msg_vpn,
-                                                    item_name,
-                                                    "bridgeName",
-                                                    item_name,
-                                                    10,
-                                                    "",
-                                                    "",
-                                                    core,
-                                                    apiclient)?;
+        let mut item = MsgVpnBridgesResponse::fetch(
+            msg_vpn_name,
+            bridge_name,
+            "bridgeName",
+            bridge_name,
+            10,
+            "",
+            "",
+            core,
+            apiclient)?;
+
+        // a mutable vec of temp items
         let mut titem = item.data().unwrap().clone();
 
+        // ensure only 1 match
         if titem.len() == 1 {
-            println!("changing enabled state to: {}", state.to_string());
+            info!("changing enabled state to: {}", state.to_string());
             let mut x = titem.pop().unwrap();
             let virtual_router = &*x.bridge_virtual_router().cloned().unwrap();
             x.set_enabled(state);
-            let request = apiclient.default_api().update_msg_vpn_bridge(msg_vpn,
-                                                                        item_name,
+            let request = apiclient.default_api().update_msg_vpn_bridge(msg_vpn_name,
+                                                                        bridge_name,
                                                                         virtual_router,
                                                                         x,
                                                                         helpers::getselect("*"));

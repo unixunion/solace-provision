@@ -1,4 +1,4 @@
-use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnsResponse, MsgVpnAclProfile, MsgVpnAclProfileResponse, MsgVpnAclProfilesResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfilePublishExceptionResponse, MsgVpnAclProfilePublishExceptionsResponse};
+use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnsResponse, MsgVpnAclProfile, MsgVpnAclProfileResponse, MsgVpnAclProfilesResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfilePublishExceptionResponse, MsgVpnAclProfilePublishExceptionsResponse, MsgVpnBridge, MsgVpnBridgeResponse, MsgVpnBridgesResponse, MsgVpnReplayLog, MsgVpnReplayLogResponse, MsgVpnReplayLogsResponse, MsgVpnDmrBridge, MsgVpnDmrBridgeResponse, MsgVpnDmrBridgesResponse};
 use clap::ArgMatches;
 use solace_semp_client::apis::client::APIClient;
 use hyper_tls::HttpsConnector;
@@ -11,63 +11,57 @@ use crate::fetch::Fetch;
 use crate::save::Save;
 use crate::commandlineparser::CommandLineParser;
 
-impl CommandLineParser<MsgVpnAclProfilePublishException> for MsgVpnAclProfilePublishException {
-
+impl CommandLineParser<MsgVpnDmrBridge> for MsgVpnDmrBridge {
     fn parse(matches: &ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>) {
 
         // cursor holder
         let (mut cursor, count, output_dir, select, write_fetch_files) = core_matches_args!(matches);
 
         // source subcommand args into matches
-        if let Some(matches) = matches.subcommand_matches("acl-profile-publish-exception") {
+        if let Some(matches) = matches.subcommand_matches("dmr-bridge") {
 
-            // get all args within the subcommand
-            let update_item = matches.is_present("update");
             let fetch = matches.is_present("fetch");
             let delete = matches.is_present("delete");
 
-            if update_item || fetch || delete || matches.is_present("file") {
+            if fetch || delete || matches.is_present("file") {
 
                 // if file is passed, it means either provision or update.
                 if matches.is_present("file") {
                     let file_name = matches.value_of("file").unwrap();
-
-                    MsgVpnAclProfilePublishExceptionResponse::provision_with_file(
+                    MsgVpnDmrBridgeResponse::provision_with_file(
                         "",
                         "",
                         file_name,
                         core,
                         &client);
-
                 }
 
 
-                // finally if fetch is specified
+                // finally if fetch is specified, we do this last.
                 while fetch {
-                    info!("fetching acl-profile-publish-exception");
-
-                    let data = MsgVpnAclProfilePublishExceptionsResponse::fetch(
+                    let data = MsgVpnDmrBridgesResponse::fetch(
                         matches.value_of("message-vpn").unwrap(),
-                        matches.value_of("acl-profile").unwrap(),
-                        "aclProfileName",
-                        matches.value_of("acl-profile").unwrap(),
+                        "",
+                        "remoteMsgVpnName",
+                        matches.value_of("remote-vpn").unwrap(),
                         count,
                         &*cursor.to_string(),
-                        select, core,
+                        select,
+                        core,
                         &client);
 
-                    cursor = maybe_save_and_return_cursor!(MsgVpnAclProfilePublishExceptionsResponse, data, write_fetch_files, output_dir);
+
+                    cursor = maybe_save_and_return_cursor!(MsgVpnDmrBridgesResponse, data, write_fetch_files, output_dir);
+
 
                 }
 
                 if delete {
-                    info!("deleting acl publish exception");
-
-                    MsgVpnAclProfilePublishExceptionResponse::delete_by_sub_item(
+                    info!("deleting dmr-bridge");
+                    MsgVpnDmrBridgeResponse::delete(
                         matches.value_of("message-vpn").unwrap(),
-                        matches.value_of("acl-profile").unwrap(),
-                        matches.value_of("topic-syntax").unwrap(),
-                        matches.value_of("topic").unwrap(),
+                        matches.value_of("remote-node-name").unwrap(),
+                        "",
                         core,
                         &client);
                 }

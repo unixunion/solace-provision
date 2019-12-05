@@ -16,11 +16,11 @@ use std::process;
 // Fetch ACL
 impl Fetch<MsgVpnAclProfilesResponse> for MsgVpnAclProfilesResponse {
 
-    fn fetch(in_vpn: &str, unused_1: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfilesResponse, &'static str> {
+    fn fetch(msg_vpn_name: &str, unused_1: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfilesResponse, &'static str> {
         let (wherev, selectv) = helpers::getwhere(select_key, select_value, selector);
         let request = apiclient
             .msg_vpn_api()
-            .get_msg_vpn_acl_profiles(in_vpn, count, cursor, wherev, selectv)
+            .get_msg_vpn_acl_profiles(msg_vpn_name, count, cursor, wherev, selectv)
             .and_then(|acl| {
                 futures::future::ok(acl)
             });
@@ -34,22 +34,14 @@ impl Fetch<MsgVpnAclProfilesResponse> for MsgVpnAclProfilesResponse {
 
 impl Provision<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
 
-    fn provision_with_file(msg_vpn_name: &str, override_acl_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
+    fn provision_with_file(unused_1: &str, unused_2: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
         let deserialized = deserialize_file_into_type!(file_name, MsgVpnAclProfile);
         match deserialized {
             Some(mut item) => {
-//                item.set_msg_vpn_name(in_vpn.to_owned());
-                if (&msg_vpn_name != &"") {
-                    &item.set_msg_vpn_name(msg_vpn_name.to_owned());
-                }
-                if (&override_acl_name != &"") {
-                    info!("overriding acl name to: {}", &override_acl_name);
-                    &item.set_acl_profile_name(override_acl_name.to_owned());
-                }
 
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_acl_profile(msg_vpn_name, item, helpers::getselect("*"));
+                    .create_msg_vpn_acl_profile(&*item.msg_vpn_name().cloned().unwrap(), item, helpers::getselect("*"));
 
                 core_run!(request, core)
 
@@ -97,15 +89,13 @@ impl Save<MsgVpnAclProfile> for MsgVpnAclProfile {
 
 impl Update<MsgVpnAclProfileResponse> for MsgVpnAclProfileResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
+    fn update(unused_1: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnAclProfileResponse, &'static str> {
         let deserialized = deserialize_file_into_type!(file_name, MsgVpnAclProfile);
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(msg_vpn.to_owned());
-                let item_name = item.acl_profile_name().cloned();
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn_acl_profile(msg_vpn, &*item_name.unwrap(), item, helpers::getselect("*"));
+                    .update_msg_vpn_acl_profile(&*item.msg_vpn_name().cloned().unwrap(), &*item.acl_profile_name().cloned().unwrap(), item, helpers::getselect("*"));
                 core_run!(request, core)
             }
             _ => unimplemented!()
@@ -148,10 +138,12 @@ mod tests {
         let d = MsgVpnResponse::delete(&random_vpn, "", "", &mut core, &client);
 
         println!("acl create vpn");
-        let v = MsgVpnResponse::provision_with_file("",
-                                                    "",
-                                                    "test_yaml/acl/vpn.yaml", &mut core,
-                                                    &client);
+        let v = MsgVpnResponse::provision_with_file(
+            "",
+            "",
+            "test_yaml/acl/vpn.yaml", &mut core,
+            &client);
+
         match v {
             Ok(vpn) => {
                 assert_eq!(vpn.data().unwrap().msg_vpn_name().unwrap(), &random_vpn);

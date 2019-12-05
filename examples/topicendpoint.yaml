@@ -25,7 +25,7 @@ maxMsgSize: 10000000
 maxRedeliveryCount: 0
 maxSpoolUsage: 64
 maxTtl: 0
-msgVpnName: testvpn
+msgVpnName: myvpn
 owner: myusername
 permission: no-access
 rejectLowPriorityMsgEnabled: false

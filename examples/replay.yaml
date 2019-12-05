@@ -1,6 +1,6 @@
 ---
 egressEnabled: false
 ingressEnabled: false
-maxSpoolUsage: 256
-msgVpnName: testvpn
+maxSpoolUsage: 300
+msgVpnName: myvpn
 replayLogName: myreplaylog

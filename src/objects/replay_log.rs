@@ -11,17 +11,33 @@ use crate::save::Save;
 use serde::Serialize;
 use crate::update::Update;
 use std::process;
-use solace_semp_client::models::{MsgVpnReplayLogResponse, MsgVpnReplayLog, SempMetaOnlyResponse};
+use solace_semp_client::models::{MsgVpnReplayLogResponse, MsgVpnReplayLog, SempMetaOnlyResponse, MsgVpnReplayLogsResponse};
+
+impl Fetch<MsgVpnReplayLogsResponse> for MsgVpnReplayLogsResponse {
+    fn fetch(in_vpn: &str, replay_log_name: &str, unused_1: &str, unused_2: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogsResponse, &'static str> {
+        let (wherev, mut selectv) = helpers::getwhere("replayLogName", replay_log_name, selector);
+        let request = apiclient
+            .replay_log_api()
+            .get_msg_vpn_replay_logs(in_vpn, count,  cursor, wherev, selectv)
+            .and_then(|item| {
+                futures::future::ok(item)
+            });
+
+        core_run!(request, core)
+
+    }
+}
 
 impl Fetch<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
     fn fetch(in_vpn: &str, replay_log_name: &str, unused_1: &str, unused_2: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
         let (wherev, mut selectv) = helpers::getwhere("replayLogName", replay_log_name, selector);
         let request = apiclient
             .default_api()
-            .get_msg_vpn_replay_log(in_vpn, replay_log_name,  selectv)
+            .get_msg_vpn_replay_log(in_vpn, replay_log_name,  selectv )
             .and_then(|item| {
                 futures::future::ok(item)
             });
+
         core_run!(request, core)
 
     }
@@ -30,19 +46,45 @@ impl Fetch<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
 
 impl Provision<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
 
-    fn provision_with_file(in_vpn: &str, unused_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
-        let file = std::fs::File::open(file_name).unwrap();
-        let deserialized: Option<MsgVpnReplayLog> = serde_yaml::from_reader(file).unwrap();
+    fn provision_with_file(unused_0: &str, unused_1: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
+
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpnReplayLog);
+
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(in_vpn.to_owned());
+//                item.set_msg_vpn_name(in_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_replay_log(in_vpn, item,  helpers::getselect("*"));
+                    .create_msg_vpn_replay_log(
+                        &*item.msg_vpn_name().cloned().unwrap(),
+                        item,
+                        helpers::getselect("*"));
                 core_run!(request, core)
 
             }
             _ => unimplemented!()
+        }
+    }
+}
+
+
+impl Save<MsgVpnReplayLogsResponse> for MsgVpnReplayLogsResponse {
+    fn save(dir: &str, data: &MsgVpnReplayLogsResponse) -> Result<(), &'static str> where MsgVpnReplayLogsResponse: Serialize {
+        match data.data() {
+            Some(items) => {
+                for item in items {
+                    match MsgVpnReplayLog::save(dir, item) {
+                        Ok(t) => debug!("success saving"),
+                        Err(e) => error!("error writing: {:?}", e)
+                    }
+
+                }
+                Ok(())
+            },
+            _ => {
+                error!("no queues");
+                Err("no queues")
+            }
         }
     }
 }
@@ -61,6 +103,27 @@ impl Save<MsgVpnReplayLog> for MsgVpnReplayLog {
 
 
 impl Update<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
+
+    fn update(unused_1: &str, unused_2: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
+
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpnReplayLog);
+
+        match deserialized {
+            Some(mut item) => {
+                let request = apiclient
+                    .default_api()
+                    .update_msg_vpn_replay_log(
+                        &*item.msg_vpn_name().cloned().unwrap(),
+                        &*item.replay_log_name().cloned().unwrap(),
+                        item,
+                        helpers::getselect("*"));
+                core_run!(request, core)
+
+            }
+            _ => unimplemented!()
+        }
+    }
+
 
     fn ingress(msg_vpn: &str, replay_log_name: &str, state: bool, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnReplayLogResponse, &'static str> {
         info!("retrieving current replay-log from appliance");
@@ -87,7 +150,7 @@ impl Update<MsgVpnReplayLogResponse> for MsgVpnReplayLogResponse {
 
     }
 
-    fn delete(msg_vpn: &str, replay_log_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+    fn delete(msg_vpn: &str, replay_log_name: &str, unused_1: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
         info!("deleting replay-log: {}", replay_log_name);
         let request = apiclient.default_api().delete_msg_vpn_replay_log(msg_vpn, replay_log_name);
         core_run_meta!(request, core)

@@ -110,16 +110,16 @@ impl Save<MsgVpn> for MsgVpn {
 // update vpn
 impl Update<MsgVpnResponse> for MsgVpnResponse {
 
-    fn update(msg_vpn: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
-        info!("updating message-vpn: {} from file", msg_vpn);
+    fn update(unused_1: &str, file_name: &str, sub_item: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnResponse, &'static str> {
+        //info!("updating message-vpn: {} from file", msg_vpn);
         let deserialized = deserialize_file_into_type!(file_name, MsgVpn);
 
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(msg_vpn.to_owned());
+//                item.set_msg_vpn_name(msg_vpn.to_owned());
                 let request = apiclient
                     .default_api()
-                    .update_msg_vpn(msg_vpn, item, helpers::getselect("*"));
+                    .update_msg_vpn(&*item.msg_vpn_name().cloned().unwrap(), item, helpers::getselect("*"));
                 core_run!(request, core)
 
             }

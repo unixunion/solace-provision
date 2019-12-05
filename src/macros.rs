@@ -104,6 +104,7 @@ macro_rules! solace_connect {
 
 macro_rules! deserialize_file_into_type {
     ($file: expr, $type: ty) => {{
+        debug!("deserializing from file: {}", &$file);
         let file = std::fs::File::open($file).unwrap();
         let deserialized: Option<$type> = serde_yaml::from_reader(file).unwrap();
         deserialized
@@ -159,6 +160,8 @@ macro_rules! maybe_set_vpn_name {
         }
     }}
 }
+
+
 
 // example
 macro_rules! call_on_self {

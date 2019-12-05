@@ -126,13 +126,32 @@ mod test {
 //            }
 //        }
 
-        let acl_name = "sp_ci_acl";
-        let random_vpn = "default";
+        let acl_name = "myacl";
+        let random_vpn = "testvpn";
+
+        println!("acce delete testvpn");
+        let d = MsgVpnResponse::delete(&random_vpn, "", "", &mut core, &client);
+
+        println!("acce create vpn");
+        let v = MsgVpnResponse::provision_with_file(
+            "",
+            "",
+            "test_yaml/acce/vpn.yaml", &mut core,
+            &client);
+
+        match v {
+            Ok(vpn) => {
+                assert_eq!(vpn.data().unwrap().msg_vpn_name().unwrap(), &random_vpn);
+            },
+            Err(e) => {
+                error!("acce cannot create testvpn");
+            }
+        }
 
         println!("acce provision acl");
         let a = MsgVpnAclProfileResponse::provision_with_file(
-            random_vpn,
-            acl_name,
+            "",
+            "",
             "test_yaml/acce/acl.yaml",
             &mut core,
             &client
@@ -141,7 +160,7 @@ mod test {
         println!("acce provision verify acl");
         match a {
             Ok(acl) => {
-                assert_eq!(acl.data().unwrap().acl_profile_name().unwrap(), acl_name);
+                assert_eq!(acl.data().unwrap().acl_profile_name().unwrap(), "myacl");
             },
             Err(e) => {
                 error!("acl could not be provisioned");
@@ -159,7 +178,7 @@ mod test {
         println!("acce provision verify");
         match a {
             Ok(acce) => {
-                assert_eq!(acce.data().unwrap().acl_profile_name().unwrap(), acl_name);
+                assert_eq!(acce.data().unwrap().acl_profile_name().unwrap(), "myacl");
             }
             Err(e) => {
                 error!("acce could not be provisioned");

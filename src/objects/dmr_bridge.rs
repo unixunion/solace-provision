@@ -11,7 +11,7 @@ use crate::save::Save;
 use serde::Serialize;
 use crate::update::Update;
 use std::process;
-use solace_semp_client::models::{MsgVpnDmrBridgesResponse, MsgVpnDmrBridge, MsgVpnDmrBridgeResponse};
+use solace_semp_client::models::{MsgVpnDmrBridgesResponse, MsgVpnDmrBridge, MsgVpnDmrBridgeResponse, SempMetaOnlyResponse};
 
 // DMR Bridges
 
@@ -43,15 +43,16 @@ impl Fetch<MsgVpnDmrBridgesResponse> for MsgVpnDmrBridgesResponse {
 // provision
 
 impl Provision<MsgVpnDmrBridgeResponse> for MsgVpnDmrBridgeResponse {
-    fn provision_with_file(in_vpn: &str, unused_name: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnDmrBridgeResponse, &'static str> {
-        let file = std::fs::File::open(file_name).unwrap();
-        let deserialized: Option<MsgVpnDmrBridge> = serde_yaml::from_reader(file).unwrap();
+    fn provision_with_file(unused_1: &str, unused_2: &str, file_name: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<MsgVpnDmrBridgeResponse, &'static str> {
+
+        let deserialized = deserialize_file_into_type!(file_name, MsgVpnDmrBridge);
+
         match deserialized {
             Some(mut item) => {
-                item.set_msg_vpn_name(in_vpn.to_owned());
+//                item.set_msg_vpn_name(msg_vpn_name.to_owned());
                 let request = apiclient
                     .default_api()
-                    .create_msg_vpn_dmr_bridge(in_vpn, item, helpers::getselect("*"));
+                    .create_msg_vpn_dmr_bridge(&*item.msg_vpn_name().cloned().unwrap(), item, helpers::getselect("*"));
                 core_run!(request, core)
 
             }
@@ -99,4 +100,8 @@ impl Save<MsgVpnDmrBridgesResponse> for MsgVpnDmrBridgesResponse {
 
 impl Update<MsgVpnDmrBridgeResponse> for MsgVpnDmrBridgeResponse {
 
+    fn delete(msg_vpn_name: &str, remote_node_name: &str, sub_identifier: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
+        let request = apiclient.default_api().delete_msg_vpn_dmr_bridge(msg_vpn_name, remote_node_name);
+        core_run_meta!(request, core)
+    }
 }

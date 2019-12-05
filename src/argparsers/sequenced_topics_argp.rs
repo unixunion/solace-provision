@@ -21,7 +21,6 @@ impl CommandLineParser<MsgVpnSequencedTopic> for MsgVpnSequencedTopic {
         if let Some(matches) = matches.subcommand_matches("sequenced-topic") {
 
             // get all args within the subcommand
-//            let message_vpn = matches.value_of("message-vpn").unwrap_or("undefined");
             let delete = matches.is_present("delete");
             let fetch = matches.is_present("fetch");
             let mut sequenced_topic = "";
