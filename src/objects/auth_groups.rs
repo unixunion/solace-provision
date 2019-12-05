@@ -239,6 +239,9 @@ mod tests {
         match fag {
             Ok(ag) => {
                 assert_eq!(ag.data().unwrap().len(), 1);
+                MsgVpnAuthorizationGroupsResponse::save("tmp_ag2", &ag);
+                let c = deserialize_file_into_type!("tmp_ag2/testvpn/authorization-group/myauthgroup.yaml", MsgVpnAuthorizationGroup);
+                assert_eq!(c.unwrap().authorization_group_name().unwrap(), "myauthgroup");
             },
             Err(e) => {
                 error!("ag auth-group could not be fetched");
@@ -295,6 +298,7 @@ mod tests {
                 error!("ag save error");
             }
         }
+
 
 
         println!("ag delete");
