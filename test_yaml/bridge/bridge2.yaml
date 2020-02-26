@@ -1,5 +1,5 @@
 ---
-bridgeName: mybridge
+bridgeName: mybridge2
 bridgeVirtualRouter: primary
 enabled: true
 maxTtl: 9

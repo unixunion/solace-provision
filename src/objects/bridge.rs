@@ -151,7 +151,6 @@ impl Update<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
             process::exit(126);
         }
 
-//        Ok(())
     }
 
     fn delete(msg_vpn: &str, brige_name: &str, virtual_router: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<SempMetaOnlyResponse, &'static str> {
@@ -160,4 +159,145 @@ impl Update<MsgVpnBridgeResponse> for MsgVpnBridgeResponse {
         core_run_meta!(request, core)
 
     }
+}
+
+mod tests {
+    use crate::provision::Provision;
+    use solace_semp_client::models::{MsgVpnQueue, MsgVpnResponse, MsgVpnAclProfileClientConnectExceptionResponse, MsgVpnAclProfileClientConnectException, MsgVpnAclProfileClientConnectExceptionsResponse, MsgVpnAclProfileResponse, MsgVpnAclProfilePublishExceptionResponse, MsgVpnAclProfilePublishExceptionsResponse, MsgVpnAclProfileSubscribeExceptionResponse, MsgVpnAclProfileSubscribeExceptionsResponse, MsgVpnAclProfileSubscribeException, MsgVpnClientProfileResponse, MsgVpnAuthorizationGroupResponse, MsgVpnAuthorizationGroupsResponse, MsgVpnAuthorizationGroup, MsgVpnBridge, MsgVpnBridgeResponse, MsgVpnBridgesResponse};
+    use tokio_core::reactor::Core;
+    use hyper::client::HttpConnector;
+    use native_tls::TlsConnector;
+    use hyper::Client;
+    use crate::helpers;
+    use solace_semp_client::apis::configuration::Configuration;
+    use solace_semp_client::apis::client::APIClient;
+    use std::error::Error;
+    use crate::update::Update;
+    use crate::fetch::Fetch;
+    use crate::save::Save;
+    use futures::future::err;
+
+    #[test]
+    fn provision() {
+
+        let (mut core, mut client) = solace_connect!();
+
+        let test_vpn = "testvpn";
+
+        println!("bridge delete testvpn");
+        let d = MsgVpnResponse::delete(&test_vpn, "", "", &mut core, &client);
+
+        println!("bridge create vpn");
+        let v = MsgVpnResponse::provision_with_file(
+            "",
+            "",
+            "test_yaml/bridge/vpn.yaml",
+            &mut core,
+            &client);
+
+        match v {
+            Ok(vpn) => assert_eq!(vpn.data().unwrap().msg_vpn_name().unwrap(), &test_vpn),
+            Err(e) => error!("bridge cannot create testvpn")
+        }
+
+        // provision from file
+        let b = MsgVpnBridgeResponse::provision_with_file(
+            "",
+            "",
+            "test_yaml/bridge/bridge.yaml",
+            &mut core,
+            &client
+        );
+
+        match b {
+            Ok(bridge) => assert_eq!(bridge.data().unwrap().bridge_name().unwrap(), "mybridge"),
+            Err(e) => error!("bridge cannot provision from file")
+        }
+
+        let b2 = MsgVpnBridgeResponse::provision_with_file(
+            "",
+            "",
+            "test_yaml/bridge/bridge2.yaml",
+            &mut core,
+            &client
+        );
+
+
+        // fetch
+        let fb = MsgVpnBridgesResponse::fetch(
+            &test_vpn,
+            "*",
+            "bridgeName",
+            "*",
+            10,
+            "",
+            "*",
+            &mut core,
+            &client
+        );
+        match fb {
+            Ok(bridge) => {
+                assert_eq!(bridge.data().unwrap().len(), 2);
+                MsgVpnBridgesResponse::save("tmp/bridges", &bridge);
+                let c = deserialize_file_into_type!("tmp/bridges/testvpn/bridge/mybridge.yaml", MsgVpnBridge);
+                assert_eq!(c.unwrap().bridge_name().unwrap(), "mybridge");
+                let c = deserialize_file_into_type!("tmp/bridges/testvpn/bridge/mybridge2.yaml", MsgVpnBridge);
+                assert_eq!(c.unwrap().bridge_name().unwrap(), "mybridge2");
+            },
+            Err(e) => error!("bridge unable to fetch bridge")
+        }
+
+
+
+        // save single
+        let mut bridge = MsgVpnBridge::new();
+        bridge.set_bridge_name("tmpbridge".to_owned());
+        bridge.set_bridge_virtual_router("primary".to_owned());
+        bridge.set_msg_vpn_name("testvpn".to_owned());
+        MsgVpnBridge::save(
+            "tmp/bridge",
+            &bridge
+        );
+        let deserialized = deserialize_file_into_type!(format!("tmp/bridge/{}/bridge/tmpbridge.yaml", test_vpn), MsgVpnBridge);
+        match deserialized {
+            Some(a) => {
+                assert_eq!(a.bridge_name().unwrap(), "tmpbridge");
+            }
+            _ => {
+                error!("bridge save error");
+            }
+        }
+
+
+
+
+
+
+        // delete
+        let db = MsgVpnBridgeResponse::delete(
+            &test_vpn,
+            "mybridge",
+            "primary",
+            &mut core,
+            &client
+        );
+        match db {
+            Ok(resp) => assert_eq!(resp.meta().response_code(), &200),
+            Err(e) => error!("bridge delete failed")
+        }
+
+        // delete bridge2
+        let db = MsgVpnBridgeResponse::delete(
+            &test_vpn,
+            "mybridge2",
+            "primary",
+            &mut core,
+            &client
+        );
+
+
+        println!("bridge delete test vpn");
+        let d = MsgVpnResponse::delete(&test_vpn, "", "", &mut core, &client);
+    }
+
 }

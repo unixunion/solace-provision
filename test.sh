@@ -1,21 +1,17 @@
 #!/bin/bash
 
-
-
-
 echo "config: $1"
-echo "lang: $2"
-echo "stop_on_error: $3"
+echo "stop_on_error: $2"
 
 config_file=$1
-rnd_vpn=$2
+rnd_vpn=myvpn
 
-if [[ "$3" == "" ]]; then
+if [[ "$2" == "" ]]; then
     set -e
 fi
 
-if [[ "$2" == "" ]]; then
-    echo "please specify config file and a vpn name to create, update and delete"
+if [[ "$1" == "" ]]; then
+    echo "please specify config file"
     exit 1
 fi
 
@@ -29,7 +25,8 @@ else
 fi
 
 # VPN commands
-$bin --config ${config_file} vpn --file examples/vpn.yaml --message-vpn ${rnd_vpn}
+$bin --config ${config_file} vpn --file examples/vpn.yaml
+$bin --config ${config_file} vpn --file examples/vpn.yaml --update
 $bin --config ${config_file} vpn --fetch --message-vpn ${rnd_vpn}
 $bin --config ${config_file} vpn --update --message-vpn ${rnd_vpn} --shutdown
 $bin --config ${config_file} vpn --update --message-vpn ${rnd_vpn} --shutdown --file examples/vpn.yaml

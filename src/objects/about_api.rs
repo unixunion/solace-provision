@@ -6,9 +6,16 @@ use hyper_tls::HttpsConnector;
 use hyper::client::HttpConnector;
 use futures::future::Future;
 
-// fetch about
+
 impl Fetch<AboutApiResponse> for AboutApiResponse {
-    fn fetch(in_vpn: &str, sub_item: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<AboutApiResponse, &'static str> {
+
+    /// fetch information about the broker
+    ///
+    /// # Arguments
+    /// `core` - Core
+    /// `apiclient` - APIClient
+    ///
+    fn fetch(unused_1: &str, unused_2: &str, select_key: &str, select_value: &str, count: i32, cursor: &str, selector: &str, core: &mut Core, apiclient: &APIClient<HttpsConnector<HttpConnector>>) -> Result<AboutApiResponse, &'static str> {
         let request = apiclient
             .about_api()
             .get_about_api()

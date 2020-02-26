@@ -1,3 +1,8 @@
+//! This is the documentation for acl publish exclusion
+//!
+//! # Examples
+//!
+
 use solace_semp_client::models::{MsgVpn, MsgVpnResponse, MsgVpnsResponse, MsgVpnAclProfile, MsgVpnAclProfileResponse, MsgVpnAclProfilesResponse, MsgVpnAclProfilePublishException, MsgVpnAclProfilePublishExceptionResponse, MsgVpnAclProfilePublishExceptionsResponse};
 use clap::ArgMatches;
 use solace_semp_client::apis::client::APIClient;
@@ -13,6 +18,11 @@ use crate::commandlineparser::CommandLineParser;
 
 impl CommandLineParser<MsgVpnAclProfilePublishException> for MsgVpnAclProfilePublishException {
 
+    /// parse the magic
+    ///
+    /// #Arguments
+    ///
+    /// `matches`: the matches
     fn parse(matches: &ArgMatches, core: &mut Core, client: &APIClient<HttpsConnector<HttpConnector>>) {
 
         // cursor holder

@@ -155,10 +155,10 @@ mod tests {
         let acl_name = "myacl";
         let test_vpn = "testvpn";
 
-        println!("ase delete testvpn");
+        println!("ag delete testvpn");
         let d = MsgVpnResponse::delete(&test_vpn, "", "", &mut core, &client);
 
-        println!("ase create vpn");
+        println!("ag create vpn");
         let v = MsgVpnResponse::provision_with_file(
             "",
             "",
@@ -170,11 +170,11 @@ mod tests {
                 assert_eq!(vpn.data().unwrap().msg_vpn_name().unwrap(), &test_vpn);
             },
             Err(e) => {
-                error!("ase cannot create testvpn");
+                error!("ag cannot create testvpn");
             }
         }
 
-        println!("ase provision acl");
+        println!("ag provision acl");
         let a = MsgVpnAclProfileResponse::provision_with_file(
             "",
             "",
@@ -183,13 +183,13 @@ mod tests {
             &client
         );
 
-        println!("ase provision verify acl");
+        println!("ag provision verify acl");
         match a {
             Ok(acl) => {
                 assert_eq!(acl.data().unwrap().acl_profile_name().unwrap(), "myacl");
             },
             Err(e) => {
-                error!("ase acl could not be provisioned");
+                error!("ag acl could not be provisioned");
             }
         }
 
@@ -239,8 +239,8 @@ mod tests {
         match fag {
             Ok(ag) => {
                 assert_eq!(ag.data().unwrap().len(), 1);
-                MsgVpnAuthorizationGroupsResponse::save("tmp_ag2", &ag);
-                let c = deserialize_file_into_type!("tmp_ag2/testvpn/authorization-group/myauthgroup.yaml", MsgVpnAuthorizationGroup);
+                MsgVpnAuthorizationGroupsResponse::save("tmp/ag", &ag);
+                let c = deserialize_file_into_type!("tmp/ag/testvpn/authorization-group/myauthgroup.yaml", MsgVpnAuthorizationGroup);
                 assert_eq!(c.unwrap().authorization_group_name().unwrap(), "myauthgroup");
             },
             Err(e) => {
@@ -300,7 +300,6 @@ mod tests {
         }
 
 
-
         println!("ag delete");
         let dag = MsgVpnAuthorizationGroupResponse::delete(
             &test_vpn,
@@ -321,6 +320,7 @@ mod tests {
             Err(e) => error!("acl delete failed")
         }
 
+
         println!("ag client-profile delete");
         let da = MsgVpnClientProfileResponse::delete(
             &test_vpn,
@@ -330,12 +330,8 @@ mod tests {
             &client);
 
         match da {
-            Ok(resp) => {
-                assert_eq!(resp.meta().response_code(), &200);
-            },
-            Err(e) => {
-                error!("acl delete failed");
-            }
+            Ok(resp) => assert_eq!(resp.meta().response_code(), &200),
+            Err(e) => error!("ag acl delete failed")
         }
 
         println!("ag delete test vpn");
